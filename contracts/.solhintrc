@@ -1,0 +1,19 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "compiler-version": ["error", "^0.8.28"],
+    "no-unused-vars": "error",
+    "state-visibility": "error",
+    "func-visibility": ["error", { "ignoreConstructors": true }],
+    "avoid-call-value": "error",
+    "avoid-low-level-calls": "warn",
+    "no-inline-assembly": "warn",
+    "check-send-result": "error",
+    "reentrancy": "error",
+    "ordering": "warn",
+    "func-named-parameters": "warn",
+    "named-return-values": "warn",
+    "max-line-length": ["warn", 120],
+    "max-states-count": ["warn", 20]
+  }
+}

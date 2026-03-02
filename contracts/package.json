@@ -4,7 +4,7 @@
   "private": true,
   "description": "FlashDot smart contracts — FlashDotHub + FlashDotVault",
   "scripts": {
-    "build": "echo 'contracts: run npx hardhat compile after T-02'",
+    "build": "npx hardhat compile",
     "test": "npx hardhat test",
     "test:forge": "forge test -vvv",
     "lint": "solhint 'contracts/**/*.sol'",
