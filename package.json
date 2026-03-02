@@ -1,0 +1,19 @@
+{
+  "name": "flashdot-monorepo",
+  "version": "0.0.1",
+  "private": true,
+  "description": "FlashDot — Bonded Cross-Chain Flash Loan Aggregator on Polkadot Hub",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "clean": "pnpm -r run clean"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@flashdot/frontend",
+  "version": "0.0.1",
+  "private": true,
+  "description": "FlashDot frontend — Next.js single-signature UX for cross-chain flash loans",
+  "scripts": {
+    "dev": "next dev",
+    "build": "echo 'frontend: run next build after Next.js setup'",
+    "start": "next start",
+    "lint": "next lint",
+    "clean": "rm -rf .next out"
+  },
+  "dependencies": {
+    "next": "^14.2.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "ethers": "^6.12.1",
+    "polkadot-api": "^1.23.3",
+    "@tanstack/react-query": "^5.37.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "@types/react": "^18.3.2",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5"
+  }
+}

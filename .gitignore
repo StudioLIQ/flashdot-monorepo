@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Hardhat / Foundry
+artifacts/
+cache/
+typechain-types/
+cache_forge/
+
+# Forge
+out/
+lib/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Next.js
+.next/
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Zombienet
+zombienet/logs/
+
+# Coverage
+coverage/
+lcov.info
