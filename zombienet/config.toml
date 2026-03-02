@@ -1,0 +1,72 @@
+[settings]
+timeout = 1000
+provider = "native"
+
+[relaychain]
+default_command = "polkadot"
+chain = "rococo-local"
+default_args = ["-lparachain=debug"]
+
+  [[relaychain.nodes]]
+  name = "alice"
+  validator = true
+
+  [[relaychain.nodes]]
+  name = "bob"
+  validator = true
+
+# Polkadot Hub (Asset Hub EVM enabled) — para id 1000
+[[parachains]]
+id = 1000
+chain = "asset-hub-rococo-local"
+addToGenesis = false
+
+  [parachains.collator]
+  name = "hub-collator"
+  command = "polkadot-parachain"
+  args = ["-lparachain=debug,runtime::evm=debug"]
+
+# Vault A parachain — para id 2000
+[[parachains]]
+id = 2000
+addToGenesis = false
+
+  [parachains.collator]
+  name = "vault-a-collator"
+  command = "polkadot-parachain"
+  args = ["-lparachain=debug"]
+
+# Vault B parachain — para id 2001
+[[parachains]]
+id = 2001
+addToGenesis = false
+
+  [parachains.collator]
+  name = "vault-b-collator"
+  command = "polkadot-parachain"
+  args = ["-lparachain=debug"]
+
+# XCM channels: Hub ↔ Vault A, Hub ↔ Vault B
+[[hrmpChannels]]
+sender = 1000
+recipient = 2000
+maxCapacity = 8
+maxMessageSize = 1048576
+
+[[hrmpChannels]]
+sender = 2000
+recipient = 1000
+maxCapacity = 8
+maxMessageSize = 1048576
+
+[[hrmpChannels]]
+sender = 1000
+recipient = 2001
+maxCapacity = 8
+maxMessageSize = 1048576
+
+[[hrmpChannels]]
+sender = 2001
+recipient = 1000
+maxCapacity = 8
+maxMessageSize = 1048576
