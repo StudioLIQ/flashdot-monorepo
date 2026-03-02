@@ -10,6 +10,7 @@ evm_version = "cancun"
 fuzz = { runs = 256 }
 remappings = [
     "@openzeppelin/=node_modules/@openzeppelin/",
+    "forge-std/=lib/forge-std/src/",
 ]
 
 [profile.ci]
