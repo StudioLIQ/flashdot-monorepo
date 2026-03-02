@@ -5,6 +5,7 @@ import {Test, Vm} from "forge-std/Test.sol";
 import {FlashDotHub} from "../../contracts/FlashDotHub.sol";
 import {IFlashDotHub} from "../../contracts/interfaces/IFlashDotHub.sol";
 import {ERC20Mock} from "./helpers/ERC20Mock.sol";
+import {MockXcmPrecompile} from "../../contracts/mocks/MockXcmPrecompile.sol";
 
 /// @title HubPrepareTest
 /// @notice Unit tests for FlashDotHub.startPrepare() and Prepare-phase onXcmAck()
@@ -27,7 +28,9 @@ contract HubPrepareTest is Test {
 
     function setUp() public {
         token = new ERC20Mock("Mock DOT", "DOT", 18);
-        hub = new FlashDotHub(XCM_EXECUTOR, FEE_RECIPIENT);
+        MockXcmPrecompile _mock = new MockXcmPrecompile(address(0));
+        hub = new FlashDotHub(XCM_EXECUTOR, FEE_RECIPIENT, address(_mock));
+        vm.deal(address(hub), 100 ether);
         token.mint(BORROWER, 10_000_000 ether);
         vm.prank(BORROWER);
         token.approve(address(hub), type(uint256).max);

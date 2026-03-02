@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IFlashDotHub} from "./interfaces/IFlashDotHub.sol";
 import {IXcmPrecompile, XCM_PRECOMPILE_ADDRESS} from "./interfaces/IXcmPrecompile.sol";
+import {XcmEncoder} from "./lib/XcmEncoder.sol";
 
 /// @title FlashDotHub
 /// @notice Cross-chain flash loan coordinator on Polkadot Hub EVM.
@@ -93,11 +94,16 @@ contract FlashDotHub is IFlashDotHub, Ownable {
     // Constructor
     // ─────────────────────────────────────────────────────────────────
 
-    constructor(address _xcmExecutor, address _feeRecipient) Ownable(msg.sender) {
+    constructor(
+        address _xcmExecutor,
+        address _feeRecipient,
+        address _xcmPrecompile
+    ) Ownable(msg.sender) {
         require(_xcmExecutor != address(0), "INVALID_XCM_EXECUTOR");
         require(_feeRecipient != address(0), "INVALID_FEE_RECIPIENT");
         XCM_EXECUTOR = _xcmExecutor;
-        xcmPrecompile = IXcmPrecompile(XCM_PRECOMPILE_ADDRESS);
+        // Use provided precompile address (defaults to production address in prod deploy)
+        xcmPrecompile = IXcmPrecompile(_xcmPrecompile != address(0) ? _xcmPrecompile : XCM_PRECOMPILE_ADDRESS);
         feeRecipient = _feeRecipient;
         nextLoanId = 1;
     }
@@ -465,6 +471,9 @@ contract FlashDotHub is IFlashDotHub, Ownable {
         feeRecipient = recipient;
     }
 
+    /// @notice Accept native token (for XCM fee funding)
+    receive() external payable {}
+
     // ─────────────────────────────────────────────────────────────────
     // Views
     // ─────────────────────────────────────────────────────────────────
@@ -536,8 +545,12 @@ contract FlashDotHub is IFlashDotHub, Ownable {
     }
 
     // ─────────────────────────────────────────────────────────────────
-    // XCM Send Stubs (real XCM wired in M3 T-15~T-18)
+    // XCM Send (wired via IXcmPrecompile — uses MockXcmPrecompile in tests)
     // ─────────────────────────────────────────────────────────────────
+
+    uint64 public constant XCM_WEIGHT_PREPARE = 2_000_000_000;
+    uint64 public constant XCM_WEIGHT_COMMIT  = 2_000_000_000;
+    uint64 public constant XCM_WEIGHT_ABORT   = 1_000_000_000;
 
     function _sendXcmPrepareStub(
         uint256 loanId,
@@ -545,8 +558,22 @@ contract FlashDotHub is IFlashDotHub, Ownable {
         Leg storage leg,
         bytes32 queryId
     ) internal {
-        // TODO (M3): call xcmPrecompile.xcmTransact(...)
-        // Emit event so tests can detect via log
+        Loan storage loan = _loans[loanId];
+        uint256 repayAmt = (leg.amount * (10_000 + leg.legInterestBps) + 9_999) / 10_000;
+
+        bytes memory destEncoded  = XcmEncoder.encodeParachainLocation(uint32(uint256(leg.chain)));
+        bytes memory callEncoded  = XcmEncoder.encodePrepareCall(
+            leg.vault, loanId, leg.amount, repayAmt,
+            loan.expiryAt, loan.borrower, bytes32(uint256(uint160(address(this))))
+        );
+        bytes memory callbackDest = XcmEncoder.encodeHubLocation();
+
+        // feeBudget pays for XCM delivery; hub must hold enough ETH for this
+        // In production, borrower deposits feeBudget as native token alongside bond
+        xcmPrecompile.xcmTransact{value: leg.feeBudget}(
+            destEncoded, callEncoded, XCM_WEIGHT_PREPARE, queryId, callbackDest
+        );
+
         emit XcmPrepareSent(loanId, legId, leg.chain, leg.vault, queryId);
     }
 
@@ -556,16 +583,32 @@ contract FlashDotHub is IFlashDotHub, Ownable {
         Leg storage leg,
         bytes32 queryId
     ) internal {
-        // TODO (M3): call xcmPrecompile.xcmTransact(...)
+        bytes memory destEncoded  = XcmEncoder.encodeParachainLocation(uint32(uint256(leg.chain)));
+        bytes memory callEncoded  = XcmEncoder.encodeCommitCall(loanId);
+        bytes memory callbackDest = XcmEncoder.encodeHubLocation();
+
+        xcmPrecompile.xcmTransact{value: leg.feeBudget}(
+            destEncoded, callEncoded, XCM_WEIGHT_COMMIT, queryId, callbackDest
+        );
+
         emit XcmCommitSent(loanId, legId, leg.chain, leg.vault, queryId);
     }
 
     function _sendXcmAbortStub(uint256 loanId, uint256 legId, Leg storage leg) internal {
-        // TODO (M3): call xcmPrecompile.xcmTransact(...)
+        bytes32 queryId   = _makeQueryId(loanId, legId, Phase.Prepare); // abort has no ACK needed
+        bytes memory destEncoded  = XcmEncoder.encodeParachainLocation(uint32(uint256(leg.chain)));
+        bytes memory callEncoded  = XcmEncoder.encodeAbortCall(loanId);
+        bytes memory callbackDest = XcmEncoder.encodeHubLocation();
+
+        // Abort is fire-and-forget; we don't need an ACK
+        xcmPrecompile.xcmTransact{value: 0}(
+            destEncoded, callEncoded, XCM_WEIGHT_ABORT, queryId, callbackDest
+        );
+
         emit XcmAbortSent(loanId, legId, leg.chain, leg.vault);
     }
 
-    // Internal events for XCM stub tracking (removed in M3 when real XCM is wired)
+    // Internal events for XCM tracking
     event XcmPrepareSent(uint256 indexed loanId, uint256 legId, bytes32 chain, address vault, bytes32 queryId);
     event XcmCommitSent(uint256 indexed loanId, uint256 legId, bytes32 chain, address vault, bytes32 queryId);
     event XcmAbortSent(uint256 indexed loanId, uint256 legId, bytes32 chain, address vault);

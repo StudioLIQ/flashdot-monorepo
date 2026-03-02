@@ -5,6 +5,7 @@ import {Test, Vm} from "forge-std/Test.sol";
 import {FlashDotHub} from "../../contracts/FlashDotHub.sol";
 import {IFlashDotHub} from "../../contracts/interfaces/IFlashDotHub.sol";
 import {ERC20Mock} from "./helpers/ERC20Mock.sol";
+import {MockXcmPrecompile} from "../../contracts/mocks/MockXcmPrecompile.sol";
 
 /// @title HubTest
 /// @notice Comprehensive tests covering Hub state machine, bond math, and default payout.
@@ -24,7 +25,9 @@ contract HubTest is Test {
 
     function setUp() public {
         token = new ERC20Mock("Mock DOT", "DOT", 18);
-        hub = new FlashDotHub(XCM_EXECUTOR, FEE_RECIPIENT);
+        MockXcmPrecompile _mock = new MockXcmPrecompile(address(0));
+        hub = new FlashDotHub(XCM_EXECUTOR, FEE_RECIPIENT, address(_mock));
+        vm.deal(address(hub), 100 ether);
         token.mint(BORROWER, 100_000_000 ether);
         vm.prank(BORROWER);
         token.approve(address(hub), type(uint256).max);

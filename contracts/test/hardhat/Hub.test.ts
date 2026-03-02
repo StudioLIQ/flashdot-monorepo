@@ -28,8 +28,13 @@ describe("FlashDotHub", () => {
     const ERC20MockFactory = await ethers.getContractFactory("ERC20Mock");
     token = (await ERC20MockFactory.deploy("Mock DOT", "DOT", 18)) as ERC20Mock;
 
+    const MockXcmFactory = await ethers.getContractFactory("MockXcmPrecompile");
+    const mockXcm = await MockXcmFactory.deploy(ethers.ZeroAddress);
+
     const HubFactory = await ethers.getContractFactory("FlashDotHub");
-    hub = (await HubFactory.deploy(xcmExecutor.address, feeRecipient.address)) as FlashDotHub;
+    hub = (await HubFactory.deploy(xcmExecutor.address, feeRecipient.address, await mockXcm.getAddress())) as FlashDotHub;
+    // Fund hub for XCM fee forwarding
+    await xcmExecutor.sendTransaction({ to: await hub.getAddress(), value: ethers.parseEther("10") });
 
     await token.mint(borrower.address, ethers.parseEther("10000000"));
     await token.connect(borrower).approve(await hub.getAddress(), ethers.MaxUint256);
