@@ -399,13 +399,14 @@ contract FlashDotHub is IFlashDotHub, Ownable {
     function triggerDefault(uint256 loanId) external {
         Loan storage loan = _loans[loanId];
         require(block.timestamp >= loan.expiryAt, "NOT_EXPIRED");
+
+        BondInfo storage bond = _bondEscrow[loanId];
+        // Check already defaulted before state check (state becomes Defaulted after first trigger)
+        require(!bond.slashed, "ALREADY_DEFAULTED");
         require(
             loan.state == LoanState.Committed || loan.repayOnlyMode,
             "NOT_DEFAULTABLE"
         );
-
-        BondInfo storage bond = _bondEscrow[loanId];
-        require(!bond.slashed, "ALREADY_DEFAULTED");
 
         uint256 totalPayout = 0;
         uint256 nLegs = _legCount[loanId];
