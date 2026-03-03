@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IFlashDotHub} from "./interfaces/IFlashDotHub.sol";
 import {IXcmPrecompile, XCM_PRECOMPILE_ADDRESS} from "./interfaces/IXcmPrecompile.sol";
 import {XcmEncoder} from "./lib/XcmEncoder.sol";
@@ -19,7 +20,7 @@ import {XcmEncoder} from "./lib/XcmEncoder.sol";
 ///   I-4: bond ≥ Σ(repay_i) + Σ(feeBudget_i) + HUB_FEE_BUFFER
 ///   I-5: only Hub XCM sovereign origin can call vault endpoints
 ///   I-6: disbursement per loanId is single-execution
-contract FlashDotHub is IFlashDotHub, Ownable {
+contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // ─────────────────────────────────────────────────────────────────
@@ -379,7 +380,7 @@ contract FlashDotHub is IFlashDotHub, Ownable {
     // ─────────────────────────────────────────────────────────────────
 
     /// @inheritdoc IFlashDotHub
-    function finalizeSettle(uint256 loanId) external {
+    function finalizeSettle(uint256 loanId) external nonReentrant {
         Loan storage loan = _loans[loanId];
         require(
             loan.state == LoanState.Committed || loan.state == LoanState.Repaying,
@@ -402,7 +403,7 @@ contract FlashDotHub is IFlashDotHub, Ownable {
     }
 
     /// @inheritdoc IFlashDotHub
-    function triggerDefault(uint256 loanId) external {
+    function triggerDefault(uint256 loanId) external nonReentrant {
         Loan storage loan = _loans[loanId];
         require(block.timestamp >= loan.expiryAt, "NOT_EXPIRED");
 

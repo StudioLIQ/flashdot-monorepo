@@ -3,13 +3,14 @@ pragma solidity ^0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IFlashDotVault} from "./interfaces/IFlashDotVault.sol";
 
 /// @title FlashDotVault
 /// @notice Cross-chain flash loan liquidity vault for FlashDot protocol.
 ///         Implements Two-Phase Commit (prepare → commit/abort) driven by Hub XCM.
 /// @dev Pool invariant: pool.total == pool.available + pool.reserved + pool.borrowed
-contract FlashDotVault is IFlashDotVault {
+contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // ─────────────────────────────────────────────────────────────────
@@ -67,7 +68,7 @@ contract FlashDotVault is IFlashDotVault {
     // ─────────────────────────────────────────────────────────────────
 
     /// @inheritdoc IFlashDotVault
-    function deposit(uint256 amount) external poolInvariant returns (uint256 shares) {
+    function deposit(uint256 amount) external nonReentrant poolInvariant returns (uint256 shares) {
         require(amount > 0, "ZERO_AMOUNT");
 
         if (totalShares == 0 || pool.available == 0) {
@@ -90,7 +91,7 @@ contract FlashDotVault is IFlashDotVault {
     }
 
     /// @inheritdoc IFlashDotVault
-    function withdraw(uint256 shares) external poolInvariant returns (uint256 amount) {
+    function withdraw(uint256 shares) external nonReentrant poolInvariant returns (uint256 amount) {
         require(shares > 0, "ZERO_SHARES");
         require(_lpShares[msg.sender] >= shares, "INSUFFICIENT_SHARES");
 
@@ -121,7 +122,7 @@ contract FlashDotVault is IFlashDotVault {
         uint64  expiryAt,
         address borrowerDest,
         bytes32 hubLoc
-    ) external onlyHubOrigin poolInvariant {
+    ) external onlyHubOrigin nonReentrant poolInvariant {
         VaultLoan storage vl = _vaultLoans[loanId];
 
         // Loan exists if principal > 0 (distinguishes from zero-initialized storage)
@@ -160,7 +161,7 @@ contract FlashDotVault is IFlashDotVault {
     }
 
     /// @inheritdoc IFlashDotVault
-    function commit(uint256 loanId) external onlyHubOrigin poolInvariant {
+    function commit(uint256 loanId) external onlyHubOrigin nonReentrant poolInvariant {
         VaultLoan storage vl = _vaultLoans[loanId];
 
         if (vl.state == VaultLoanState.Committed) {
@@ -183,7 +184,7 @@ contract FlashDotVault is IFlashDotVault {
     }
 
     /// @inheritdoc IFlashDotVault
-    function abort(uint256 loanId) external onlyHubOrigin poolInvariant {
+    function abort(uint256 loanId) external onlyHubOrigin nonReentrant poolInvariant {
         VaultLoan storage vl = _vaultLoans[loanId];
 
         if (vl.state == VaultLoanState.Aborted) {
@@ -206,7 +207,7 @@ contract FlashDotVault is IFlashDotVault {
     // ─────────────────────────────────────────────────────────────────
 
     /// @inheritdoc IFlashDotVault
-    function repay(uint256 loanId, uint256 amount) external poolInvariant {
+    function repay(uint256 loanId, uint256 amount) external nonReentrant poolInvariant {
         VaultLoan storage vl = _vaultLoans[loanId];
         require(vl.state == VaultLoanState.Committed, "NOT_COMMITTED");
         require(amount > 0 && amount <= vl.repayAmount, "INVALID_REPAY_AMOUNT");
@@ -228,7 +229,7 @@ contract FlashDotVault is IFlashDotVault {
     // ─────────────────────────────────────────────────────────────────
 
     /// @inheritdoc IFlashDotVault
-    function claimDefault(uint256 loanId) external poolInvariant {
+    function claimDefault(uint256 loanId) external nonReentrant poolInvariant {
         VaultLoan storage vl = _vaultLoans[loanId];
         require(block.timestamp >= vl.expiryAt, "NOT_EXPIRED");
         require(vl.state == VaultLoanState.Committed, "NOT_COMMITTED");
