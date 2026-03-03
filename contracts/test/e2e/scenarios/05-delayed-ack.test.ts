@@ -4,7 +4,7 @@
  */
 
 import { expect } from "chai";
-import { setupE2E } from "../setup.js";
+import { setupE2E } from "../setup";
 
 describe("E2E Scenario 5: Delayed ACK / Idempotency", function () {
   this.timeout(300_000);

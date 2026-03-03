@@ -4,7 +4,7 @@
  */
 
 import { ethers } from "ethers";
-import { loadDeployments, Deployments } from "../../../zombienet/scripts/helpers/contracts.js";
+import { loadDeployments, Deployments } from "../../../zombienet/scripts/helpers/contracts";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

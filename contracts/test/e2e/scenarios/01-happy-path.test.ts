@@ -9,8 +9,8 @@
 
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { setupE2E } from "../setup.js";
-import { waitForLoanState, waitForLegState } from "../../../zombienet/scripts/helpers/wait-for-xcm.js";
+import { setupE2E } from "../setup";
+import { waitForLoanState, waitForLegState } from "../../../zombienet/scripts/helpers/wait-for-xcm";
 
 // LoanState enum values
 const LoanState = { Created: 0, Preparing: 1, Prepared: 2, Committing: 3, Committed: 4, Settled: 7 };

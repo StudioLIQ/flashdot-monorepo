@@ -4,8 +4,8 @@
  */
 
 import { expect } from "chai";
-import { setupE2E } from "../setup.js";
-import { waitForLoanState } from "../../../zombienet/scripts/helpers/wait-for-xcm.js";
+import { setupE2E } from "../setup";
+import { waitForLoanState } from "../../../zombienet/scripts/helpers/wait-for-xcm";
 
 const LoanState = { Committed: 4, Settled: 7 };
 

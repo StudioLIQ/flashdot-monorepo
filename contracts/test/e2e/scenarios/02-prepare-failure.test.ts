@@ -5,8 +5,8 @@
 
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { setupE2E } from "../setup.js";
-import { waitForLoanState } from "../../../zombienet/scripts/helpers/wait-for-xcm.js";
+import { setupE2E } from "../setup";
+import { waitForLoanState } from "../../../zombienet/scripts/helpers/wait-for-xcm";
 
 const LoanState = { Aborted: 8 };
 
