@@ -21,6 +21,7 @@ lib/
 .env
 .env.local
 .env.*.local
+coordinator/*.db
 
 # Next.js
 .next/
