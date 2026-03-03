@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 
+import { CreateLoan } from "../components/CreateLoan";
 import { useWallet } from "../hooks/useWallet";
 
 function shortAddress(address: string): string {
@@ -78,16 +79,7 @@ export default function HomePage(): JSX.Element {
           </div>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-dashed border-ink/25 bg-white/60 p-5">
-          <p className="text-sm text-ink/80">Create Loan UI (T-27) is next.</p>
-          <button
-            type="button"
-            disabled={!isConnected || !isCorrectNetwork}
-            className="mt-4 rounded-xl bg-accent px-4 py-2 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50"
-          >
-            Create Loan & Lock Bond
-          </button>
-        </div>
+        <CreateLoan />
       </section>
     </main>
   );

@@ -16,6 +16,8 @@ cache_forge/
 # Forge
 out/
 lib/
+!frontend/src/lib/
+!frontend/src/lib/**
 
 # Environment
 .env
