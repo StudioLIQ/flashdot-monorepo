@@ -8,6 +8,9 @@
     "test": "npx hardhat test",
     "test:forge": "forge test -vvv",
     "test:e2e": "node test/e2e/run-e2e.mjs",
+    "deploy:hub": "npx hardhat run scripts/deploy-hub.ts",
+    "deploy:vault": "npx hardhat run scripts/deploy-vault.ts",
+    "deploy:mock-token": "npx hardhat run scripts/deploy-mock-token.ts",
     "lint": "solhint 'contracts/**/*.sol'",
     "clean": "rm -rf artifacts cache typechain-types"
   },

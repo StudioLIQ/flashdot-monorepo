@@ -9,13 +9,13 @@ import { config as loadDotenv } from "dotenv";
 
 const ENV_PATH = path.resolve(process.cwd(), ".env");
 
-if (!fs.existsSync(ENV_PATH)) {
+if (fs.existsSync(ENV_PATH)) {
+  loadDotenv({ path: ENV_PATH });
+} else if (!process.env["HUB_RPC_URL"]) {
   throw new Error(
-    `Missing coordinator .env file at "${ENV_PATH}". Copy ".env.example" to ".env" and fill values.`
+    `Missing coordinator .env file at "${ENV_PATH}". Copy ".env.example" to ".env" or set runtime env vars directly.`
   );
 }
-
-loadDotenv({ path: ENV_PATH });
 
 function required(key: string): string {
   const value = process.env[key]?.trim();
@@ -64,7 +64,7 @@ export const config = {
   coordinator: {
     privateKey: required("COORDINATOR_PRIVATE_KEY"),
     dbPath: optional("DB_PATH", "./coordinator.db"),
-    port: parseNumber("COORDINATOR_PORT", "8787"),
+    port: parseNumber("COORDINATOR_PORT", process.env["PORT"] ?? "8787"),
   },
   retry: {
     maxRetries: parseNumber("MAX_RETRIES", "5"),
