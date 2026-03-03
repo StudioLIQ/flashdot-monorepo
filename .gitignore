@@ -49,3 +49,9 @@ zombienet/logs/
 # Coverage
 coverage/
 lcov.info
+
+# Local deploy notes/env (service-specific)
+DEPLOY.*.local.md
+contracts/.env.deploy.local
+coordinator/.env.railway.local
+frontend/.env.vercel.local
