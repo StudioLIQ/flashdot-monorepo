@@ -113,3 +113,15 @@ Prize pool:
 ## Contact
 - Telegram: `@Zoey1412`
 - Email: zoey@openguild.wtf
+
+## FlashDot Track Participation Evidence
+
+### Track 1 (EVM Smart Contract Track)
+- `contracts/contracts/FlashDotHub.sol`: cross-chain loan lifecycle state machine + bond escrow.
+- `contracts/contracts/FlashDotVault.sol`: LP pool accounting, prepare/commit/abort/repay/default.
+- Dual test suites: Hardhat + Foundry (`pnpm -C contracts test`, `pnpm -C contracts test:forge`).
+
+### Track 2 (PVM / Native Precompile Integration)
+- Hub contract integrates XCM precompile interface (`IXcmPrecompile`) and runtime-style XCM dispatch.
+- Query/ACK handling implemented through `onXcmAck` and deterministic query indexing.
+- Local multi-chain infra and scripts under `zombienet/` demonstrate cross-chain messaging flow.
