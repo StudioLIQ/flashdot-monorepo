@@ -11,7 +11,7 @@ interface RetryPayload {
   legId?: number;
 }
 
-interface HubRetryContract {
+export interface HubRetryContract {
   startPrepare: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   startCommit: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   finalizeSettle: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;

@@ -5,7 +5,7 @@ import { db } from "./db/index.js";
 import { loans, retryQueue } from "./db/schema.js";
 import { LoanState } from "./lifecycle/constants.js";
 
-interface HubTimeoutContract {
+export interface HubTimeoutContract {
   triggerDefault: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
 }
 
