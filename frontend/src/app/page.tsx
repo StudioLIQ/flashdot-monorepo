@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 
 import { CreateLoan } from "../components/CreateLoan";
+import { LoanStatus } from "../components/LoanStatus";
 import { useWallet } from "../hooks/useWallet";
 
 function shortAddress(address: string): string {
@@ -80,6 +81,7 @@ export default function HomePage(): JSX.Element {
         </div>
 
         <CreateLoan />
+        <LoanStatus loan={null} legs={[]} />
       </section>
     </main>
   );
