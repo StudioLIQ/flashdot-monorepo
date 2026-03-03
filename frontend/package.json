@@ -5,7 +5,7 @@
   "description": "FlashDot frontend — Next.js single-signature UX for cross-chain flash loans",
   "scripts": {
     "dev": "next dev",
-    "build": "echo 'frontend: run next build after Next.js setup'",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "clean": "rm -rf .next out"
