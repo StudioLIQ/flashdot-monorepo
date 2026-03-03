@@ -4,7 +4,11 @@ import { useMemo } from "react";
 
 import { CreateLoan } from "../components/CreateLoan";
 import { LoanStatus } from "../components/LoanStatus";
+import { useLoan } from "../hooks/useLoan";
+import { useLoanHistory } from "../hooks/useLoanHistory";
+import { useMyLoans } from "../hooks/useMyLoans";
 import { useWallet } from "../hooks/useWallet";
+import { LoanState } from "../lib/loan-types";
 
 function shortAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -25,6 +29,23 @@ export default function HomePage(): JSX.Element {
     if (!chainId) return "Unknown";
     return `${chainId}`;
   }, [chainId]);
+
+  const myLoansQuery = useMyLoans(account);
+  const loanHistoryQuery = useLoanHistory(account);
+
+  const activeLoanId = useMemo(() => {
+    const list = myLoansQuery.data ?? [];
+    if (!list.length) return null;
+    const active = list.find(
+      (loan) =>
+        loan.state !== LoanState.Settled &&
+        loan.state !== LoanState.Defaulted &&
+        loan.state !== LoanState.Aborted
+    );
+    return (active ?? list[0])?.loanId ?? null;
+  }, [myLoansQuery.data]);
+
+  const activeLoanQuery = useLoan(activeLoanId);
 
   return (
     <main className="min-h-screen bg-mesh px-6 py-10 text-ink md:px-10">
@@ -80,8 +101,30 @@ export default function HomePage(): JSX.Element {
           </div>
         </div>
 
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-ink/10 bg-white p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">My Loans</p>
+            <p className="mt-2 text-lg font-semibold">{(myLoansQuery.data ?? []).length}</p>
+            <p className="mt-1 text-sm text-ink/70">Polling every 5s</p>
+          </div>
+          <div className="rounded-2xl border border-ink/10 bg-white p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">History</p>
+            <p className="mt-2 text-lg font-semibold">{(loanHistoryQuery.data ?? []).length}</p>
+            <p className="mt-1 text-sm text-ink/70">Settled / Defaulted / Aborted</p>
+          </div>
+        </div>
+
         <CreateLoan />
-        <LoanStatus loan={null} legs={[]} />
+        <LoanStatus
+          loan={activeLoanQuery.data?.loan ?? null}
+          legs={activeLoanQuery.data?.legs ?? []}
+          refreshing={activeLoanQuery.isFetching || myLoansQuery.isFetching}
+          onRepaid={() => {
+            void activeLoanQuery.refetch();
+            void myLoansQuery.refetch();
+            void loanHistoryQuery.refetch();
+          }}
+        />
       </section>
     </main>
   );
