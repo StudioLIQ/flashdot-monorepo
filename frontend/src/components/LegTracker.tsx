@@ -1,6 +1,6 @@
 "use client";
 
-import { BrowserProvider, Contract } from "ethers";
+import { BrowserProvider, Contract, formatEther } from "ethers";
 import { useEffect, useMemo, useState } from "react";
 
 import type { LegView } from "../lib/loan-types";
@@ -33,6 +33,13 @@ function formatRemaining(seconds: number): string {
 
 function shortAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function formatDotAmount(amount: bigint): string {
+  return `${Number(formatEther(amount)).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 6,
+  })} DOT`;
 }
 
 export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
@@ -81,7 +88,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
     <article className="rounded-xl border border-ink/15 bg-white p-4">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">Leg #{leg.legId} · {shortAddress(leg.vault)}</h3>
-        <p className="text-xs text-ink/60">Principal: {Number(leg.amount / 10n ** 16n) / 100} DOT</p>
+        <p className="text-xs text-ink/60">Principal: {formatDotAmount(leg.amount)}</p>
       </div>
 
       <ol className="mt-3 grid gap-2 text-xs text-ink/70 sm:grid-cols-5">
