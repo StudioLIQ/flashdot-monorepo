@@ -41,6 +41,9 @@ CREATE TABLE `xcm_events` (
 	`leg_id` integer NOT NULL,
 	`phase` text NOT NULL,
 	`tx_hash` text,
+	`log_index` integer,
 	`sent_at` integer NOT NULL,
 	`acked_at` integer
 );
+--> statement-breakpoint
+CREATE UNIQUE INDEX `xcm_events_tx_hash_log_index_unique` ON `xcm_events` (`tx_hash`,`log_index`);

@@ -48,9 +48,12 @@ export const xcmEvents = sqliteTable("xcm_events", {
   legId: integer("leg_id").notNull(),
   phase: text("phase").notNull(),
   txHash: text("tx_hash"),
+  logIndex: integer("log_index"),
   sentAt: integer("sent_at", { mode: "number" }).notNull(),
   ackedAt: integer("acked_at", { mode: "number" }),
-});
+}, (table) => ({
+  receiptUnique: uniqueIndex("xcm_events_tx_hash_log_index_unique").on(table.txHash, table.logIndex),
+}));
 
 export const schema = {
   loans,

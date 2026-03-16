@@ -272,6 +272,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "log_index": {
+          "name": "log_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "sent_at": {
           "name": "sent_at",
           "type": "integer",
@@ -287,7 +294,16 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "xcm_events_tx_hash_log_index_unique": {
+          "name": "xcm_events_tx_hash_log_index_unique",
+          "columns": [
+            "tx_hash",
+            "log_index"
+          ],
+          "isUnique": true
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
