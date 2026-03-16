@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const dbMock = vi.hoisted(() => ({
   insert: vi.fn(),
   update: vi.fn(),
+  transaction: vi.fn(),
 }));
 
 const schemaMock = vi.hoisted(() => ({
@@ -42,9 +43,16 @@ function mockUpdateChain(): { set: ReturnType<typeof vi.fn> } {
   return { set };
 }
 
+function mockTransaction(): void {
+  dbMock.transaction.mockImplementation(async (callback: (tx: typeof dbMock) => Promise<unknown>) =>
+    callback(dbMock)
+  );
+}
+
 describe("onLoanCreated", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTransaction();
   });
 
   it("stores the loan and legs, then starts prepare", async () => {

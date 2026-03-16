@@ -28,54 +28,56 @@ export async function onLoanCreated(ctx: LifecycleContext, loanIdRaw: bigint): P
 
     const legCount = Number(legCountRaw);
 
-    await db
-      .insert(loans)
-      .values({
-        loanId,
-        borrower: normalizeAddress(loan.borrower),
-        state: Number(loan.state),
-        bondAmount: toBigIntString(bondInfo.bondAmount),
-        expiryAt: Number(loan.expiryAt),
-        repayOnlyMode: Boolean(loan.repayOnlyMode),
-        createdAt: now,
-        updatedAt: now,
-      })
-      .onConflictDoUpdate({
-        target: loans.loanId,
-        set: {
+    await db.transaction(async (tx) => {
+      await tx
+        .insert(loans)
+        .values({
+          loanId,
+          borrower: normalizeAddress(loan.borrower),
           state: Number(loan.state),
           bondAmount: toBigIntString(bondInfo.bondAmount),
           expiryAt: Number(loan.expiryAt),
           repayOnlyMode: Boolean(loan.repayOnlyMode),
-          updatedAt: now,
-        },
-      });
-
-    for (let legId = 0; legId < legCount; legId += 1) {
-      const leg = await ctx.hubContract.getLeg(loanIdRaw, legId);
-      await db
-        .insert(legs)
-        .values({
-          loanId,
-          legId,
-          chain: String(leg.chain),
-          vault: normalizeAddress(leg.vault),
-          amount: toBigIntString(leg.amount),
-          state: Number(leg.state),
-          lastXcmQueryId: null,
+          createdAt: now,
           updatedAt: now,
         })
         .onConflictDoUpdate({
-          target: [legs.loanId, legs.legId],
+          target: loans.loanId,
           set: {
+            state: Number(loan.state),
+            bondAmount: toBigIntString(bondInfo.bondAmount),
+            expiryAt: Number(loan.expiryAt),
+            repayOnlyMode: Boolean(loan.repayOnlyMode),
+            updatedAt: now,
+          },
+        });
+
+      for (let legId = 0; legId < legCount; legId += 1) {
+        const leg = await ctx.hubContract.getLeg(loanIdRaw, legId);
+        await tx
+          .insert(legs)
+          .values({
+            loanId,
+            legId,
             chain: String(leg.chain),
             vault: normalizeAddress(leg.vault),
             amount: toBigIntString(leg.amount),
             state: Number(leg.state),
+            lastXcmQueryId: null,
             updatedAt: now,
-          },
-        });
-    }
+          })
+          .onConflictDoUpdate({
+            target: [legs.loanId, legs.legId],
+            set: {
+              chain: String(leg.chain),
+              vault: normalizeAddress(leg.vault),
+              amount: toBigIntString(leg.amount),
+              state: Number(leg.state),
+              updatedAt: now,
+            },
+          });
+      }
+    });
 
     const startPrepareTx = await ctx.hubContract.startPrepare(loanIdRaw);
     await startPrepareTx.wait();

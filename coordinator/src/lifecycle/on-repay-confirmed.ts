@@ -14,22 +14,26 @@ export async function onRepayConfirmed(
   const legId = Number(legIdRaw);
 
   try {
-    await db
-      .update(legs)
-      .set({ state: LegState.RepaidConfirmed, updatedAt: nowMs() })
-      .where(and(eq(legs.loanId, loanId), eq(legs.legId, legId)));
+    const hasUnpaidCommittedLeg = await db.transaction(async (tx) => {
+      const updatedAt = nowMs();
+      await tx
+        .update(legs)
+        .set({ state: LegState.RepaidConfirmed, updatedAt })
+        .where(and(eq(legs.loanId, loanId), eq(legs.legId, legId)));
 
-    await db
-      .update(loans)
-      .set({ state: LoanState.Repaying, updatedAt: nowMs() })
-      .where(eq(loans.loanId, loanId));
+      await tx
+        .update(loans)
+        .set({ state: LoanState.Repaying, updatedAt })
+        .where(eq(loans.loanId, loanId));
 
-    const allLegs = await db
-      .select({ state: legs.state })
-      .from(legs)
-      .where(eq(legs.loanId, loanId));
+      const allLegs = await tx
+        .select({ state: legs.state })
+        .from(legs)
+        .where(eq(legs.loanId, loanId));
 
-    const hasUnpaidCommittedLeg = allLegs.some((row) => row.state === LegState.CommittedAcked);
+      return allLegs.some((row) => row.state === LegState.CommittedAcked);
+    });
+
     if (!hasUnpaidCommittedLeg) {
       const finalizeTx = await ctx.hubContract.finalizeSettle(loanIdRaw);
       await finalizeTx.wait();

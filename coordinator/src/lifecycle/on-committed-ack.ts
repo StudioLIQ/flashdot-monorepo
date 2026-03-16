@@ -14,27 +14,30 @@ export async function onCommittedAck(
   const legId = Number(legIdRaw);
 
   try {
-    await db
-      .update(legs)
-      .set({ state: LegState.CommittedAcked, updatedAt: nowMs() })
-      .where(and(eq(legs.loanId, loanId), eq(legs.legId, legId)));
+    await db.transaction(async (tx) => {
+      const updatedAt = nowMs();
+      await tx
+        .update(legs)
+        .set({ state: LegState.CommittedAcked, updatedAt })
+        .where(and(eq(legs.loanId, loanId), eq(legs.legId, legId)));
 
-    const allLegs = await db
-      .select({ state: legs.state })
-      .from(legs)
-      .where(eq(legs.loanId, loanId));
+      const allLegs = await tx
+        .select({ state: legs.state })
+        .from(legs)
+        .where(eq(legs.loanId, loanId));
 
-    const isCommitted = allLegs.every((row) =>
-      row.state === LegState.CommittedAcked || row.state === LegState.Aborted
-    );
+      const isCommitted = allLegs.every((row) =>
+        row.state === LegState.CommittedAcked || row.state === LegState.Aborted
+      );
 
-    await db
-      .update(loans)
-      .set({
-        state: isCommitted ? LoanState.Committed : LoanState.Committing,
-        updatedAt: nowMs(),
-      })
-      .where(eq(loans.loanId, loanId));
+      await tx
+        .update(loans)
+        .set({
+          state: isCommitted ? LoanState.Committed : LoanState.Committing,
+          updatedAt,
+        })
+        .where(eq(loans.loanId, loanId));
+    });
   } catch (error) {
     await enqueueRetry({
       action: "updateCommittedAck",

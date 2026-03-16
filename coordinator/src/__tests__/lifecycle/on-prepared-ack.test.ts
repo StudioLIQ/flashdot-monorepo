@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const dbMock = vi.hoisted(() => ({
   update: vi.fn(),
   select: vi.fn(),
+  transaction: vi.fn(),
 }));
 
 const schemaMock = vi.hoisted(() => ({
@@ -44,9 +45,16 @@ function mockSelectRows(rows: Array<Array<{ state: number }>>): void {
   }));
 }
 
+function mockTransaction(): void {
+  dbMock.transaction.mockImplementation(async (callback: (tx: typeof dbMock) => Promise<unknown>) =>
+    callback(dbMock)
+  );
+}
+
 describe("onPreparedAck", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTransaction();
   });
 
   it("starts commit once every leg is prepared", async () => {

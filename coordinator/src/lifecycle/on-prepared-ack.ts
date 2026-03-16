@@ -14,22 +14,27 @@ export async function onPreparedAck(
   const legId = Number(legIdRaw);
 
   try {
-    await db
-      .update(legs)
-      .set({ state: LegState.PreparedAcked, updatedAt: nowMs() })
-      .where(and(eq(legs.loanId, loanId), eq(legs.legId, legId)));
+    const shouldStartCommit = await db.transaction(async (tx) => {
+      const updatedAt = nowMs();
+      await tx
+        .update(legs)
+        .set({ state: LegState.PreparedAcked, updatedAt })
+        .where(and(eq(legs.loanId, loanId), eq(legs.legId, legId)));
 
-    await db
-      .update(loans)
-      .set({ state: LoanState.Preparing, updatedAt: nowMs() })
-      .where(eq(loans.loanId, loanId));
+      await tx
+        .update(loans)
+        .set({ state: LoanState.Preparing, updatedAt })
+        .where(eq(loans.loanId, loanId));
 
-    const allLegs = await db
-      .select({ state: legs.state })
-      .from(legs)
-      .where(eq(legs.loanId, loanId));
+      const allLegs = await tx
+        .select({ state: legs.state })
+        .from(legs)
+        .where(eq(legs.loanId, loanId));
 
-    if (allLegs.length > 0 && allLegs.every((row) => row.state === LegState.PreparedAcked)) {
+      return allLegs.length > 0 && allLegs.every((row) => row.state === LegState.PreparedAcked);
+    });
+
+    if (shouldStartCommit) {
       const startCommitTx = await ctx.hubContract.startCommit(loanIdRaw);
       await startCommitTx.wait();
 
