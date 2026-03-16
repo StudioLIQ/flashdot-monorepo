@@ -28,15 +28,22 @@ DEFAULT_CHECK_INTERVAL_MS=10000
 ## Frontend (`frontend` env)
 
 ```dotenv
-NEXT_PUBLIC_HUB_RPC_URL=https://westend-asset-hub-eth-rpc.polkadot.io
-NEXT_PUBLIC_HUB_ADDRESS=0x...
-NEXT_PUBLIC_ASSET_ADDRESS=0x...
-NEXT_PUBLIC_VAULT_A_ADDRESS=0x...
-NEXT_PUBLIC_VAULT_B_ADDRESS=0x...
+NEXT_PUBLIC_HUB_RPC_URL=http://127.0.0.1:8545
+NEXT_PUBLIC_HUB_ADDRESS=0x0000000000000000000000000000000000000000
+NEXT_PUBLIC_ASSET_ADDRESS=0x0000000000000000000000000000000000000000
+NEXT_PUBLIC_VAULT_A_ADDRESS=0x0000000000000000000000000000000000000000
+NEXT_PUBLIC_VAULT_B_ADDRESS=0x0000000000000000000000000000000000000000
 ```
+
+로컬/Zombienet 배포 후에는 아래 명령으로 실제 주소가 채워진 `frontend/.env.local`을 생성할 수 있습니다.
+
+```bash
+node zombienet/scripts/export-frontend-env.mjs
+```
+
+Westend Asset Hub 배포본을 사용할 경우에는 `frontend/.env.example` 하단의 주석 섹션을 실제 주소로 채우면 됩니다.
 
 ## Contracts
 
 - Hardhat network config: `contracts/hardhat.config.ts`
 - Zombienet deploy artifacts: `zombienet/deployments.json` (generated)
-

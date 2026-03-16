@@ -84,6 +84,9 @@ pnpm -C coordinator start
 ### 5. Start frontend
 
 ```bash
+cp frontend/.env.example frontend/.env.local
+# or generate local addresses from Zombienet deployments:
+# node zombienet/scripts/export-frontend-env.mjs
 pnpm -C frontend dev
 # http://localhost:3000
 ```
