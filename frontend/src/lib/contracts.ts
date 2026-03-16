@@ -17,7 +17,43 @@ export const HUB_ABI = [
   "function getBondInfo(uint256 loanId) view returns (tuple(uint256 bondAmount,uint64 lockedAt,bool slashed))",
   "function getLegCount(uint256 loanId) view returns (uint256)",
   "function getLeg(uint256 loanId,uint256 legId) view returns (tuple(bytes32 chain,address vault,uint256 amount,uint256 feeBudget,uint32 legInterestBps,uint8 state))",
-];
+ ] as const;
+
+export interface HubLoanRecord {
+  borrower: string;
+  asset: string;
+  targetAmount: bigint;
+  interestBps: number;
+  createdAt: bigint;
+  expiryAt: bigint;
+  state: number;
+  repayOnlyMode: boolean;
+  planHash: string;
+}
+
+export interface HubBondInfoRecord {
+  bondAmount: bigint;
+  lockedAt: bigint;
+  slashed: boolean;
+}
+
+export interface HubLegRecord {
+  chain: string;
+  vault: string;
+  amount: bigint;
+  feeBudget: bigint;
+  legInterestBps: number;
+  state: number;
+}
+
+export interface HubLoanCreatedLog {
+  args: {
+    0: bigint;
+    1: string;
+    loanId: bigint;
+    borrower: string;
+  };
+}
 
 export interface HubWriteContract {
   createLoan: (
@@ -41,11 +77,11 @@ export interface HubWriteContract {
 }
 
 export interface HubReadContract {
-  getLoan: (loanId: bigint) => Promise<any>;
-  getBondInfo: (loanId: bigint) => Promise<any>;
-  getLegCount: (loanId: bigint) => Promise<any>;
-  getLeg: (loanId: bigint, legId: number) => Promise<any>;
-  queryFilter: (event: unknown, fromBlock: number, toBlock: string) => Promise<any[]>;
+  getLoan: (loanId: bigint) => Promise<HubLoanRecord>;
+  getBondInfo: (loanId: bigint) => Promise<HubBondInfoRecord>;
+  getLegCount: (loanId: bigint) => Promise<bigint>;
+  getLeg: (loanId: bigint, legId: number) => Promise<HubLegRecord>;
+  queryFilter: (event: unknown, fromBlock: number, toBlock: string) => Promise<HubLoanCreatedLog[]>;
   filters: {
     LoanCreated: () => unknown;
   };

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getHubReadContract } from "../lib/contracts";
+import { getHubReadContract, type HubLoanCreatedLog } from "../lib/contracts";
 import { LoanState, type LoanView } from "../lib/loan-types";
 
 const TERMINAL_STATES = new Set<number>([
@@ -17,11 +17,11 @@ async function fetchLoanHistory(account: string): Promise<LoanView[]> {
 
   const normalized = account.toLowerCase();
   const loanIds = logs
-    .filter((log: any) => {
-      const borrower = String(log.args?.borrower ?? log.args?.[1] ?? "").toLowerCase();
+    .filter((log: HubLoanCreatedLog) => {
+      const borrower = String(log.args.borrower ?? log.args[1] ?? "").toLowerCase();
       return borrower === normalized;
     })
-    .map((log: any) => String(log.args?.loanId ?? log.args?.[0]))
+    .map((log: HubLoanCreatedLog) => String(log.args.loanId ?? log.args[0]))
     .filter((loanId: string, index: number, arr: string[]) => arr.indexOf(loanId) === index);
 
   const result: LoanView[] = [];

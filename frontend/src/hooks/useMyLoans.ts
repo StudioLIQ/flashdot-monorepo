@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-import { getHubReadContract } from "../lib/contracts";
+import { getHubReadContract, type HubLoanCreatedLog } from "../lib/contracts";
 import { type LoanView } from "../lib/loan-types";
 
 async function fetchMyLoans(account: string): Promise<LoanView[]> {
@@ -12,11 +12,11 @@ async function fetchMyLoans(account: string): Promise<LoanView[]> {
 
   const normalized = account.toLowerCase();
   const myLoanIds = logs
-    .filter((log: any) => {
-      const borrower = String(log.args?.borrower ?? log.args?.[1] ?? "").toLowerCase();
+    .filter((log: HubLoanCreatedLog) => {
+      const borrower = String(log.args.borrower ?? log.args[1] ?? "").toLowerCase();
       return borrower === normalized;
     })
-    .map((log: any) => String(log.args?.loanId ?? log.args?.[0]))
+    .map((log: HubLoanCreatedLog) => String(log.args.loanId ?? log.args[0]))
     .filter((loanId: string, index: number, arr: string[]) => arr.indexOf(loanId) === index);
 
   const loans: LoanView[] = [];
