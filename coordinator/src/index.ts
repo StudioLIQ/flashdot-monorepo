@@ -1,6 +1,6 @@
 import http from "node:http";
 
-import { count, eq, notInArray } from "drizzle-orm";
+import { count, notInArray } from "drizzle-orm";
 import { Contract, JsonRpcProvider, Wallet } from "ethers";
 
 import { config } from "./config.js";
@@ -13,6 +13,11 @@ import { processRetryQueue, type HubRetryContract } from "./retry-engine.js";
 import { runTimeoutEnforcer, type HubTimeoutContract } from "./timeout-enforcer.js";
 
 const RETRY_LOOP_MS = 5_000;
+const TERMINAL_LOAN_STATES: number[] = [
+  LoanState.Settled,
+  LoanState.Defaulted,
+  LoanState.Aborted,
+];
 
 const HUB_ABI = [
   "event LoanCreated(uint256 indexed loanId, address borrower, address asset, uint256 targetAmount, uint256 bondAmount)",
@@ -33,24 +38,18 @@ async function activeLoanCount(): Promise<number> {
   const rows = await db
     .select({ value: count() })
     .from(loans)
-    .where(
-      notInArray(loans.state, [
-        LoanState.Settled,
-        LoanState.Defaulted,
-        LoanState.Aborted,
-      ])
-    );
+    .where(notInArray(loans.state, TERMINAL_LOAN_STATES));
 
   return Number(rows[0]?.value ?? 0);
 }
 
-async function recoverCommittedLoans(): Promise<string[]> {
+async function recoverActiveLoans(): Promise<Array<{ loanId: string; state: number }>> {
   const rows = await db
-    .select({ loanId: loans.loanId })
+    .select({ loanId: loans.loanId, state: loans.state })
     .from(loans)
-    .where(eq(loans.state, LoanState.Committed));
+    .where(notInArray(loans.state, TERMINAL_LOAN_STATES));
 
-  return rows.map((row) => row.loanId);
+  return rows;
 }
 
 async function main(): Promise<void> {
@@ -61,12 +60,15 @@ async function main(): Promise<void> {
   const hubContract = new Contract(config.hub.address, HUB_ABI, signer) as unknown as
     HubContractLike & HubRetryContract & HubTimeoutContract;
 
-  const restoredCommitted = await recoverCommittedLoans();
-  if (restoredCommitted.length > 0) {
-    console.log(`[coordinator] restored ${restoredCommitted.length} committed loans from DB`);
+  const restoredLoans = await recoverActiveLoans();
+  if (restoredLoans.length > 0) {
+    console.log(`[coordinator] restored ${restoredLoans.length} active loans from DB`);
   }
 
   const watcher = await startLoanWatcher(hubContract);
+
+  await processRetryQueue(hubContract);
+  await runTimeoutEnforcer(hubContract);
 
   const retryTimer = setInterval(() => {
     void processRetryQueue(hubContract).catch((error) => {
