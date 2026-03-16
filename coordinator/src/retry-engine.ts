@@ -1,10 +1,15 @@
-import { eq, lte } from "drizzle-orm";
+import { and, eq, lte } from "drizzle-orm";
 
 import { config } from "./config.js";
 import { db } from "./db/index.js";
-import { retryQueue } from "./db/schema.js";
+import { legs, loans, retryQueue } from "./db/schema.js";
 
-type RetryAction = "startPrepare" | "startCommit" | "finalizeSettle" | "triggerDefault";
+type RetryAction =
+  | "startPrepare"
+  | "startCommit"
+  | "finalizeSettle"
+  | "triggerDefault"
+  | "updateCommittedAck";
 
 interface RetryPayload {
   loanId?: string;
@@ -12,28 +17,73 @@ interface RetryPayload {
 }
 
 export interface HubRetryContract {
+  getLoan: (loanId: bigint) => Promise<{ state: number }>;
+  getLeg: (loanId: bigint, legId: number) => Promise<{ state: number }>;
   startPrepare: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   startCommit: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   finalizeSettle: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   triggerDefault: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
 }
 
-const ACTION_EXECUTORS: Record<RetryAction, (hub: HubRetryContract, loanId: bigint) => Promise<void>> = {
-  startPrepare: async (hub, loanId) => {
+function nowMs(): number {
+  return Date.now();
+}
+
+const ACTION_EXECUTORS: Record<RetryAction, (hub: HubRetryContract, payload: RetryPayload) => Promise<void>> = {
+  startPrepare: async (hub, payload) => {
+    const loanId = toLoanId(payload);
+    if (loanId === null) {
+      throw new Error("retry payload missing loanId");
+    }
     const tx = await hub.startPrepare(loanId);
     await tx.wait();
   },
-  startCommit: async (hub, loanId) => {
+  startCommit: async (hub, payload) => {
+    const loanId = toLoanId(payload);
+    if (loanId === null) {
+      throw new Error("retry payload missing loanId");
+    }
     const tx = await hub.startCommit(loanId);
     await tx.wait();
   },
-  finalizeSettle: async (hub, loanId) => {
+  finalizeSettle: async (hub, payload) => {
+    const loanId = toLoanId(payload);
+    if (loanId === null) {
+      throw new Error("retry payload missing loanId");
+    }
     const tx = await hub.finalizeSettle(loanId);
     await tx.wait();
   },
-  triggerDefault: async (hub, loanId) => {
+  triggerDefault: async (hub, payload) => {
+    const loanId = toLoanId(payload);
+    if (loanId === null) {
+      throw new Error("retry payload missing loanId");
+    }
     const tx = await hub.triggerDefault(loanId);
     await tx.wait();
+  },
+  updateCommittedAck: async (hub, payload) => {
+    const loanId = toLoanId(payload);
+    const legId = toLegId(payload);
+    if (loanId === null || legId === null) {
+      throw new Error("retry payload missing loanId/legId");
+    }
+
+    const [loan, leg] = await Promise.all([
+      hub.getLoan(loanId),
+      hub.getLeg(loanId, legId),
+    ]);
+    const updatedAt = nowMs();
+
+    await db
+      .update(legs)
+      .set({ state: Number(leg.state), updatedAt })
+      .where(and(eq(legs.loanId, loanId.toString()), eq(legs.legId, legId)));
+
+    await db
+      .update(loans)
+      .set({ state: Number(loan.state), updatedAt })
+      .where(eq(loans.loanId, loanId.toString()));
   },
 };
 
@@ -57,6 +107,11 @@ function toLoanId(payload: RetryPayload): bigint | null {
   }
 }
 
+function toLegId(payload: RetryPayload): number | null {
+  if (payload.legId === undefined) return null;
+  return Number.isInteger(payload.legId) ? payload.legId : null;
+}
+
 function nextDelayMs(nextAttempt: number): number {
   const delays = config.retry.backoffMs;
   const index = Math.min(Math.max(nextAttempt - 1, 0), delays.length - 1);
@@ -73,9 +128,8 @@ export async function processRetryQueue(hubContract: HubRetryContract): Promise<
   for (const item of dueItems) {
     const action = item.action as RetryAction;
     const payload = parsePayload(item.payload);
-    const loanId = toLoanId(payload);
 
-    if (!loanId || !(action in ACTION_EXECUTORS)) {
+    if (!(action in ACTION_EXECUTORS)) {
       console.error(`[retry] drop invalid queue item id=${item.id} action=${item.action}`);
       await db.delete(retryQueue).where(eq(retryQueue.id, item.id));
       continue;
@@ -88,7 +142,7 @@ export async function processRetryQueue(hubContract: HubRetryContract): Promise<
     }
 
     try {
-      await ACTION_EXECUTORS[action](hubContract, loanId);
+      await ACTION_EXECUTORS[action](hubContract, payload);
       await db.delete(retryQueue).where(eq(retryQueue.id, item.id));
     } catch (error) {
       const attempts = item.attempts + 1;

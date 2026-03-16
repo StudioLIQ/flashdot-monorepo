@@ -7,6 +7,13 @@ const dbMock = vi.hoisted(() => ({
 }));
 
 const schemaMock = vi.hoisted(() => ({
+  legs: {
+    loanId: Symbol("loanId"),
+    legId: Symbol("legId"),
+  },
+  loans: {
+    loanId: Symbol("loanId"),
+  },
   retryQueue: {
     id: Symbol("id"),
     nextRetryAt: Symbol("nextRetryAt"),
@@ -71,6 +78,8 @@ describe("processRetryQueue", () => {
     ]);
 
     const hub = {
+      getLoan: vi.fn(),
+      getLeg: vi.fn(),
       startPrepare: vi.fn().mockResolvedValue({ wait: vi.fn().mockResolvedValue(undefined) }),
       startCommit: vi.fn(),
       finalizeSettle: vi.fn(),
@@ -98,6 +107,8 @@ describe("processRetryQueue", () => {
     const updateChain = mockUpdateChain();
 
     const hub = {
+      getLoan: vi.fn(),
+      getLeg: vi.fn(),
       startPrepare: vi.fn(),
       startCommit: vi.fn().mockRejectedValue(new Error("rpc unavailable")),
       finalizeSettle: vi.fn(),
@@ -118,7 +129,7 @@ describe("processRetryQueue", () => {
     mockSelectRows([
       {
         id: 3,
-        action: "updateCommittedAck",
+        action: "unsupportedAction",
         attempts: 0,
         payload: JSON.stringify({ loanId: "9" }),
         nextRetryAt: Date.now() - 10,
@@ -126,6 +137,8 @@ describe("processRetryQueue", () => {
     ]);
 
     const hub = {
+      getLoan: vi.fn(),
+      getLeg: vi.fn(),
       startPrepare: vi.fn(),
       startCommit: vi.fn(),
       finalizeSettle: vi.fn(),
@@ -137,6 +150,37 @@ describe("processRetryQueue", () => {
 
     expect(dbMock.delete).toHaveBeenCalledTimes(1);
     expect(hub.startPrepare).not.toHaveBeenCalled();
+  });
+
+  it("syncs committed ack state back into the local database", async () => {
+    mockSelectRows([
+      {
+        id: 5,
+        action: "updateCommittedAck",
+        attempts: 0,
+        payload: JSON.stringify({ loanId: "19", legId: 2 }),
+        nextRetryAt: Date.now() - 10,
+      },
+    ]);
+    const updateChain = mockUpdateChain();
+
+    const hub = {
+      getLoan: vi.fn().mockResolvedValue({ state: 4 }),
+      getLeg: vi.fn().mockResolvedValue({ state: 4 }),
+      startPrepare: vi.fn(),
+      startCommit: vi.fn(),
+      finalizeSettle: vi.fn(),
+      triggerDefault: vi.fn(),
+    };
+
+    const { processRetryQueue } = await import("../retry-engine.js");
+    await processRetryQueue(hub);
+
+    expect(hub.getLoan).toHaveBeenCalledWith(19n);
+    expect(hub.getLeg).toHaveBeenCalledWith(19n, 2);
+    expect(updateChain.set).toHaveBeenNthCalledWith(1, expect.objectContaining({ state: 4 }));
+    expect(updateChain.set).toHaveBeenNthCalledWith(2, expect.objectContaining({ state: 4 }));
+    expect(dbMock.delete).toHaveBeenCalledTimes(1);
   });
 
   it("drops queue items once max retries is exceeded", async () => {
@@ -151,6 +195,8 @@ describe("processRetryQueue", () => {
     ]);
 
     const hub = {
+      getLoan: vi.fn(),
+      getLeg: vi.fn(),
       startPrepare: vi.fn(),
       startCommit: vi.fn(),
       finalizeSettle: vi.fn(),
