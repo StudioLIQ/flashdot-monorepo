@@ -1,16 +1,48 @@
 import { db } from "../db/index.js";
 import { retryQueue } from "../db/schema.js";
 
+export interface HubLoanData {
+  borrower: string;
+  asset: string;
+  targetAmount: bigint;
+  interestBps: number;
+  createdAt: bigint;
+  expiryAt: bigint;
+  state: number;
+  repayOnlyMode: boolean;
+  planHash: string;
+}
+
+export interface HubBondInfoData {
+  bondAmount: bigint;
+  lockedAt: bigint;
+  slashed: boolean;
+}
+
+export interface HubLegData {
+  chain: string;
+  vault: string;
+  amount: bigint;
+  feeBudget: bigint;
+  legInterestBps: number;
+  state: number;
+}
+
+export type LoanCreatedListener = (loanId: bigint) => Promise<void> | void;
+export type LegAckListener = (loanId: bigint, legId: bigint) => Promise<void> | void;
+export type HubEvent = "LoanCreated" | "PreparedAcked" | "CommittedAcked" | "RepayConfirmed";
+export type HubEventListener = LoanCreatedListener | LegAckListener;
+
 export interface HubContractLike {
-  getLoan: (loanId: bigint) => Promise<any>;
-  getBondInfo: (loanId: bigint) => Promise<any>;
-  getLegCount: (loanId: bigint) => Promise<any>;
-  getLeg: (loanId: bigint, legId: number) => Promise<any>;
+  getLoan: (loanId: bigint) => Promise<HubLoanData>;
+  getBondInfo: (loanId: bigint) => Promise<HubBondInfoData>;
+  getLegCount: (loanId: bigint) => Promise<bigint>;
+  getLeg: (loanId: bigint, legId: number) => Promise<HubLegData>;
   startPrepare: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   startCommit: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   finalizeSettle: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
-  on: (event: string, listener: (...args: any[]) => unknown) => void;
-  off: (event: string, listener: (...args: any[]) => unknown) => void;
+  on: (event: HubEvent, listener: HubEventListener) => void;
+  off: (event: HubEvent, listener: HubEventListener) => void;
 }
 
 export interface LifecycleContext {

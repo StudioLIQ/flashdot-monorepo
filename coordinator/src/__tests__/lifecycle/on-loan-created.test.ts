@@ -78,6 +78,10 @@ describe("onLoanCreated", () => {
             state: 0,
           }),
         startPrepare: vi.fn().mockResolvedValue({ wait: startPrepareWait }),
+        startCommit: vi.fn(),
+        finalizeSettle: vi.fn(),
+        on: vi.fn(),
+        off: vi.fn(),
       },
     };
 
@@ -122,6 +126,10 @@ describe("onLoanCreated", () => {
         getLegCount: vi.fn().mockResolvedValue(0n),
         getLeg: vi.fn(),
         startPrepare: vi.fn().mockRejectedValue(new Error("call reverted")),
+        startCommit: vi.fn(),
+        finalizeSettle: vi.fn(),
+        on: vi.fn(),
+        off: vi.fn(),
       },
     };
 
