@@ -28,6 +28,8 @@ const HUB_ABI = [
   "function getBondInfo(uint256 loanId) view returns (tuple(uint256 bondAmount,uint64 lockedAt,bool slashed))",
   "function getLeg(uint256 loanId,uint256 legId) view returns (tuple(bytes32 chain,address vault,uint256 amount,uint256 feeBudget,uint32 legInterestBps,uint8 state))",
   "function getLegCount(uint256 loanId) view returns (uint256)",
+  "function cancelBeforeCommit(uint256 loanId)",
+  "function enforceCommitTimeout(uint256 loanId)",
   "function startPrepare(uint256 loanId)",
   "function startCommit(uint256 loanId)",
   "function finalizeSettle(uint256 loanId)",

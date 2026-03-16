@@ -188,8 +188,25 @@ contract HubCreateTest is Test {
         uint256 loanId = hub.createLoan(_makeLoanParams(), _makeSingleLeg());
 
         vm.prank(STRANGER);
-        vm.expectRevert("NOT_BORROWER");
+        vm.expectRevert("NOT_AUTHORIZED_TO_CANCEL");
         hub.cancelBeforeCommit(loanId);
+    }
+
+    function test_cancel_afterPrepareTimeout_isPermissionless() public {
+        vm.prank(BORROWER);
+        uint256 loanId = hub.createLoan(_makeLoanParams(), _makeSingleLeg());
+
+        hub.startPrepare(loanId);
+        vm.warp(block.timestamp + hub.COMMIT_TIMEOUT() + 1);
+
+        uint256 borrowerBalBefore = token.balanceOf(BORROWER);
+        uint256 bondAmount = hub.getBondInfo(loanId).bondAmount;
+
+        vm.prank(STRANGER);
+        hub.cancelBeforeCommit(loanId);
+
+        assertEq(uint8(hub.getLoan(loanId).state), uint8(IFlashDotHub.LoanState.Aborted));
+        assertEq(token.balanceOf(BORROWER) - borrowerBalBefore, bondAmount, "bond returned");
     }
 
     // ─────────────────────────────────────────────────────────────────

@@ -5,6 +5,8 @@ import { db } from "./db/index.js";
 import { legs, loans, retryQueue } from "./db/schema.js";
 
 type RetryAction =
+  | "cancelBeforeCommit"
+  | "enforceCommitTimeout"
   | "startPrepare"
   | "startCommit"
   | "finalizeSettle"
@@ -19,6 +21,8 @@ interface RetryPayload {
 export interface HubRetryContract {
   getLoan: (loanId: bigint) => Promise<{ state: number }>;
   getLeg: (loanId: bigint, legId: number) => Promise<{ state: number }>;
+  cancelBeforeCommit: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
+  enforceCommitTimeout: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   startPrepare: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   startCommit: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   finalizeSettle: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
@@ -30,6 +34,22 @@ function nowMs(): number {
 }
 
 const ACTION_EXECUTORS: Record<RetryAction, (hub: HubRetryContract, payload: RetryPayload) => Promise<void>> = {
+  cancelBeforeCommit: async (hub, payload) => {
+    const loanId = toLoanId(payload);
+    if (loanId === null) {
+      throw new Error("retry payload missing loanId");
+    }
+    const tx = await hub.cancelBeforeCommit(loanId);
+    await tx.wait();
+  },
+  enforceCommitTimeout: async (hub, payload) => {
+    const loanId = toLoanId(payload);
+    if (loanId === null) {
+      throw new Error("retry payload missing loanId");
+    }
+    const tx = await hub.enforceCommitTimeout(loanId);
+    await tx.wait();
+  },
   startPrepare: async (hub, payload) => {
     const loanId = toLoanId(payload);
     if (loanId === null) {

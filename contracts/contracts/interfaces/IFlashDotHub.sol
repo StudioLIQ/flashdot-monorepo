@@ -139,7 +139,8 @@ interface IFlashDotHub {
     function createLoan(LoanParams calldata params, LegSpec[] calldata legSpecs) external returns (uint256 loanId);
 
     /// @notice Cancel loan before any commit is sent.
-    ///         Returns bond minus cancellation fee. Reverts if state >= Committing.
+    ///         Borrower may cancel immediately; anyone may cancel after prepare timeout.
+    ///         Returns bond to borrower. Reverts if state >= Committing.
     function cancelBeforeCommit(uint256 loanId) external;
 
     // ─────────────────────────────────────────────────────────────────
@@ -153,6 +154,10 @@ interface IFlashDotHub {
     /// @notice Kick off Phase 2: send XCM commit to all PreparedAcked legs.
     ///         Loan must be in Prepared state.
     function startCommit(uint256 loanId) external;
+
+    /// @notice Force RepayOnly mode when commit ACKs have timed out.
+    ///         Aborts remaining PreparedAcked legs but leaves CommitSent legs untouched.
+    function enforceCommitTimeout(uint256 loanId) external;
 
     /// @notice Settle loan after all legs are RepaidConfirmed.
     ///         Returns bond minus hub fee to borrower.

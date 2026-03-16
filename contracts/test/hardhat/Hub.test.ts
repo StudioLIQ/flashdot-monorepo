@@ -254,7 +254,53 @@ describe("FlashDotHub", () => {
     it("stranger cannot cancel", async () => {
       const loanId = await createLoan();
       await expect(hub.connect(stranger).cancelBeforeCommit(loanId))
-        .to.be.revertedWith("NOT_BORROWER");
+        .to.be.revertedWith("NOT_AUTHORIZED_TO_CANCEL");
+    });
+
+    it("allows permissionless cancel after prepare timeout", async () => {
+      const loanId = await createLoan();
+      const bondAmount = (await hub.getBondInfo(loanId)).bondAmount;
+      const borrowerBalanceBefore = await token.balanceOf(borrower.address);
+
+      await hub.startPrepare(loanId);
+      await time.increase(121);
+
+      await hub.connect(stranger).cancelBeforeCommit(loanId);
+
+      expect((await hub.getLoan(loanId)).state).to.equal(8n);
+      expect((await token.balanceOf(borrower.address)) - borrowerBalanceBefore).to.equal(bondAmount);
+    });
+  });
+
+  describe("enforceCommitTimeout", () => {
+    it("moves a stuck commit flow into repay-only mode", async () => {
+      const loanId = await createLoan();
+
+      const prepTx = await hub.startPrepare(loanId);
+      const prepQids = extractQueryIds(await prepTx.wait()!, "XcmPrepareSent");
+      await hub.connect(xcmExecutor).onXcmAck(prepQids[0]!, true);
+
+      await hub.startCommit(loanId);
+      await time.increase(121);
+
+      await hub.connect(stranger).enforceCommitTimeout(loanId);
+
+      const loan = await hub.getLoan(loanId);
+      expect(loan.state).to.equal(3n);
+      expect(loan.repayOnlyMode).to.equal(true);
+    });
+
+    it("reverts before the timeout is reached", async () => {
+      const loanId = await createLoan();
+
+      const prepTx = await hub.startPrepare(loanId);
+      const prepQids = extractQueryIds(await prepTx.wait()!, "XcmPrepareSent");
+      await hub.connect(xcmExecutor).onXcmAck(prepQids[0]!, true);
+
+      await hub.startCommit(loanId);
+
+      await expect(hub.connect(stranger).enforceCommitTimeout(loanId))
+        .to.be.revertedWith("COMMIT_TIMEOUT_NOT_REACHED");
     });
   });
 

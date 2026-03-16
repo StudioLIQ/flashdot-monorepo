@@ -205,6 +205,27 @@ contract HubCommitTest is Test {
         // (verified by absence of such a function in IFlashDotHub)
     }
 
+    function test_enforceCommitTimeout_setsRepayOnlyMode() public {
+        (uint256 loanId,) = _createAndPrepare();
+
+        hub.startCommit(loanId);
+        vm.warp(block.timestamp + hub.COMMIT_TIMEOUT() + 1);
+
+        hub.enforceCommitTimeout(loanId);
+
+        IFlashDotHub.Loan memory loan = hub.getLoan(loanId);
+        assertEq(uint8(loan.state), uint8(IFlashDotHub.LoanState.Committing));
+        assertTrue(loan.repayOnlyMode, "repayOnlyMode must be set after timeout");
+    }
+
+    function test_enforceCommitTimeout_beforeDeadline_reverts() public {
+        (uint256 loanId,) = _createAndPrepare();
+
+        hub.startCommit(loanId);
+        vm.expectRevert("COMMIT_TIMEOUT_NOT_REACHED");
+        hub.enforceCommitTimeout(loanId);
+    }
+
     function test_committedAcked_cannotBeAborted() public {
         (uint256 loanId,) = _createAndPrepare();
 

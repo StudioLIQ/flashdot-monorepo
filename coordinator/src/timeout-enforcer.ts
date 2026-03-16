@@ -1,20 +1,26 @@
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, lte, or } from "drizzle-orm";
 
 import { config } from "./config.js";
 import { db } from "./db/index.js";
-import { loans, retryQueue } from "./db/schema.js";
-import { LoanState } from "./lifecycle/constants.js";
+import { legs, loans, retryQueue } from "./db/schema.js";
+import { LegState, LoanState } from "./lifecycle/constants.js";
 
 export interface HubTimeoutContract {
+  cancelBeforeCommit: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
+  enforceCommitTimeout: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   triggerDefault: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
 }
 
-async function queueDefaultRetry(loanId: string, error: unknown): Promise<void> {
+async function queueTimeoutRetry(
+  loanId: string,
+  action: "cancelBeforeCommit" | "enforceCommitTimeout" | "triggerDefault",
+  error: unknown
+): Promise<void> {
   const now = Date.now();
   await db.insert(retryQueue).values({
     loanId,
     legId: null,
-    action: "triggerDefault",
+    action,
     attempts: 0,
     nextRetryAt: now,
     lastError: error instanceof Error ? error.message : String(error),
@@ -29,7 +35,12 @@ export async function checkExpiredLoans(hubContract: HubTimeoutContract): Promis
   const expired = await db
     .select()
     .from(loans)
-    .where(and(eq(loans.state, LoanState.Committed), lte(loans.expiryAt, nowSec)));
+    .where(
+      and(
+        or(eq(loans.state, LoanState.Committed), eq(loans.repayOnlyMode, true)),
+        lte(loans.expiryAt, nowSec)
+      )
+    );
 
   for (const row of expired) {
     try {
@@ -41,24 +52,47 @@ export async function checkExpiredLoans(hubContract: HubTimeoutContract): Promis
         .set({ state: LoanState.Defaulted, updatedAt: Date.now() })
         .where(eq(loans.loanId, row.loanId));
     } catch (error) {
-      await queueDefaultRetry(row.loanId, error);
+      await queueTimeoutRetry(row.loanId, "triggerDefault", error);
     }
   }
 }
 
-export async function checkPrepareTimeouts(): Promise<void> {
+export async function checkPrepareTimeouts(hubContract: HubTimeoutContract): Promise<void> {
   const cutoff = Date.now() - config.timeouts.prepareMs;
   const stuckPreparing = await db
     .select()
     .from(loans)
-    .where(and(eq(loans.state, LoanState.Preparing), lte(loans.updatedAt, cutoff)));
+    .where(
+      and(
+        or(eq(loans.state, LoanState.Preparing), eq(loans.state, LoanState.Prepared)),
+        lte(loans.updatedAt, cutoff)
+      )
+    );
 
   for (const row of stuckPreparing) {
-    console.warn(`[timeout] loan ${row.loanId} stuck in Preparing for > ${config.timeouts.prepareMs}ms`);
+    try {
+      const tx = await hubContract.cancelBeforeCommit(BigInt(row.loanId));
+      await tx.wait();
+
+      const updatedAt = Date.now();
+      await db.transaction(async (dbTx) => {
+        await dbTx
+          .update(loans)
+          .set({ state: LoanState.Aborted, updatedAt })
+          .where(eq(loans.loanId, row.loanId));
+
+        await dbTx
+          .update(legs)
+          .set({ state: LegState.Aborted, updatedAt })
+          .where(eq(legs.loanId, row.loanId));
+      });
+    } catch (error) {
+      await queueTimeoutRetry(row.loanId, "cancelBeforeCommit", error);
+    }
   }
 }
 
-export async function checkCommitTimeouts(): Promise<void> {
+export async function checkCommitTimeouts(hubContract: HubTimeoutContract): Promise<void> {
   const cutoff = Date.now() - config.timeouts.commitMs;
   const stuckCommitting = await db
     .select()
@@ -66,14 +100,32 @@ export async function checkCommitTimeouts(): Promise<void> {
     .where(and(eq(loans.state, LoanState.Committing), lte(loans.updatedAt, cutoff)));
 
   for (const row of stuckCommitting) {
-    console.warn(`[timeout] loan ${row.loanId} stuck in Committing for > ${config.timeouts.commitMs}ms`);
+    try {
+      const tx = await hubContract.enforceCommitTimeout(BigInt(row.loanId));
+      await tx.wait();
+
+      const updatedAt = Date.now();
+      await db.transaction(async (dbTx) => {
+        await dbTx
+          .update(loans)
+          .set({ repayOnlyMode: true, updatedAt })
+          .where(eq(loans.loanId, row.loanId));
+
+        await dbTx
+          .update(legs)
+          .set({ state: LegState.Aborted, updatedAt })
+          .where(and(eq(legs.loanId, row.loanId), eq(legs.state, LegState.PreparedAcked)));
+      });
+    } catch (error) {
+      await queueTimeoutRetry(row.loanId, "enforceCommitTimeout", error);
+    }
   }
 }
 
 export async function runTimeoutEnforcer(hubContract: HubTimeoutContract): Promise<void> {
   await Promise.all([
     checkExpiredLoans(hubContract),
-    checkPrepareTimeouts(),
-    checkCommitTimeouts(),
+    checkPrepareTimeouts(hubContract),
+    checkCommitTimeouts(hubContract),
   ]);
 }

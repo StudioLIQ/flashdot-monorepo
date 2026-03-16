@@ -51,6 +51,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     mapping(uint256 => BondInfo) private _bondEscrow;
     mapping(bytes32 => QueryMeta) private _queryIndex;
 
+    mapping(uint256 => uint64) private _prepareStartedAt;
     mapping(uint256 => uint64) private _commitStartedAt;
 
     bool public createPaused;
@@ -175,13 +176,21 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     /// @inheritdoc IFlashDotHub
     function cancelBeforeCommit(uint256 loanId) external {
         Loan storage loan = _loans[loanId];
-        require(loan.borrower == msg.sender, "NOT_BORROWER");
         require(
             loan.state == LoanState.Created ||
             loan.state == LoanState.Preparing ||
             loan.state == LoanState.Prepared,
             "TOO_LATE_TO_CANCEL"
         );
+
+        bool borrowerRequested = loan.borrower == msg.sender;
+        bool timedOutPrepare = _prepareStartedAt[loanId] != 0
+            && (
+                loan.state == LoanState.Preparing ||
+                loan.state == LoanState.Prepared
+            )
+            && block.timestamp >= _prepareStartedAt[loanId] + COMMIT_TIMEOUT;
+        require(borrowerRequested || timedOutPrepare, "NOT_AUTHORIZED_TO_CANCEL");
 
         uint256 nLegs = _legCount[loanId];
         for (uint256 i = 0; i < nLegs; ) {
@@ -198,11 +207,13 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         }
 
         loan.state = LoanState.Aborted;
+        _prepareStartedAt[loanId] = 0;
+        _commitStartedAt[loanId] = 0;
 
         // Return bond to borrower
         IERC20(loan.asset).safeTransfer(loan.borrower, _bondEscrow[loanId].bondAmount);
 
-        emit LoanAborted(loanId, "cancelled by borrower");
+        emit LoanAborted(loanId, borrowerRequested ? "cancelled by borrower" : "cancelled after prepare timeout");
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -215,6 +226,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         require(loan.state == LoanState.Created, "NOT_CREATED");
 
         loan.state = LoanState.Preparing;
+        _prepareStartedAt[loanId] = uint64(block.timestamp);
 
         uint256 nLegs = _legCount[loanId];
         for (uint256 i = 0; i < nLegs; ) {
@@ -334,6 +346,22 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         }
     }
 
+    /// @inheritdoc IFlashDotHub
+    function enforceCommitTimeout(uint256 loanId) external {
+        Loan storage loan = _loans[loanId];
+        require(loan.state == LoanState.Committing, "NOT_COMMITTING");
+        require(!loan.repayOnlyMode, "ALREADY_REPAY_ONLY");
+        require(_commitStartedAt[loanId] != 0, "COMMIT_NOT_STARTED");
+        require(
+            block.timestamp >= _commitStartedAt[loanId] + COMMIT_TIMEOUT,
+            "COMMIT_TIMEOUT_NOT_REACHED"
+        );
+
+        loan.repayOnlyMode = true;
+        _abortPreparedOnlyLegs(loanId);
+        emit RepayOnlyMode(loanId, "commit timeout");
+    }
+
     function _handleCommitAck(
         uint256 loanId,
         uint256 legId,
@@ -368,6 +396,18 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         for (uint256 i = 0; i < nLegs; ) {
             Leg storage l = _legs[loanId][i];
             if (l.state == LegState.PreparedAcked || l.state == LegState.CommitSent) {
+                _sendXcmAbortStub(loanId, i, l);
+                l.state = LegState.Aborted;
+            }
+            unchecked { ++i; }
+        }
+    }
+
+    function _abortPreparedOnlyLegs(uint256 loanId) internal {
+        uint256 nLegs = _legCount[loanId];
+        for (uint256 i = 0; i < nLegs; ) {
+            Leg storage l = _legs[loanId][i];
+            if (l.state == LegState.PreparedAcked) {
                 _sendXcmAbortStub(loanId, i, l);
                 l.state = LegState.Aborted;
             }

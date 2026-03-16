@@ -80,6 +80,8 @@ describe("processRetryQueue", () => {
     const hub = {
       getLoan: vi.fn(),
       getLeg: vi.fn(),
+      cancelBeforeCommit: vi.fn(),
+      enforceCommitTimeout: vi.fn(),
       startPrepare: vi.fn().mockResolvedValue({ wait: vi.fn().mockResolvedValue(undefined) }),
       startCommit: vi.fn(),
       finalizeSettle: vi.fn(),
@@ -109,6 +111,8 @@ describe("processRetryQueue", () => {
     const hub = {
       getLoan: vi.fn(),
       getLeg: vi.fn(),
+      cancelBeforeCommit: vi.fn(),
+      enforceCommitTimeout: vi.fn(),
       startPrepare: vi.fn(),
       startCommit: vi.fn().mockRejectedValue(new Error("rpc unavailable")),
       finalizeSettle: vi.fn(),
@@ -139,6 +143,8 @@ describe("processRetryQueue", () => {
     const hub = {
       getLoan: vi.fn(),
       getLeg: vi.fn(),
+      cancelBeforeCommit: vi.fn(),
+      enforceCommitTimeout: vi.fn(),
       startPrepare: vi.fn(),
       startCommit: vi.fn(),
       finalizeSettle: vi.fn(),
@@ -167,6 +173,8 @@ describe("processRetryQueue", () => {
     const hub = {
       getLoan: vi.fn().mockResolvedValue({ state: 4 }),
       getLeg: vi.fn().mockResolvedValue({ state: 4 }),
+      cancelBeforeCommit: vi.fn(),
+      enforceCommitTimeout: vi.fn(),
       startPrepare: vi.fn(),
       startCommit: vi.fn(),
       finalizeSettle: vi.fn(),
@@ -197,6 +205,8 @@ describe("processRetryQueue", () => {
     const hub = {
       getLoan: vi.fn(),
       getLeg: vi.fn(),
+      cancelBeforeCommit: vi.fn(),
+      enforceCommitTimeout: vi.fn(),
       startPrepare: vi.fn(),
       startCommit: vi.fn(),
       finalizeSettle: vi.fn(),
