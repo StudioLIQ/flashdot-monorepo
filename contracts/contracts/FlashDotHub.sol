@@ -47,6 +47,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     error NotDefaultable();
     error BondInsufficient();
     error InvalidRecipient();
+    error TargetAmountTooLarge();
 
     // ─────────────────────────────────────────────────────────────────
     // Constants
@@ -70,7 +71,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
 
     uint256 public nextLoanId;
 
-    mapping(uint256 => Loan) private _loans;
+    mapping(uint256 => LoanRecord) private _loans;
     mapping(uint256 => mapping(uint256 => Leg)) private _legs;
     mapping(uint256 => uint256) private _legCount;
     mapping(uint256 => BondInfo) private _bondEscrow;
@@ -94,6 +95,18 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         uint256 legId;
         Phase   phase;
         bool    exists;
+    }
+
+    struct LoanRecord {
+        address borrower;
+        uint32  interestBps;
+        LoanState state;
+        bool    repayOnlyMode;
+        address asset;
+        uint64  createdAt;
+        uint128 targetAmount;
+        uint64  expiryAt;
+        bytes32 planHash;
     }
 
     enum Phase { Prepare, Commit }
@@ -148,6 +161,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         if (params.asset == address(0)) revert InvalidAsset();
         if (legSpecs.length == 0) revert NoLegs();
         if (params.expiryAt <= block.timestamp + MIN_LOAN_DURATION) revert ExpiryTooSoon();
+        if (params.targetAmount > type(uint128).max) revert TargetAmountTooLarge();
 
         // --- Compute bond required (I-4) ---
         uint256 bondRequired = _calcBondRequired(legSpecs);
@@ -158,15 +172,15 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         IERC20(params.asset).safeTransferFrom(msg.sender, address(this), bondRequired);
 
         // --- Initialize loan ---
-        _loans[loanId] = Loan({
+        _loans[loanId] = LoanRecord({
             borrower:      msg.sender,
-            asset:         params.asset,
-            targetAmount:  params.targetAmount,
             interestBps:   params.interestBps,
-            createdAt:     uint64(block.timestamp),
-            expiryAt:      params.expiryAt,
             state:         LoanState.Created,
             repayOnlyMode: false,
+            asset:         params.asset,
+            createdAt:     uint64(block.timestamp),
+            targetAmount:  uint128(params.targetAmount),
+            expiryAt:      params.expiryAt,
             planHash:      keccak256(abi.encode(legSpecs))
         });
 
@@ -197,7 +211,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
 
     /// @inheritdoc IFlashDotHub
     function cancelBeforeCommit(uint256 loanId) external {
-        Loan storage loan = _loans[loanId];
+        LoanRecord storage loan = _loans[loanId];
         if (
             loan.state != LoanState.Created &&
             loan.state != LoanState.Preparing &&
@@ -243,7 +257,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
 
     /// @inheritdoc IFlashDotHub
     function startPrepare(uint256 loanId) external {
-        Loan storage loan = _loans[loanId];
+        LoanRecord storage loan = _loans[loanId];
         if (loan.state != LoanState.Created) revert NotCreated();
 
         loan.state = LoanState.Preparing;
@@ -283,7 +297,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         // Mark query as consumed (idempotency: second call does nothing)
         meta.exists = false;
 
-        Loan storage loan = _loans[loanId];
+        LoanRecord storage loan = _loans[loanId];
         Leg  storage leg  = _legs[loanId][legId];
 
         if (phase == Phase.Prepare) {
@@ -296,7 +310,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     function _handlePrepareAck(
         uint256 loanId,
         uint256 legId,
-        Loan storage loan,
+        LoanRecord storage loan,
         Leg  storage leg,
         bool success
     ) internal {
@@ -322,7 +336,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         }
     }
 
-    function _abortAllPreparedLegs(uint256 loanId, Loan storage loan) internal {
+    function _abortAllPreparedLegs(uint256 loanId, LoanRecord storage loan) internal {
         uint256 nLegs = _legCount[loanId];
         for (uint256 i = 0; i < nLegs; ) {
             Leg storage l = _legs[loanId][i];
@@ -342,7 +356,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
 
     /// @inheritdoc IFlashDotHub
     function startCommit(uint256 loanId) external whenCommitNotPaused {
-        Loan storage loan = _loans[loanId];
+        LoanRecord storage loan = _loans[loanId];
         if (loan.state != LoanState.Prepared) revert NotPrepared();
 
         loan.state = LoanState.Committing;
@@ -369,7 +383,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
 
     /// @inheritdoc IFlashDotHub
     function enforceCommitTimeout(uint256 loanId) external {
-        Loan storage loan = _loans[loanId];
+        LoanRecord storage loan = _loans[loanId];
         if (loan.state != LoanState.Committing) revert NotCommitting();
         if (loan.repayOnlyMode) revert AlreadyRepayOnly();
         if (_commitStartedAt[loanId] == 0) revert CommitNotStarted();
@@ -383,7 +397,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     function _handleCommitAck(
         uint256 loanId,
         uint256 legId,
-        Loan storage loan,
+        LoanRecord storage loan,
         Leg  storage leg,
         bool success
     ) internal {
@@ -439,14 +453,14 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
 
     /// @inheritdoc IFlashDotHub
     function finalizeSettle(uint256 loanId) external nonReentrant {
-        Loan storage loan = _loans[loanId];
+        LoanRecord storage loan = _loans[loanId];
         if (loan.state != LoanState.Committed && loan.state != LoanState.Repaying) revert CannotSettle();
 
         // All CommittedAcked legs must be RepaidConfirmed
         if (!_allCommittedLegsRepaid(loanId)) revert LegsNotFullyRepaid();
 
         // Hub fee: ceiling division
-        uint256 hubFee = (loan.targetAmount * HUB_FEE_BPS + 9_999) / 10_000;
+        uint256 hubFee = (uint256(loan.targetAmount) * HUB_FEE_BPS + 9_999) / 10_000;
         uint256 bondReturn = _bondEscrow[loanId].bondAmount - hubFee;
 
         loan.state = LoanState.Settled;
@@ -459,7 +473,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
 
     /// @inheritdoc IFlashDotHub
     function triggerDefault(uint256 loanId) external nonReentrant {
-        Loan storage loan = _loans[loanId];
+        LoanRecord storage loan = _loans[loanId];
         if (block.timestamp < loan.expiryAt) revert NotExpired();
 
         BondInfo storage bond = _bondEscrow[loanId];
@@ -532,7 +546,18 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     // ─────────────────────────────────────────────────────────────────
 
     function getLoan(uint256 loanId) external view returns (Loan memory) {
-        return _loans[loanId];
+        LoanRecord storage loan = _loans[loanId];
+        return Loan({
+            borrower: loan.borrower,
+            asset: loan.asset,
+            targetAmount: uint256(loan.targetAmount),
+            interestBps: loan.interestBps,
+            createdAt: loan.createdAt,
+            expiryAt: loan.expiryAt,
+            state: loan.state,
+            repayOnlyMode: loan.repayOnlyMode,
+            planHash: loan.planHash
+        });
     }
 
     function getLeg(uint256 loanId, uint256 legId) external view returns (Leg memory) {
@@ -611,7 +636,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         Leg storage leg,
         bytes32 queryId
     ) internal {
-        Loan storage loan = _loans[loanId];
+        LoanRecord storage loan = _loans[loanId];
         uint256 repayAmt = (leg.amount * (10_000 + leg.legInterestBps) + 9_999) / 10_000;
 
         bytes memory destEncoded  = XcmEncoder.encodeParachainLocation(uint32(uint256(leg.chain)));
