@@ -1,11 +1,11 @@
 import http from "node:http";
 
-import { count, notInArray } from "drizzle-orm";
+import { count, isNotNull, notInArray } from "drizzle-orm";
 import { Contract, JsonRpcProvider, Wallet } from "ethers";
 
 import { config } from "./config.js";
 import { closeDb, db, runMigrations } from "./db/index.js";
-import { loans } from "./db/schema.js";
+import { loans, retryQueue, xcmEvents } from "./db/schema.js";
 import { LoanState } from "./lifecycle/constants.js";
 import { startLoanWatcher } from "./loan-watcher.js";
 import type { HubContractLike } from "./lifecycle/shared.js";
@@ -18,6 +18,9 @@ const TERMINAL_LOAN_STATES: number[] = [
   LoanState.Defaulted,
   LoanState.Aborted,
 ];
+const coordinatorMetrics = {
+  errorsTotal: 0,
+};
 
 const HUB_ABI = [
   "event LoanCreated(uint256 indexed loanId, address borrower, address asset, uint256 targetAmount, uint256 bondAmount)",
@@ -43,6 +46,28 @@ async function activeLoanCount(): Promise<number> {
     .where(notInArray(loans.state, TERMINAL_LOAN_STATES));
 
   return Number(rows[0]?.value ?? 0);
+}
+
+async function retryQueueSize(): Promise<number> {
+  const rows = await db.select({ value: count() }).from(retryQueue);
+  return Number(rows[0]?.value ?? 0);
+}
+
+async function averageAckLatencyMs(): Promise<number> {
+  const rows = await db
+    .select({
+      sentAt: xcmEvents.sentAt,
+      ackedAt: xcmEvents.ackedAt,
+    })
+    .from(xcmEvents)
+    .where(isNotNull(xcmEvents.ackedAt));
+
+  if (rows.length === 0) {
+    return 0;
+  }
+
+  const totalLatency = rows.reduce((sum, row) => sum + ((row.ackedAt ?? row.sentAt) - row.sentAt), 0);
+  return Math.round(totalLatency / rows.length);
 }
 
 async function recoverActiveLoans(): Promise<Array<{ loanId: string; state: number }>> {
@@ -74,18 +99,65 @@ async function main(): Promise<void> {
 
   const retryTimer = setInterval(() => {
     void processRetryQueue(hubContract).catch((error) => {
+      coordinatorMetrics.errorsTotal += 1;
       console.error("[coordinator] retry loop error:", error);
     });
   }, RETRY_LOOP_MS);
 
   const timeoutTimer = setInterval(() => {
     void runTimeoutEnforcer(hubContract).catch((error) => {
+      coordinatorMetrics.errorsTotal += 1;
       console.error("[coordinator] timeout enforcer error:", error);
     });
   }, config.timeouts.defaultCheckMs);
 
+  async function writeMetrics(res: http.ServerResponse): Promise<void> {
+    const [loanCount, queuedRetries, ackLatencyMs] = await Promise.all([
+      activeLoanCount(),
+      retryQueueSize(),
+      averageAckLatencyMs(),
+    ]);
+
+    const body = [
+      "# HELP flashdot_active_loans Active non-terminal loans tracked by the coordinator.",
+      "# TYPE flashdot_active_loans gauge",
+      `flashdot_active_loans ${loanCount}`,
+      "# HELP flashdot_retry_queue_size Pending retry queue items.",
+      "# TYPE flashdot_retry_queue_size gauge",
+      `flashdot_retry_queue_size ${queuedRetries}`,
+      "# HELP flashdot_avg_ack_latency_ms Average ACK latency in milliseconds.",
+      "# TYPE flashdot_avg_ack_latency_ms gauge",
+      `flashdot_avg_ack_latency_ms ${ackLatencyMs}`,
+      "# HELP flashdot_errors_total Coordinator loop errors observed since process start.",
+      "# TYPE flashdot_errors_total counter",
+      `flashdot_errors_total ${coordinatorMetrics.errorsTotal}`,
+      "",
+    ].join("\n");
+
+    res.statusCode = 200;
+    res.setHeader("content-type", "text/plain; version=0.0.4");
+    res.end(body);
+  }
+
   const server = http.createServer((req, res) => {
-    if (req.method !== "GET" || req.url !== "/health") {
+    if (req.method !== "GET") {
+      res.statusCode = 404;
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ error: "not_found" }));
+      return;
+    }
+
+    if (req.url === "/metrics") {
+      void writeMetrics(res).catch((error) => {
+        coordinatorMetrics.errorsTotal += 1;
+        res.statusCode = 500;
+        res.setHeader("content-type", "text/plain; version=0.0.4");
+        res.end(`# metrics_error ${error instanceof Error ? error.message : String(error)}\n`);
+      });
+      return;
+    }
+
+    if (req.url !== "/health") {
       res.statusCode = 404;
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ error: "not_found" }));
@@ -109,6 +181,7 @@ async function main(): Promise<void> {
           })
         );
       } catch (error) {
+        coordinatorMetrics.errorsTotal += 1;
         res.statusCode = 500;
         res.setHeader("content-type", "application/json");
         res.end(
@@ -155,6 +228,7 @@ async function main(): Promise<void> {
 }
 
 void main().catch((error) => {
+  coordinatorMetrics.errorsTotal += 1;
   console.error("[coordinator] fatal error:", error);
   process.exit(1);
 });
