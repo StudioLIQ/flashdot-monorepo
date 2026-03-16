@@ -11,7 +11,8 @@ FlashDot uses **economic atomicity**: lenders are guaranteed `principal + intere
 
 ## Demo Video
 
-- Demo (placeholder): `https://example.com/flashdot-demo`
+- Recording runbook: [docs/demo-script.md](./docs/demo-script.md)
+- Replace this section with the final Loom or YouTube URL before submission.
 
 ## Architecture (Mermaid)
 
@@ -99,6 +100,12 @@ pnpm -C contracts test
 ```
 
 `contracts/test/e2e/scenarios/`에 시나리오 테스트 파일이 정리되어 있습니다.
+
+- `01-happy-path.test.ts`
+- `02-prepare-failure.test.ts`
+- `03-partial-commit.test.ts`
+- `04-default.test.ts`
+- `05-delayed-ack.test.ts`
 
 ## Contract Addresses
 
