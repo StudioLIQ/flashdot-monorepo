@@ -15,6 +15,15 @@ function shortAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
+function LoadingMetric(): JSX.Element {
+  return (
+    <>
+      <div className="mt-2 h-7 w-16 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
+      <div className="mt-2 h-4 w-28 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
+    </>
+  );
+}
+
 export default function HomePage(): JSX.Element {
   const {
     account,
@@ -108,13 +117,25 @@ export default function HomePage(): JSX.Element {
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
-            <p className="mt-2 text-lg font-semibold">{(myLoansQuery.data ?? []).length}</p>
-            <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Polling every 5s</p>
+            {myLoansQuery.isLoading ? (
+              <LoadingMetric />
+            ) : (
+              <>
+                <p className="mt-2 text-lg font-semibold">{(myLoansQuery.data ?? []).length}</p>
+                <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Polling every 5s</p>
+              </>
+            )}
           </div>
           <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
-            <p className="mt-2 text-lg font-semibold">{(loanHistoryQuery.data ?? []).length}</p>
-            <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Settled / Defaulted / Aborted</p>
+            {loanHistoryQuery.isLoading ? (
+              <LoadingMetric />
+            ) : (
+              <>
+                <p className="mt-2 text-lg font-semibold">{(loanHistoryQuery.data ?? []).length}</p>
+                <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Settled / Defaulted / Aborted</p>
+              </>
+            )}
           </div>
         </div>
 
@@ -122,6 +143,7 @@ export default function HomePage(): JSX.Element {
         <LoanStatus
           loan={activeLoanQuery.data?.loan ?? null}
           legs={activeLoanQuery.data?.legs ?? []}
+          loading={Boolean(isConnected && (myLoansQuery.isLoading || activeLoanQuery.isLoading))}
           refreshing={activeLoanQuery.isFetching || myLoansQuery.isFetching}
           onRepaid={() => {
             void activeLoanQuery.refetch();

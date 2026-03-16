@@ -11,6 +11,7 @@ interface LoanStatusProps {
   loan: LoanView | null;
   legs: LegView[];
   refreshing?: boolean;
+  loading?: boolean;
   onRepaid?: () => void;
 }
 
@@ -34,7 +35,7 @@ function formatDot(amount: bigint): string {
   })} DOT`;
 }
 
-export function LoanStatus({ loan, legs, refreshing, onRepaid }: LoanStatusProps): JSX.Element {
+export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanStatusProps): JSX.Element {
   const terminalMessage = useMemo(() => {
     if (!loan) return null;
     if (loan.state === LoanState.Settled) {
@@ -45,6 +46,36 @@ export function LoanStatus({ loan, legs, refreshing, onRepaid }: LoanStatusProps
     }
     return null;
   }, [loan]);
+
+  if (loading) {
+    return (
+      <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="h-7 w-32 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
+          <div className="h-5 w-24 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
+        </div>
+
+        <div className="mt-5 grid gap-3">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <div
+              key={index}
+              className="rounded-xl border border-ink/10 bg-ink/5 p-4 dark:border-white/10 dark:bg-white/5"
+            >
+              <div className="h-5 w-40 animate-pulse rounded bg-ink/10 dark:bg-white/10" />
+              <div className="mt-3 grid gap-2 sm:grid-cols-5">
+                {Array.from({ length: 5 }).map((__, stepIndex) => (
+                  <div
+                    key={stepIndex}
+                    className="h-10 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10"
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   if (!loan) {
     return (
