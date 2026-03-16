@@ -141,6 +141,7 @@ interface IFlashDotHub {
     /// @notice Cancel loan before any commit is sent.
     ///         Borrower may cancel immediately; anyone may cancel after prepare timeout.
     ///         Returns bond to borrower. Reverts if state >= Committing.
+    /// @param loanId Loan identifier to cancel
     function cancelBeforeCommit(uint256 loanId) external;
 
     // ─────────────────────────────────────────────────────────────────
@@ -149,22 +150,27 @@ interface IFlashDotHub {
 
     /// @notice Kick off Phase 1: send XCM prepare to all vault legs.
     ///         Loan must be in Created state.
+    /// @param loanId Loan identifier entering prepare phase
     function startPrepare(uint256 loanId) external;
 
     /// @notice Kick off Phase 2: send XCM commit to all PreparedAcked legs.
     ///         Loan must be in Prepared state.
+    /// @param loanId Loan identifier entering commit phase
     function startCommit(uint256 loanId) external;
 
     /// @notice Force RepayOnly mode when commit ACKs have timed out.
     ///         Aborts remaining PreparedAcked legs but leaves CommitSent legs untouched.
+    /// @param loanId Loan identifier whose commit window timed out
     function enforceCommitTimeout(uint256 loanId) external;
 
     /// @notice Settle loan after all legs are RepaidConfirmed.
     ///         Returns bond minus hub fee to borrower.
+    /// @param loanId Loan identifier to settle
     function finalizeSettle(uint256 loanId) external;
 
     /// @notice Trigger default after expiry. Slashes bond and pays committed legs.
     ///         Anyone can call after loan.expiryAt passes without full repay.
+    /// @param loanId Loan identifier to default
     function triggerDefault(uint256 loanId) external;
 
     // ─────────────────────────────────────────────────────────────────
@@ -181,16 +187,39 @@ interface IFlashDotHub {
     // Emergency / Governance (onlyOwner)
     // ─────────────────────────────────────────────────────────────────
 
+    /// @notice Pause or unpause new loan creation.
+    /// @param paused True to pause creation, false to resume
     function pauseCreate(bool paused) external;
+
+    /// @notice Pause or unpause commit dispatch.
+    /// @param paused True to pause commit dispatch, false to resume
     function pauseCommit(bool paused) external;
+
+    /// @notice Mark chain identifiers as supported for future loan legs.
+    /// @param chains Array of destination chain identifiers to enable
     function setSupportedChains(bytes32[] calldata chains) external;
 
     // ─────────────────────────────────────────────────────────────────
     // Views
     // ─────────────────────────────────────────────────────────────────
 
+    /// @notice Read full loan state by identifier.
+    /// @param loanId Loan identifier to inspect
+    /// @return loan Decoded loan state
     function getLoan(uint256 loanId) external view returns (Loan memory);
+
+    /// @notice Read a single leg state for a loan.
+    /// @param loanId Loan identifier to inspect
+    /// @param legId Leg index within the loan plan
+    /// @return leg Decoded leg state
     function getLeg(uint256 loanId, uint256 legId) external view returns (Leg memory);
+
+    /// @notice Read bond escrow state for a loan.
+    /// @param loanId Loan identifier to inspect
+    /// @return bond Bond escrow details
     function getBondInfo(uint256 loanId) external view returns (BondInfo memory);
+
+    /// @notice Read the next loan identifier that will be assigned on create.
+    /// @return loanId Next sequential loan identifier
     function nextLoanId() external view returns (uint256);
 }
