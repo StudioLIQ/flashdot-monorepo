@@ -97,29 +97,29 @@ interface IFlashDotHub {
     );
     event PrepareSent(
         uint256 indexed loanId,
-        uint256 legId,
+        uint256 indexed legId,
         bytes32 chain,
         uint256 amount
     );
     event PreparedAcked(
         uint256 indexed loanId,
-        uint256 legId,
+        uint256 indexed legId,
         bytes32 chain
     );
     event CommitSent(
         uint256 indexed loanId,
-        uint256 legId,
+        uint256 indexed legId,
         bytes32 chain,
         uint256 amount
     );
     event CommittedAcked(
         uint256 indexed loanId,
-        uint256 legId,
+        uint256 indexed legId,
         bytes32 chain
     );
     event RepayConfirmed(
         uint256 indexed loanId,
-        uint256 legId,
+        uint256 indexed legId,
         uint256 amount
     );
     event LoanAborted(uint256 indexed loanId, string reason);
