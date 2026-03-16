@@ -13,6 +13,27 @@ import {IFlashDotVault} from "./interfaces/IFlashDotVault.sol";
 contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
+    error PoolInvariantBroken();
+    error NotHubOrigin();
+    error InvalidAsset();
+    error InvalidHub();
+    error ZeroAmount();
+    error ZeroShares();
+    error InsufficientShares();
+    error InsufficientAvailable();
+    error PrepareConflict();
+    error PrepareInvalidState();
+    error ZeroPrincipal();
+    error RepayBelowPrincipal();
+    error ExpiryInPast();
+    error InvalidBorrowerDest();
+    error InsufficientLiquidity();
+    error NotPrepared();
+    error CommitIsFinal();
+    error NotCommitted();
+    error InvalidRepayAmount();
+    error NotExpired();
+
     // ─────────────────────────────────────────────────────────────────
     // State
     // ─────────────────────────────────────────────────────────────────
@@ -40,15 +61,12 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
     /// @dev Enforce pool invariant after every state-changing function
     modifier poolInvariant() {
         _;
-        require(
-            pool.total == pool.available + pool.reserved + pool.borrowed,
-            "POOL_INVARIANT"
-        );
+        if (pool.total != pool.available + pool.reserved + pool.borrowed) revert PoolInvariantBroken();
     }
 
     /// @dev Only Hub XCM sovereign account may call vault endpoints
     modifier onlyHubOrigin() {
-        require(msg.sender == hubSovereignAccount, "UNAUTHORIZED: NOT_HUB_ORIGIN");
+        if (msg.sender != hubSovereignAccount) revert NotHubOrigin();
         _;
     }
 
@@ -57,8 +75,8 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
     // ─────────────────────────────────────────────────────────────────
 
     constructor(address _asset, address _hubSovereignAccount) {
-        require(_asset != address(0), "INVALID_ASSET");
-        require(_hubSovereignAccount != address(0), "INVALID_HUB");
+        if (_asset == address(0)) revert InvalidAsset();
+        if (_hubSovereignAccount == address(0)) revert InvalidHub();
         asset = IERC20(_asset);
         hubSovereignAccount = _hubSovereignAccount;
     }
@@ -69,7 +87,7 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
 
     /// @inheritdoc IFlashDotVault
     function deposit(uint256 amount) external nonReentrant poolInvariant returns (uint256 shares) {
-        require(amount > 0, "ZERO_AMOUNT");
+        if (amount == 0) revert ZeroAmount();
 
         if (totalShares == 0 || pool.available == 0) {
             // First depositor: 1:1 share mint
@@ -77,7 +95,7 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
         } else {
             // Pro-rata: shares = amount * totalShares / pool.available
             shares = (amount * totalShares) / pool.available;
-            require(shares > 0, "ZERO_SHARES");
+            if (shares == 0) revert ZeroShares();
         }
 
         pool.available += amount;
@@ -92,13 +110,13 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
 
     /// @inheritdoc IFlashDotVault
     function withdraw(uint256 shares) external nonReentrant poolInvariant returns (uint256 amount) {
-        require(shares > 0, "ZERO_SHARES");
-        require(_lpShares[msg.sender] >= shares, "INSUFFICIENT_SHARES");
+        if (shares == 0) revert ZeroShares();
+        if (_lpShares[msg.sender] < shares) revert InsufficientShares();
 
         // amount = shares * pool.available / totalShares
         amount = (shares * pool.available) / totalShares;
-        require(amount > 0, "ZERO_AMOUNT");
-        require(pool.available >= amount, "INSUFFICIENT_AVAILABLE");
+        if (amount == 0) revert ZeroAmount();
+        if (pool.available < amount) revert InsufficientAvailable();
 
         _lpShares[msg.sender] -= shares;
         totalShares -= shares;
@@ -130,20 +148,22 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
 
         if (exists && vl.state == VaultLoanState.Prepared) {
             // Idempotency: same params → no-op
-            require(vl.principal == principal, "PREPARE_CONFLICT");
-            require(vl.repayAmount == repayAmount, "PREPARE_CONFLICT");
-            require(vl.expiryAt == expiryAt, "PREPARE_CONFLICT");
-            require(vl.borrowerDest == borrowerDest, "PREPARE_CONFLICT");
-            require(vl.hubLoc == hubLoc, "PREPARE_CONFLICT");
+            if (
+                vl.principal != principal ||
+                vl.repayAmount != repayAmount ||
+                vl.expiryAt != expiryAt ||
+                vl.borrowerDest != borrowerDest ||
+                vl.hubLoc != hubLoc
+            ) revert PrepareConflict();
             return;
         }
 
-        require(!exists || vl.state == VaultLoanState.Aborted, "PREPARE_INVALID_STATE");
-        require(principal > 0, "ZERO_PRINCIPAL");
-        require(repayAmount >= principal, "REPAY_BELOW_PRINCIPAL");
-        require(expiryAt > block.timestamp, "EXPIRY_IN_PAST");
-        require(borrowerDest != address(0), "INVALID_BORROWER_DEST");
-        require(pool.available >= principal, "INSUFFICIENT_LIQUIDITY");
+        if (exists && vl.state != VaultLoanState.Aborted) revert PrepareInvalidState();
+        if (principal == 0) revert ZeroPrincipal();
+        if (repayAmount < principal) revert RepayBelowPrincipal();
+        if (expiryAt <= block.timestamp) revert ExpiryInPast();
+        if (borrowerDest == address(0)) revert InvalidBorrowerDest();
+        if (pool.available < principal) revert InsufficientLiquidity();
 
         pool.available -= principal;
         pool.reserved += principal;
@@ -169,7 +189,7 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
             return;
         }
 
-        require(vl.state == VaultLoanState.Prepared, "NOT_PREPARED");
+        if (vl.state != VaultLoanState.Prepared) revert NotPrepared();
 
         uint256 principal = vl.principal;
         address borrowerDest = vl.borrowerDest;
@@ -192,8 +212,8 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
             return;
         }
 
-        require(vl.state != VaultLoanState.Committed, "COMMIT_IS_FINAL");
-        require(vl.state == VaultLoanState.Prepared, "NOT_PREPARED");
+        if (vl.state == VaultLoanState.Committed) revert CommitIsFinal();
+        if (vl.state != VaultLoanState.Prepared) revert NotPrepared();
 
         pool.reserved -= vl.principal;
         pool.available += vl.principal;
@@ -209,8 +229,8 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
     /// @inheritdoc IFlashDotVault
     function repay(uint256 loanId, uint256 amount) external nonReentrant poolInvariant {
         VaultLoan storage vl = _vaultLoans[loanId];
-        require(vl.state == VaultLoanState.Committed, "NOT_COMMITTED");
-        require(amount > 0 && amount <= vl.repayAmount, "INVALID_REPAY_AMOUNT");
+        if (vl.state != VaultLoanState.Committed) revert NotCommitted();
+        if (amount == 0 || amount > vl.repayAmount) revert InvalidRepayAmount();
 
         uint256 principal = vl.principal;
 
@@ -231,8 +251,8 @@ contract FlashDotVault is IFlashDotVault, ReentrancyGuard {
     /// @inheritdoc IFlashDotVault
     function claimDefault(uint256 loanId) external nonReentrant poolInvariant {
         VaultLoan storage vl = _vaultLoans[loanId];
-        require(block.timestamp >= vl.expiryAt, "NOT_EXPIRED");
-        require(vl.state == VaultLoanState.Committed, "NOT_COMMITTED");
+        if (block.timestamp < vl.expiryAt) revert NotExpired();
+        if (vl.state != VaultLoanState.Committed) revert NotCommitted();
 
         uint256 principal = vl.principal;
         uint256 repayAmt = vl.repayAmount;

@@ -73,7 +73,7 @@ contract VaultLpTest is Test {
 
     function test_deposit_zero_reverts() public {
         vm.prank(LP1);
-        vm.expectRevert("ZERO_AMOUNT");
+        vm.expectRevert(FlashDotVault.ZeroAmount.selector);
         vault.deposit(0);
     }
 
@@ -117,7 +117,7 @@ contract VaultLpTest is Test {
         // Now pool.available == 0, withdrawal should fail
         vm.prank(LP1);
         // pool.available == 0, so amount = 0 which triggers ZERO_AMOUNT before INSUFFICIENT_AVAILABLE
-        vm.expectRevert("ZERO_AMOUNT");
+        vm.expectRevert(FlashDotVault.ZeroAmount.selector);
         vault.withdraw(shares);
     }
 
@@ -126,7 +126,7 @@ contract VaultLpTest is Test {
         vault.deposit(1000 ether);
 
         vm.prank(LP1);
-        vm.expectRevert("ZERO_SHARES");
+        vm.expectRevert(FlashDotVault.ZeroShares.selector);
         vault.withdraw(0);
     }
 

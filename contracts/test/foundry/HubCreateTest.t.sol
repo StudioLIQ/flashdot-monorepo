@@ -127,21 +127,21 @@ contract HubCreateTest is Test {
         params.expiryAt = uint64(block.timestamp + 1); // too soon
 
         vm.prank(BORROWER);
-        vm.expectRevert("EXPIRY_TOO_SOON");
+        vm.expectRevert(FlashDotHub.ExpiryTooSoon.selector);
         hub.createLoan(params, legs);
     }
 
     function test_createLoan_noLegs_reverts() public {
         IFlashDotHub.LegSpec[] memory emptyLegs = new IFlashDotHub.LegSpec[](0);
         vm.prank(BORROWER);
-        vm.expectRevert("NO_LEGS");
+        vm.expectRevert(FlashDotHub.NoLegs.selector);
         hub.createLoan(_makeLoanParams(), emptyLegs);
     }
 
     function test_createLoan_paused_reverts() public {
         hub.pauseCreate(true);
         vm.prank(BORROWER);
-        vm.expectRevert("CREATE_PAUSED");
+        vm.expectRevert(FlashDotHub.CreatePaused.selector);
         hub.createLoan(_makeLoanParams(), _makeSingleLeg());
     }
 
@@ -188,7 +188,7 @@ contract HubCreateTest is Test {
         uint256 loanId = hub.createLoan(_makeLoanParams(), _makeSingleLeg());
 
         vm.prank(STRANGER);
-        vm.expectRevert("NOT_AUTHORIZED_TO_CANCEL");
+        vm.expectRevert(FlashDotHub.NotAuthorizedToCancel.selector);
         hub.cancelBeforeCommit(loanId);
     }
 

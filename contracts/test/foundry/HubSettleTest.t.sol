@@ -159,7 +159,7 @@ contract HubSettleTest is Test {
 
     function test_triggerDefault_beforeExpiry_reverts() public {
         (uint256 loanId,) = _createAndCommitLoan();
-        vm.expectRevert("NOT_EXPIRED");
+        vm.expectRevert(FlashDotHub.NotExpired.selector);
         hub.triggerDefault(loanId);
     }
 
@@ -168,7 +168,7 @@ contract HubSettleTest is Test {
         vm.warp(expiryAt + 1);
         hub.triggerDefault(loanId);
 
-        vm.expectRevert("ALREADY_DEFAULTED");
+        vm.expectRevert(FlashDotHub.AlreadyDefaulted.selector);
         hub.triggerDefault(loanId);
     }
 
@@ -189,7 +189,7 @@ contract HubSettleTest is Test {
     function test_finalizeSettle_whenLegsNotRepaid_reverts() public {
         (uint256 loanId,) = _createAndCommitLoan();
         // CommittedAcked legs not repaid yet
-        vm.expectRevert("LEGS_NOT_FULLY_REPAID");
+        vm.expectRevert(FlashDotHub.LegsNotFullyRepaid.selector);
         hub.finalizeSettle(loanId);
     }
 

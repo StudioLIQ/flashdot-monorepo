@@ -23,6 +23,31 @@ import {XcmEncoder} from "./lib/XcmEncoder.sol";
 contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
+    error NotXcmExecutor();
+    error CreatePaused();
+    error CommitPaused();
+    error InvalidXcmExecutor();
+    error InvalidFeeRecipient();
+    error InvalidAsset();
+    error NoLegs();
+    error ExpiryTooSoon();
+    error TooLateToCancel();
+    error NotAuthorizedToCancel();
+    error NotCreated();
+    error UnknownQuery();
+    error NotPrepared();
+    error NotCommitting();
+    error AlreadyRepayOnly();
+    error CommitNotStarted();
+    error CommitTimeoutNotReached();
+    error CannotSettle();
+    error LegsNotFullyRepaid();
+    error NotExpired();
+    error AlreadyDefaulted();
+    error NotDefaultable();
+    error BondInsufficient();
+    error InvalidRecipient();
+
     // ─────────────────────────────────────────────────────────────────
     // Constants
     // ─────────────────────────────────────────────────────────────────
@@ -78,17 +103,17 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     // ─────────────────────────────────────────────────────────────────
 
     modifier onlyXcmExecutor() {
-        require(msg.sender == XCM_EXECUTOR, "NOT_XCM_EXECUTOR");
+        if (msg.sender != XCM_EXECUTOR) revert NotXcmExecutor();
         _;
     }
 
     modifier whenCreateNotPaused() {
-        require(!createPaused, "CREATE_PAUSED");
+        if (createPaused) revert CreatePaused();
         _;
     }
 
     modifier whenCommitNotPaused() {
-        require(!commitPaused, "COMMIT_PAUSED");
+        if (commitPaused) revert CommitPaused();
         _;
     }
 
@@ -101,8 +126,8 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         address _feeRecipient,
         address _xcmPrecompile
     ) Ownable(msg.sender) {
-        require(_xcmExecutor != address(0), "INVALID_XCM_EXECUTOR");
-        require(_feeRecipient != address(0), "INVALID_FEE_RECIPIENT");
+        if (_xcmExecutor == address(0)) revert InvalidXcmExecutor();
+        if (_feeRecipient == address(0)) revert InvalidFeeRecipient();
         XCM_EXECUTOR = _xcmExecutor;
         // Use provided precompile address (defaults to production address in prod deploy)
         xcmPrecompile = IXcmPrecompile(_xcmPrecompile != address(0) ? _xcmPrecompile : XCM_PRECOMPILE_ADDRESS);
@@ -120,12 +145,9 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         LegSpec[] calldata legSpecs
     ) external whenCreateNotPaused returns (uint256 loanId) {
         // --- Validate params ---
-        require(params.asset != address(0), "INVALID_ASSET");
-        require(legSpecs.length > 0, "NO_LEGS");
-        require(
-            params.expiryAt > block.timestamp + MIN_LOAN_DURATION,
-            "EXPIRY_TOO_SOON"
-        );
+        if (params.asset == address(0)) revert InvalidAsset();
+        if (legSpecs.length == 0) revert NoLegs();
+        if (params.expiryAt <= block.timestamp + MIN_LOAN_DURATION) revert ExpiryTooSoon();
 
         // --- Compute bond required (I-4) ---
         uint256 bondRequired = _calcBondRequired(legSpecs);
@@ -176,12 +198,11 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     /// @inheritdoc IFlashDotHub
     function cancelBeforeCommit(uint256 loanId) external {
         Loan storage loan = _loans[loanId];
-        require(
-            loan.state == LoanState.Created ||
-            loan.state == LoanState.Preparing ||
-            loan.state == LoanState.Prepared,
-            "TOO_LATE_TO_CANCEL"
-        );
+        if (
+            loan.state != LoanState.Created &&
+            loan.state != LoanState.Preparing &&
+            loan.state != LoanState.Prepared
+        ) revert TooLateToCancel();
 
         bool borrowerRequested = loan.borrower == msg.sender;
         bool timedOutPrepare = _prepareStartedAt[loanId] != 0
@@ -190,7 +211,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
                 loan.state == LoanState.Prepared
             )
             && block.timestamp >= _prepareStartedAt[loanId] + COMMIT_TIMEOUT;
-        require(borrowerRequested || timedOutPrepare, "NOT_AUTHORIZED_TO_CANCEL");
+        if (!borrowerRequested && !timedOutPrepare) revert NotAuthorizedToCancel();
 
         uint256 nLegs = _legCount[loanId];
         for (uint256 i = 0; i < nLegs; ) {
@@ -223,7 +244,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     /// @inheritdoc IFlashDotHub
     function startPrepare(uint256 loanId) external {
         Loan storage loan = _loans[loanId];
-        require(loan.state == LoanState.Created, "NOT_CREATED");
+        if (loan.state != LoanState.Created) revert NotCreated();
 
         loan.state = LoanState.Preparing;
         _prepareStartedAt[loanId] = uint64(block.timestamp);
@@ -253,7 +274,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     /// @inheritdoc IFlashDotHub
     function onXcmAck(bytes32 queryId, bool success) external onlyXcmExecutor {
         QueryMeta storage meta = _queryIndex[queryId];
-        require(meta.exists, "UNKNOWN_QUERY");
+        if (!meta.exists) revert UnknownQuery();
 
         uint256 loanId = meta.loanId;
         uint256 legId  = meta.legId;
@@ -322,7 +343,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     /// @inheritdoc IFlashDotHub
     function startCommit(uint256 loanId) external whenCommitNotPaused {
         Loan storage loan = _loans[loanId];
-        require(loan.state == LoanState.Prepared, "NOT_PREPARED");
+        if (loan.state != LoanState.Prepared) revert NotPrepared();
 
         loan.state = LoanState.Committing;
         _commitStartedAt[loanId] = uint64(block.timestamp);
@@ -349,13 +370,10 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     /// @inheritdoc IFlashDotHub
     function enforceCommitTimeout(uint256 loanId) external {
         Loan storage loan = _loans[loanId];
-        require(loan.state == LoanState.Committing, "NOT_COMMITTING");
-        require(!loan.repayOnlyMode, "ALREADY_REPAY_ONLY");
-        require(_commitStartedAt[loanId] != 0, "COMMIT_NOT_STARTED");
-        require(
-            block.timestamp >= _commitStartedAt[loanId] + COMMIT_TIMEOUT,
-            "COMMIT_TIMEOUT_NOT_REACHED"
-        );
+        if (loan.state != LoanState.Committing) revert NotCommitting();
+        if (loan.repayOnlyMode) revert AlreadyRepayOnly();
+        if (_commitStartedAt[loanId] == 0) revert CommitNotStarted();
+        if (block.timestamp < _commitStartedAt[loanId] + COMMIT_TIMEOUT) revert CommitTimeoutNotReached();
 
         loan.repayOnlyMode = true;
         _abortPreparedOnlyLegs(loanId);
@@ -422,13 +440,10 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     /// @inheritdoc IFlashDotHub
     function finalizeSettle(uint256 loanId) external nonReentrant {
         Loan storage loan = _loans[loanId];
-        require(
-            loan.state == LoanState.Committed || loan.state == LoanState.Repaying,
-            "CANNOT_SETTLE"
-        );
+        if (loan.state != LoanState.Committed && loan.state != LoanState.Repaying) revert CannotSettle();
 
         // All CommittedAcked legs must be RepaidConfirmed
-        require(_allCommittedLegsRepaid(loanId), "LEGS_NOT_FULLY_REPAID");
+        if (!_allCommittedLegsRepaid(loanId)) revert LegsNotFullyRepaid();
 
         // Hub fee: ceiling division
         uint256 hubFee = (loan.targetAmount * HUB_FEE_BPS + 9_999) / 10_000;
@@ -445,15 +460,12 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     /// @inheritdoc IFlashDotHub
     function triggerDefault(uint256 loanId) external nonReentrant {
         Loan storage loan = _loans[loanId];
-        require(block.timestamp >= loan.expiryAt, "NOT_EXPIRED");
+        if (block.timestamp < loan.expiryAt) revert NotExpired();
 
         BondInfo storage bond = _bondEscrow[loanId];
         // Check already defaulted before state check (state becomes Defaulted after first trigger)
-        require(!bond.slashed, "ALREADY_DEFAULTED");
-        require(
-            loan.state == LoanState.Committed || loan.repayOnlyMode,
-            "NOT_DEFAULTABLE"
-        );
+        if (bond.slashed) revert AlreadyDefaulted();
+        if (loan.state != LoanState.Committed && !loan.repayOnlyMode) revert NotDefaultable();
 
         uint256 totalPayout = 0;
         uint256 nLegs = _legCount[loanId];
@@ -475,7 +487,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
         }
 
         // Assert bond covers payout (I-4 guarantees this; belt-and-suspenders check)
-        require(bond.bondAmount >= totalPayout, "BOND_INSUFFICIENT");
+        if (bond.bondAmount < totalPayout) revert BondInsufficient();
 
         uint256 remainder = bond.bondAmount - totalPayout;
         bond.slashed = true;
@@ -508,7 +520,7 @@ contract FlashDotHub is IFlashDotHub, Ownable, ReentrancyGuard {
     }
 
     function setFeeRecipient(address recipient) external onlyOwner {
-        require(recipient != address(0), "INVALID_RECIPIENT");
+        if (recipient == address(0)) revert InvalidRecipient();
         feeRecipient = recipient;
     }
 

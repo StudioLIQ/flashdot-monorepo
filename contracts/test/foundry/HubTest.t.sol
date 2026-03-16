@@ -215,7 +215,7 @@ contract HubTest is Test {
 
         // Second ACK with same queryId → UNKNOWN_QUERY (consumed)
         vm.prank(XCM_EXECUTOR);
-        vm.expectRevert("UNKNOWN_QUERY");
+        vm.expectRevert(FlashDotHub.UnknownQuery.selector);
         hub.onXcmAck(qids[0], true);
     }
 

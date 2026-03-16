@@ -128,18 +128,18 @@ describe("FlashDotHub", () => {
         expiryAt: now + 1n,
       };
       await expect(hub.connect(borrower).createLoan(params, await makeSingleLeg()))
-        .to.be.revertedWith("EXPIRY_TOO_SOON");
+        .to.be.revertedWithCustomError(hub, "ExpiryTooSoon");
     });
 
     it("reverts with NO_LEGS", async () => {
       await expect(hub.connect(borrower).createLoan(await makeLoanParams(), []))
-        .to.be.revertedWith("NO_LEGS");
+        .to.be.revertedWithCustomError(hub, "NoLegs");
     });
 
     it("reverts with CREATE_PAUSED", async () => {
       await hub.pauseCreate(true);
       await expect(hub.connect(borrower).createLoan(await makeLoanParams(), await makeSingleLeg()))
-        .to.be.revertedWith("CREATE_PAUSED");
+        .to.be.revertedWithCustomError(hub, "CreatePaused");
     });
 
     it("bond uses ceiling division", async () => {
@@ -232,7 +232,7 @@ describe("FlashDotHub", () => {
       await hub.connect(xcmExecutor).onXcmAck(prepQids[0]!, true);
 
       await hub.pauseCommit(true);
-      await expect(hub.startCommit(loanId)).to.be.revertedWith("COMMIT_PAUSED");
+      await expect(hub.startCommit(loanId)).to.be.revertedWithCustomError(hub, "CommitPaused");
     });
   });
 
@@ -254,7 +254,7 @@ describe("FlashDotHub", () => {
     it("stranger cannot cancel", async () => {
       const loanId = await createLoan();
       await expect(hub.connect(stranger).cancelBeforeCommit(loanId))
-        .to.be.revertedWith("NOT_AUTHORIZED_TO_CANCEL");
+        .to.be.revertedWithCustomError(hub, "NotAuthorizedToCancel");
     });
 
     it("allows permissionless cancel after prepare timeout", async () => {
@@ -300,7 +300,7 @@ describe("FlashDotHub", () => {
       await hub.startCommit(loanId);
 
       await expect(hub.connect(stranger).enforceCommitTimeout(loanId))
-        .to.be.revertedWith("COMMIT_TIMEOUT_NOT_REACHED");
+        .to.be.revertedWithCustomError(hub, "CommitTimeoutNotReached");
     });
   });
 

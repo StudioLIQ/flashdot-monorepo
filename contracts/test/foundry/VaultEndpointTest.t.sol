@@ -76,19 +76,19 @@ contract VaultEndpointTest is Test {
         vault.prepare(1, PRINCIPAL, REPAY_AMT, exp, BORROWER, bytes32(0));
 
         vm.prank(HUB);
-        vm.expectRevert("PREPARE_CONFLICT");
+        vm.expectRevert(FlashDotVault.PrepareConflict.selector);
         vault.prepare(1, PRINCIPAL + 1, REPAY_AMT, exp, BORROWER, bytes32(0));
     }
 
     function test_prepare_insufficientLiquidity_reverts() public {
         vm.prank(HUB);
-        vm.expectRevert("INSUFFICIENT_LIQUIDITY");
+        vm.expectRevert(FlashDotVault.InsufficientLiquidity.selector);
         vault.prepare(1, POOL_SIZE + 1, POOL_SIZE + 2, _expiryAt(), BORROWER, bytes32(0));
     }
 
     function test_prepare_unauthorizedCaller_reverts() public {
         vm.prank(STRANGER);
-        vm.expectRevert("UNAUTHORIZED: NOT_HUB_ORIGIN");
+        vm.expectRevert(FlashDotVault.NotHubOrigin.selector);
         vault.prepare(1, PRINCIPAL, REPAY_AMT, _expiryAt(), BORROWER, bytes32(0));
     }
 
@@ -134,7 +134,7 @@ contract VaultEndpointTest is Test {
         vm.prank(HUB);
         vault.abort(1);
         vm.prank(HUB);
-        vm.expectRevert("NOT_PREPARED");
+        vm.expectRevert(FlashDotVault.NotPrepared.selector);
         vault.commit(1);
     }
 
@@ -143,7 +143,7 @@ contract VaultEndpointTest is Test {
         vault.prepare(1, PRINCIPAL, REPAY_AMT, _expiryAt(), BORROWER, bytes32(0));
 
         vm.prank(STRANGER);
-        vm.expectRevert("UNAUTHORIZED: NOT_HUB_ORIGIN");
+        vm.expectRevert(FlashDotVault.NotHubOrigin.selector);
         vault.commit(1);
     }
 
@@ -173,7 +173,7 @@ contract VaultEndpointTest is Test {
         vault.commit(1);
 
         vm.prank(HUB);
-        vm.expectRevert("COMMIT_IS_FINAL");
+        vm.expectRevert(FlashDotVault.CommitIsFinal.selector);
         vault.abort(1);
     }
 
@@ -195,7 +195,7 @@ contract VaultEndpointTest is Test {
         vault.prepare(1, PRINCIPAL, REPAY_AMT, _expiryAt(), BORROWER, bytes32(0));
 
         vm.prank(STRANGER);
-        vm.expectRevert("UNAUTHORIZED: NOT_HUB_ORIGIN");
+        vm.expectRevert(FlashDotVault.NotHubOrigin.selector);
         vault.abort(1);
     }
 

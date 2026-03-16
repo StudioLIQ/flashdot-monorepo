@@ -90,7 +90,7 @@ describe("FlashDotVault", () => {
     });
 
     it("reverts on zero amount", async () => {
-      await expect(vault.connect(lp1).deposit(0n)).to.be.revertedWith("ZERO_AMOUNT");
+      await expect(vault.connect(lp1).deposit(0n)).to.be.revertedWithCustomError(vault, "ZeroAmount");
     });
 
     it("maintains pool invariant", async () => {
@@ -118,7 +118,7 @@ describe("FlashDotVault", () => {
     });
 
     it("reverts on zero shares", async () => {
-      await expect(vault.connect(lp1).withdraw(0n)).to.be.revertedWith("ZERO_SHARES");
+      await expect(vault.connect(lp1).withdraw(0n)).to.be.revertedWithCustomError(vault, "ZeroShares");
     });
 
     it("reverts when pool is locked (prepare consumed all available)", async () => {
@@ -127,7 +127,7 @@ describe("FlashDotVault", () => {
       await vault.connect(hub).prepare(1n, POOL_SIZE, POOL_SIZE + PRINCIPAL, exp, borrower.address, ethers.ZeroHash);
       const shares = await vault.sharesOf(lp1.address);
       // available == 0, withdraw amount == 0 → ZERO_AMOUNT
-      await expect(vault.connect(lp1).withdraw(shares)).to.be.revertedWith("ZERO_AMOUNT");
+      await expect(vault.connect(lp1).withdraw(shares)).to.be.revertedWithCustomError(vault, "ZeroAmount");
     });
 
     it("maintains pool invariant", async () => {
@@ -164,19 +164,19 @@ describe("FlashDotVault", () => {
       await vault.connect(hub).prepare(1n, PRINCIPAL, REPAY_AMT, exp, borrower.address, ethers.ZeroHash);
       await expect(
         vault.connect(hub).prepare(1n, PRINCIPAL + 1n, REPAY_AMT, exp, borrower.address, ethers.ZeroHash)
-      ).to.be.revertedWith("PREPARE_CONFLICT");
+      ).to.be.revertedWithCustomError(vault, "PrepareConflict");
     });
 
     it("insufficient liquidity: revert", async () => {
       await expect(
         vault.connect(hub).prepare(1n, POOL_SIZE + 1n, POOL_SIZE + 2n, await expiryAt(), borrower.address, ethers.ZeroHash)
-      ).to.be.revertedWith("INSUFFICIENT_LIQUIDITY");
+      ).to.be.revertedWithCustomError(vault, "InsufficientLiquidity");
     });
 
     it("non-hub caller: revert", async () => {
       await expect(
         vault.connect(stranger).prepare(1n, PRINCIPAL, REPAY_AMT, await expiryAt(), borrower.address, ethers.ZeroHash)
-      ).to.be.revertedWith("UNAUTHORIZED: NOT_HUB_ORIGIN");
+      ).to.be.revertedWithCustomError(vault, "NotHubOrigin");
     });
   });
 
@@ -209,11 +209,11 @@ describe("FlashDotVault", () => {
 
     it("commit after abort: revert", async () => {
       await vault.connect(hub).abort(1n);
-      await expect(vault.connect(hub).commit(1n)).to.be.revertedWith("NOT_PREPARED");
+      await expect(vault.connect(hub).commit(1n)).to.be.revertedWithCustomError(vault, "NotPrepared");
     });
 
     it("non-hub caller: revert", async () => {
-      await expect(vault.connect(stranger).commit(1n)).to.be.revertedWith("UNAUTHORIZED: NOT_HUB_ORIGIN");
+      await expect(vault.connect(stranger).commit(1n)).to.be.revertedWithCustomError(vault, "NotHubOrigin");
     });
   });
 
@@ -236,7 +236,7 @@ describe("FlashDotVault", () => {
 
     it("abort after commit: revert COMMIT_IS_FINAL", async () => {
       await vault.connect(hub).commit(1n);
-      await expect(vault.connect(hub).abort(1n)).to.be.revertedWith("COMMIT_IS_FINAL");
+      await expect(vault.connect(hub).abort(1n)).to.be.revertedWithCustomError(vault, "CommitIsFinal");
     });
 
     it("double abort: idempotent", async () => {
@@ -245,7 +245,7 @@ describe("FlashDotVault", () => {
     });
 
     it("non-hub caller: revert", async () => {
-      await expect(vault.connect(stranger).abort(1n)).to.be.revertedWith("UNAUTHORIZED: NOT_HUB_ORIGIN");
+      await expect(vault.connect(stranger).abort(1n)).to.be.revertedWithCustomError(vault, "NotHubOrigin");
     });
   });
 
@@ -276,12 +276,12 @@ describe("FlashDotVault", () => {
       // Fresh loan that's not committed
       const exp = await expiryAt();
       await vault.connect(hub).prepare(2n, PRINCIPAL, REPAY_AMT, exp, borrower.address, ethers.ZeroHash);
-      await expect(vault.connect(borrower).repay(2n, REPAY_AMT)).to.be.revertedWith("NOT_COMMITTED");
+      await expect(vault.connect(borrower).repay(2n, REPAY_AMT)).to.be.revertedWithCustomError(vault, "NotCommitted");
     });
 
     it("repay after repaid: revert", async () => {
       await vault.connect(borrower).repay(1n, REPAY_AMT);
-      await expect(vault.connect(borrower).repay(1n, REPAY_AMT)).to.be.revertedWith("NOT_COMMITTED");
+      await expect(vault.connect(borrower).repay(1n, REPAY_AMT)).to.be.revertedWithCustomError(vault, "NotCommitted");
     });
   });
 
@@ -305,7 +305,7 @@ describe("FlashDotVault", () => {
       await depositPool();
       await prepare();
       await vault.connect(hub).commit(1n);
-      await expect(vault.claimDefault(1n)).to.be.revertedWith("NOT_EXPIRED");
+      await expect(vault.claimDefault(1n)).to.be.revertedWithCustomError(vault, "NotExpired");
     });
 
     it("after expiry on repaid: revert", async () => {
@@ -315,7 +315,7 @@ describe("FlashDotVault", () => {
       await vault.connect(borrower).repay(1n, REPAY_AMT);
 
       await time.increaseTo(exp + 1);
-      await expect(vault.claimDefault(1n)).to.be.revertedWith("NOT_COMMITTED");
+      await expect(vault.claimDefault(1n)).to.be.revertedWithCustomError(vault, "NotCommitted");
     });
   });
 });

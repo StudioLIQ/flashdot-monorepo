@@ -117,14 +117,14 @@ contract HubCommitTest is Test {
     function test_startCommit_wrongState_reverts() public {
         (uint256 loanId,) = _createAndPrepare();
         hub.startCommit(loanId);
-        vm.expectRevert("NOT_PREPARED");
+        vm.expectRevert(FlashDotHub.NotPrepared.selector);
         hub.startCommit(loanId); // already Committing
     }
 
     function test_startCommit_paused_reverts() public {
         (uint256 loanId,) = _createAndPrepare();
         hub.pauseCommit(true);
-        vm.expectRevert("COMMIT_PAUSED");
+        vm.expectRevert(FlashDotHub.CommitPaused.selector);
         hub.startCommit(loanId);
     }
 
@@ -222,7 +222,7 @@ contract HubCommitTest is Test {
         (uint256 loanId,) = _createAndPrepare();
 
         hub.startCommit(loanId);
-        vm.expectRevert("COMMIT_TIMEOUT_NOT_REACHED");
+        vm.expectRevert(FlashDotHub.CommitTimeoutNotReached.selector);
         hub.enforceCommitTimeout(loanId);
     }
 
@@ -239,7 +239,7 @@ contract HubCommitTest is Test {
 
         // Try to re-use the same queryId (already consumed) → UNKNOWN_QUERY
         vm.prank(XCM_EXECUTOR);
-        vm.expectRevert("UNKNOWN_QUERY");
+        vm.expectRevert(FlashDotHub.UnknownQuery.selector);
         hub.onXcmAck(commitQids[0], false); // can't redeliver
 
         // State unchanged

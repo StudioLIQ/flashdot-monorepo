@@ -103,7 +103,7 @@ contract HubPrepareTest is Test {
     function test_startPrepare_wrongState_reverts() public {
         uint256 loanId = _createTwoLegLoan();
         hub.startPrepare(loanId); // First call OK
-        vm.expectRevert("NOT_CREATED");
+        vm.expectRevert(FlashDotHub.NotCreated.selector);
         hub.startPrepare(loanId); // Second call fails
     }
 
@@ -161,7 +161,7 @@ contract HubPrepareTest is Test {
 
     function test_onXcmAck_unknownQueryId_reverts() public {
         vm.prank(XCM_EXECUTOR);
-        vm.expectRevert("UNKNOWN_QUERY");
+        vm.expectRevert(FlashDotHub.UnknownQuery.selector);
         hub.onXcmAck(keccak256("garbage"), true);
     }
 
@@ -171,7 +171,7 @@ contract HubPrepareTest is Test {
         hub.startPrepare(loanId);
         bytes32[] memory queryIds = _extractQueryIds(vm.getRecordedLogs());
 
-        vm.expectRevert("NOT_XCM_EXECUTOR");
+        vm.expectRevert(FlashDotHub.NotXcmExecutor.selector);
         hub.onXcmAck(queryIds[0], true); // called as address(this), not XCM_EXECUTOR
     }
 

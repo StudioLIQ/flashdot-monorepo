@@ -93,7 +93,7 @@ contract VaultRepayTest is Test {
         _prepare(1);
         // Not committed — should revert
         vm.prank(BORROWER);
-        vm.expectRevert("NOT_COMMITTED");
+        vm.expectRevert(FlashDotVault.NotCommitted.selector);
         vault.repay(1, REPAY_AMT);
     }
 
@@ -106,7 +106,7 @@ contract VaultRepayTest is Test {
 
         // Second repay — state is Repaid, not Committed
         vm.prank(BORROWER);
-        vm.expectRevert("NOT_COMMITTED");
+        vm.expectRevert(FlashDotVault.NotCommitted.selector);
         vault.repay(1, REPAY_AMT);
     }
 
@@ -115,7 +115,7 @@ contract VaultRepayTest is Test {
         _commit(1);
 
         vm.prank(BORROWER);
-        vm.expectRevert("INVALID_REPAY_AMOUNT");
+        vm.expectRevert(FlashDotVault.InvalidRepayAmount.selector);
         vault.repay(1, 0);
     }
 
@@ -124,7 +124,7 @@ contract VaultRepayTest is Test {
         _commit(1);
 
         vm.prank(BORROWER);
-        vm.expectRevert("INVALID_REPAY_AMOUNT");
+        vm.expectRevert(FlashDotVault.InvalidRepayAmount.selector);
         vault.repay(1, REPAY_AMT + 1);
     }
 
@@ -155,7 +155,7 @@ contract VaultRepayTest is Test {
         _prepare(1);
         _commit(1);
 
-        vm.expectRevert("NOT_EXPIRED");
+        vm.expectRevert(FlashDotVault.NotExpired.selector);
         vault.claimDefault(1);
     }
 
@@ -166,7 +166,7 @@ contract VaultRepayTest is Test {
         vault.abort(1);
 
         vm.warp(expiryAt + 1);
-        vm.expectRevert("NOT_COMMITTED");
+        vm.expectRevert(FlashDotVault.NotCommitted.selector);
         vault.claimDefault(1);
     }
 
@@ -178,7 +178,7 @@ contract VaultRepayTest is Test {
         vault.repay(1, REPAY_AMT);
 
         vm.warp(expiryAt + 1);
-        vm.expectRevert("NOT_COMMITTED");
+        vm.expectRevert(FlashDotVault.NotCommitted.selector);
         vault.claimDefault(1);
     }
 
