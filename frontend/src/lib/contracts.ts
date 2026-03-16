@@ -19,6 +19,10 @@ export const HUB_ABI = [
   "function getLeg(uint256 loanId,uint256 legId) view returns (tuple(bytes32 chain,address vault,uint256 amount,uint256 feeBudget,uint32 legInterestBps,uint8 state))",
  ] as const;
 
+export const VAULT_ABI = [
+  "function repay(uint256 loanId, uint256 amount)",
+] as const;
+
 export interface HubLoanRecord {
   borrower: string;
   asset: string;
@@ -85,6 +89,10 @@ export interface HubReadContract {
   filters: {
     LoanCreated: () => unknown;
   };
+}
+
+export interface VaultWriteContract {
+  repay: (loanId: bigint, amount: bigint) => Promise<{ wait: () => Promise<unknown> }>;
 }
 
 export async function getHubContract(ethereum: unknown): Promise<HubWriteContract> {

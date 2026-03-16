@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { LegView } from "../lib/loan-types";
 import { LegState } from "../lib/loan-types";
+import { VAULT_ABI, type VaultWriteContract } from "../lib/contracts";
 
 const LEG_STEPS = [
   { label: "PrepareSent", state: LegState.PrepareSent },
@@ -64,11 +65,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
     try {
       const provider = new BrowserProvider(ethereum as any);
       const signer = await provider.getSigner();
-      const vault = new Contract(
-        leg.vault,
-        ["function repay(uint256 loanId, uint256 amount)"],
-        signer
-      ) as any;
+      const vault = new Contract(leg.vault, VAULT_ABI, signer) as unknown as VaultWriteContract;
 
       const tx = await vault.repay(BigInt(leg.loanId), leg.repayAmount);
       await tx.wait();
