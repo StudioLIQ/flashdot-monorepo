@@ -62,12 +62,48 @@ contract MockXcmTest is Test {
         assertEq(actual, expected, "selector mismatch");
     }
 
+    function test_encodePrepareCall_matchesKnownGoodBytes() public pure {
+        bytes memory callData = XcmEncoder.encodePrepareCall(
+            VAULT_A,
+            1,
+            2,
+            3,
+            uint64(4),
+            address(0xBEEF),
+            bytes32(uint256(0xC0DE))
+        );
+
+        assertEq(
+            callData,
+            hex"cbba20850000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000beef000000000000000000000000000000000000000000000000000000000000c0de",
+            "prepare calldata drifted"
+        );
+    }
+
     function test_encodeCommitCall_selector() public pure {
         bytes memory callData = XcmEncoder.encodeCommitCall(42);
         bytes4 expected = bytes4(keccak256("commit(uint256)"));
         bytes4 actual;
         assembly { actual := mload(add(callData, 32)) }
         assertEq(actual, expected, "selector mismatch");
+    }
+
+    function test_encodeCommitCall_matchesKnownGoodBytes() public pure {
+        bytes memory callData = XcmEncoder.encodeCommitCall(42);
+        assertEq(
+            callData,
+            hex"f4f98ad5000000000000000000000000000000000000000000000000000000000000002a",
+            "commit calldata drifted"
+        );
+    }
+
+    function test_encodeAbortCall_matchesKnownGoodBytes() public pure {
+        bytes memory callData = XcmEncoder.encodeAbortCall(42);
+        assertEq(
+            callData,
+            hex"e50701f4000000000000000000000000000000000000000000000000000000000000002a",
+            "abort calldata drifted"
+        );
     }
 
     function test_encodeParachainLocation_format() public pure {
@@ -88,6 +124,15 @@ contract MockXcmTest is Test {
         assertEq(loc.length, 2);
         assertEq(uint8(loc[0]), 0x00, "parents = 0");
         assertEq(uint8(loc[1]), 0x00, "Here");
+    }
+
+    function test_makeQueryId_isDeterministic() public pure {
+        bytes32 queryId = XcmEncoder.makeQueryId(1, 2, 3, 4);
+        assertEq(
+            queryId,
+            0xa40ea6175784c569d2667ee9d0f659eb687dd2cc0b1c209e3c3f54ea2f1f6284,
+            "queryId drifted"
+        );
     }
 
     // ─────────────────────────────────────────────────────────────────
