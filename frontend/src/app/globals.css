@@ -6,6 +6,10 @@
   color-scheme: light;
 }
 
+.dark {
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -15,4 +19,10 @@ body {
   min-height: 100vh;
   background: #f5fff8;
   color: #10211f;
+  transition: background-color 200ms ease, color 200ms ease;
+}
+
+.dark body {
+  background: #07110f;
+  color: #f3fbf8;
 }

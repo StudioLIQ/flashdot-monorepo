@@ -3,6 +3,7 @@ import { IBM_Plex_Sans } from "next/font/google";
 
 import "./globals.css";
 import { QueryProvider } from "../providers/QueryProvider";
+import { ThemeProvider } from "../providers/ThemeProvider";
 import { WalletProvider } from "../providers/WalletProvider";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -23,9 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={ibmPlexSans.className}>
-        <QueryProvider>
-          <WalletProvider>{children}</WalletProvider>
-        </QueryProvider>
+        <ThemeProvider>
+          <QueryProvider>
+            <WalletProvider>{children}</WalletProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

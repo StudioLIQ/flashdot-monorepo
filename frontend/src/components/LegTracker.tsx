@@ -85,19 +85,19 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
   };
 
   return (
-    <article className="rounded-xl border border-ink/15 bg-white p-4">
+    <article className="rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">Leg #{leg.legId} · {shortAddress(leg.vault)}</h3>
-        <p className="text-xs text-ink/60">Principal: {formatDotAmount(leg.amount)}</p>
+        <p className="text-xs text-ink/60 dark:text-white/55">Principal: {formatDotAmount(leg.amount)}</p>
       </div>
 
-      <ol className="mt-3 grid gap-2 text-xs text-ink/70 sm:grid-cols-5">
+      <ol className="mt-3 grid gap-2 text-xs text-ink/70 dark:text-white/65 sm:grid-cols-5">
         {LEG_STEPS.map((step) => {
           const done = leg.state >= step.state;
           return (
             <li
               key={step.label}
-              className={`rounded-lg border px-2 py-2 ${done ? "border-neon/40 bg-mint text-ink" : "border-ink/10 bg-ink/5"}`}
+              className={`rounded-lg border px-2 py-2 ${done ? "border-neon/40 bg-mint text-ink dark:bg-emerald-950/60 dark:text-white" : "border-ink/10 bg-ink/5 dark:border-white/10 dark:bg-white/5"}`}
             >
               <span className="mr-1">{done ? "●" : "○"}</span>
               {step.label}
@@ -108,19 +108,19 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
 
       {canRepay ? (
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <p className="text-sm text-ink/80">Repay countdown: {countdown}</p>
+          <p className="text-sm text-ink/80 dark:text-white/75">Repay countdown: {countdown}</p>
           <button
             type="button"
             onClick={() => void repay()}
             disabled={isRepaying}
-            className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50"
+            className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:bg-amber-400 dark:text-slate-950 dark:disabled:bg-white/15 dark:disabled:text-white/35"
           >
             {isRepaying ? "Repaying..." : "Repay"}
           </button>
         </div>
       ) : null}
 
-      {repayError ? <p className="mt-2 text-xs text-red-600">{repayError}</p> : null}
+      {repayError ? <p className="mt-2 text-xs text-red-600 dark:text-red-300">{repayError}</p> : null}
     </article>
   );
 }

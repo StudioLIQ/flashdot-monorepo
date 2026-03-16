@@ -48,18 +48,18 @@ export function LoanStatus({ loan, legs, refreshing, onRepaid }: LoanStatusProps
 
   if (!loan) {
     return (
-      <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6">
+      <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
         <h2 className="text-xl font-semibold">Loan Status</h2>
-        <p className="mt-2 text-sm text-ink/70">No active loan selected.</p>
+        <p className="mt-2 text-sm text-ink/70 dark:text-white/65">No active loan selected.</p>
       </section>
     );
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6">
+    <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold">Loan #{loan.loanId}</h2>
-        <p className="text-sm text-ink/70">
+        <p className="text-sm text-ink/70 dark:text-white/65">
           {LOAN_STATE_LABEL[loan.state] ?? `State ${loan.state}`}
           {refreshing ? " · updating..." : ""}
         </p>
@@ -78,7 +78,7 @@ export function LoanStatus({ loan, legs, refreshing, onRepaid }: LoanStatusProps
       </div>
 
       {terminalMessage ? (
-        <p className="mt-5 rounded-lg border border-ink/15 bg-mint p-3 text-sm font-semibold text-ink">
+        <p className="mt-5 rounded-lg border border-ink/15 bg-mint p-3 text-sm font-semibold text-ink dark:border-white/10 dark:bg-emerald-950/50 dark:text-white">
           {terminalMessage}
         </p>
       ) : null}

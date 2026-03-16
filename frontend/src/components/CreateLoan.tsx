@@ -152,12 +152,12 @@ export function CreateLoan(): JSX.Element {
   };
 
   return (
-    <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6">
+    <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
       <h2 className="text-xl font-semibold">Create Loan</h2>
-      <p className="mt-1 text-sm text-ink/70">Bond preview uses ceiling division and hub buffer.</p>
+      <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Bond preview uses ceiling division and hub buffer.</p>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <label className="flex items-center gap-2 rounded-xl border border-ink/15 p-3">
+        <label className="flex items-center gap-2 rounded-xl border border-ink/15 p-3 dark:border-white/10">
           <input type="checkbox" checked={includeA} onChange={(e) => setIncludeA(e.target.checked)} />
           <span className="text-sm font-semibold">Vault A</span>
           <input
@@ -166,11 +166,11 @@ export function CreateLoan(): JSX.Element {
             step="0.01"
             value={amountA}
             onChange={(e) => setAmountA(e.target.value)}
-            className="ml-auto w-28 rounded-lg border border-ink/20 px-2 py-1 text-right text-sm"
+            className="ml-auto w-28 rounded-lg border border-ink/20 px-2 py-1 text-right text-sm dark:border-white/15 dark:bg-slate-900"
           />
         </label>
 
-        <label className="flex items-center gap-2 rounded-xl border border-ink/15 p-3">
+        <label className="flex items-center gap-2 rounded-xl border border-ink/15 p-3 dark:border-white/10">
           <input type="checkbox" checked={includeB} onChange={(e) => setIncludeB(e.target.checked)} />
           <span className="text-sm font-semibold">Vault B</span>
           <input
@@ -179,7 +179,7 @@ export function CreateLoan(): JSX.Element {
             step="0.01"
             value={amountB}
             onChange={(e) => setAmountB(e.target.value)}
-            className="ml-auto w-28 rounded-lg border border-ink/20 px-2 py-1 text-right text-sm"
+            className="ml-auto w-28 rounded-lg border border-ink/20 px-2 py-1 text-right text-sm dark:border-white/15 dark:bg-slate-900"
           />
         </label>
       </div>
@@ -192,16 +192,16 @@ export function CreateLoan(): JSX.Element {
           step="1"
           value={durationMinutes}
           onChange={(e) => setDurationMinutes(e.target.value)}
-          className="w-24 rounded-lg border border-ink/20 px-2 py-1 text-right text-sm"
+          className="w-24 rounded-lg border border-ink/20 px-2 py-1 text-right text-sm dark:border-white/15 dark:bg-slate-900"
         />
       </div>
 
-      <div className="mt-6 rounded-xl bg-mint p-4 text-sm">
+      <div className="mt-6 rounded-xl bg-mint p-4 text-sm dark:bg-emerald-950/50">
         <p>Repay A: {formatDot(preview.repayA)}</p>
         <p>Repay B: {formatDot(preview.repayB)}</p>
         <p>Fee budgets: {formatDot(preview.feeBudgets)}</p>
         <p>Hub fee buffer: {formatDot(HUB_FEE_BUFFER)}</p>
-        <p className="mt-2 border-t border-ink/20 pt-2 text-base font-semibold">
+        <p className="mt-2 border-t border-ink/20 pt-2 text-base font-semibold dark:border-white/10">
           Total Bond Required: {formatDot(preview.totalBond)}
         </p>
       </div>
@@ -210,7 +210,7 @@ export function CreateLoan(): JSX.Element {
         type="button"
         onClick={() => void onSubmit()}
         disabled={!canSubmit}
-        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50"
+        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:bg-white dark:text-slate-950 dark:disabled:bg-white/15 dark:disabled:text-white/35"
       >
         {submitting ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" /> : null}
         {submitLabel}
@@ -221,7 +221,7 @@ export function CreateLoan(): JSX.Element {
         <p className="mt-3 text-sm text-red-600">Switch to Polkadot Hub EVM network.</p>
       ) : null}
       {message ? <p className="mt-3 text-sm text-neon">{message}</p> : null}
-      {createdLoanId ? <p className="mt-1 text-sm text-ink/80">Loan ID: {createdLoanId}</p> : null}
+      {createdLoanId ? <p className="mt-1 text-sm text-ink/80 dark:text-white/70">Loan ID: {createdLoanId}</p> : null}
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
     </section>
   );

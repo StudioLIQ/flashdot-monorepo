@@ -4,6 +4,7 @@ import { useMemo } from "react";
 
 import { CreateLoan } from "../components/CreateLoan";
 import { LoanStatus } from "../components/LoanStatus";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { useLoan } from "../hooks/useLoan";
 import { useLoanHistory } from "../hooks/useLoanHistory";
 import { useMyLoans } from "../hooks/useMyLoans";
@@ -48,13 +49,16 @@ export default function HomePage(): JSX.Element {
   const activeLoanQuery = useLoan(activeLoanId);
 
   return (
-    <main className="min-h-screen bg-mesh px-6 py-10 text-ink md:px-10">
-      <section className="mx-auto max-w-5xl rounded-3xl border border-ink/10 bg-white/75 p-8 shadow-glow backdrop-blur md:p-12">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink/70">FlashDot</p>
+    <main className="min-h-screen bg-mesh px-6 py-10 text-ink dark:bg-mesh-dark dark:text-white md:px-10">
+      <section className="mx-auto max-w-5xl rounded-3xl border border-ink/10 bg-white/75 p-8 shadow-glow backdrop-blur dark:border-white/10 dark:bg-slate-950/70 md:p-12">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink/70 dark:text-white/65">FlashDot</p>
+          <ThemeToggle />
+        </div>
         <h1 className="mt-2 text-4xl font-bold leading-tight md:text-5xl">
           One Signature, Multi-Chain Flash Liquidity
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink/80 md:text-lg">
+        <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink/80 dark:text-white/75 md:text-lg">
           Connect MetaMask on Polkadot Hub EVM and create a bonded cross-chain loan plan.
           Wallet 미연결 상태에서는 대출 생성 액션이 자동 비활성화됩니다.
         </p>
@@ -65,19 +69,19 @@ export default function HomePage(): JSX.Element {
               type="button"
               onClick={() => void connectWallet()}
               disabled={isConnecting}
-              className="rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
             >
               {isConnecting ? "Connecting..." : "Connect Wallet"}
             </button>
           ) : (
             <>
-              <span className="rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold">
+              <span className="rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold dark:border-white/15 dark:bg-white/10">
                 {account ? shortAddress(account) : "-"}
               </span>
               <button
                 type="button"
                 onClick={disconnectWallet}
-                className="rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5"
+                className="rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
               >
                 Disconnect
               </button>
@@ -86,14 +90,14 @@ export default function HomePage(): JSX.Element {
         </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-ink/10 bg-white p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">Connection</p>
+          <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Connection</p>
             <p className="mt-2 text-lg font-semibold">{isConnected ? "Connected" : "Not connected"}</p>
-            <p className="mt-1 text-sm text-ink/70">Address: {account ?? "-"}</p>
+            <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Address: {account ?? "-"}</p>
           </div>
 
-          <div className="rounded-2xl border border-ink/10 bg-white p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">Network</p>
+          <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Network</p>
             <p className="mt-2 text-lg font-semibold">Chain ID: {networkLabel}</p>
             <p className={`mt-1 text-sm ${isCorrectNetwork ? "text-neon" : "text-red-600"}`}>
               {isCorrectNetwork ? "Polkadot Hub EVM" : "Switch network required"}
@@ -102,15 +106,15 @@ export default function HomePage(): JSX.Element {
         </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-ink/10 bg-white p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">My Loans</p>
+          <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
             <p className="mt-2 text-lg font-semibold">{(myLoansQuery.data ?? []).length}</p>
-            <p className="mt-1 text-sm text-ink/70">Polling every 5s</p>
+            <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Polling every 5s</p>
           </div>
-          <div className="rounded-2xl border border-ink/10 bg-white p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60">History</p>
+          <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
             <p className="mt-2 text-lg font-semibold">{(loanHistoryQuery.data ?? []).length}</p>
-            <p className="mt-1 text-sm text-ink/70">Settled / Defaulted / Aborted</p>
+            <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Settled / Defaulted / Aborted</p>
           </div>
         </div>
 
