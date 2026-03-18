@@ -103,9 +103,9 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
   };
 
   return (
-    <article className="interactive-card rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5">
+    <article className="interactive-card rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5" aria-labelledby={`leg-${leg.loanId}-${leg.legId}-title`}>
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold">Leg #{leg.legId} · {shortAddress(leg.vault)}</h3>
+        <h3 id={`leg-${leg.loanId}-${leg.legId}-title`} className="text-sm font-semibold">Leg #{leg.legId} · {shortAddress(leg.vault)}</h3>
         <p className="text-xs text-ink/60 dark:text-white/55">
           {currentStep ? `${currentStep.icon} ${currentStep.label}` : "Initialized"} · Principal: {formatDotAmount(leg.amount)}
         </p>
@@ -141,13 +141,14 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
 
       {canRepay ? (
         <div className="mt-4">
-          <p className={`text-sm font-semibold ${countdownTone}`}>
+          <p className={`text-sm font-semibold ${countdownTone}`} aria-live="polite">
             Repay countdown: <span key={countdown} className="inline-block animate-countdown-tick">{countdown}</span>
           </p>
           <button
             type="button"
             onClick={() => setConfirmOpen(true)}
             disabled={isRepaying}
+            aria-label={`Repay ${formatDotAmount(leg.repayAmount)} to vault ${shortAddress(leg.vault)}`}
             className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 ${urgentRepay ? "animate-pulse bg-danger text-white dark:bg-danger" : "bg-warning text-ink dark:bg-warning dark:text-slate-950"}`}
           >
             {isRepaying ? "Repaying..." : `Repay ${formatDotAmount(leg.repayAmount)} to ${shortAddress(leg.vault)}`}
@@ -155,34 +156,36 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
         </div>
       ) : null}
 
-      {repayError ? <p className="mt-2 text-xs text-danger">{repayError}</p> : null}
+      {repayError ? <p role="alert" className="mt-2 text-xs text-danger">{repayError}</p> : null}
 
       {confirmOpen ? (
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
           <div className="w-full max-w-sm rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
-            <h4 className="text-base font-semibold">Confirm Repayment</h4>
-            <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
-              Repay {formatDotAmount(leg.repayAmount)} to {shortAddress(leg.vault)}?
-            </p>
-            <p className="mt-1 text-xs text-ink/65 dark:text-white/65">This action cannot be undone.</p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmOpen(false)}
-                className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setConfirmOpen(false);
-                  void repay();
-                }}
-                className="rounded-lg bg-warning px-3 py-2 text-sm font-semibold text-ink dark:bg-warning dark:text-slate-950"
-              >
-                Confirm Repay
-              </button>
+            <div role="dialog" aria-modal="true" aria-labelledby={`confirm-repay-${leg.loanId}-${leg.legId}`}>
+              <h4 id={`confirm-repay-${leg.loanId}-${leg.legId}`} className="text-base font-semibold">Confirm Repayment</h4>
+              <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
+                Repay {formatDotAmount(leg.repayAmount)} to {shortAddress(leg.vault)}?
+              </p>
+              <p className="mt-1 text-xs text-ink/65 dark:text-white/65">This action cannot be undone.</p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmOpen(false)}
+                  className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmOpen(false);
+                    void repay();
+                  }}
+                  className="rounded-lg bg-warning px-3 py-2 text-sm font-semibold text-ink dark:bg-warning dark:text-slate-950"
+                >
+                  Confirm Repay
+                </button>
+              </div>
             </div>
           </div>
         </div>

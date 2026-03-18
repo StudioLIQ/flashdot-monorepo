@@ -201,8 +201,11 @@ export function CreateLoan(): JSX.Element {
   };
 
   return (
-    <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-      <h2 className="text-xl font-semibold">Create Loan</h2>
+    <section
+      className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5"
+      aria-labelledby="create-loan-title"
+    >
+      <h2 id="create-loan-title" className="text-xl font-semibold">Create Loan</h2>
       <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Estimated bond breakdown before transaction submission.</p>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -216,25 +219,28 @@ export function CreateLoan(): JSX.Element {
             Amount
             <div className="mt-2 flex items-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 dark:border-white/15 dark:bg-slate-900">
               <input
+                id="vault-a-amount"
                 type="number"
                 min="0"
                 step="0.01"
                 value={amountA}
                 onChange={(e) => setAmountA(e.target.value)}
+                aria-label="Vault A amount in DOT"
                 className="w-full bg-transparent text-right text-sm outline-none"
               />
               <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
             </div>
           </label>
-          <label className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
+          <div className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
             <input
+              id="include-vault-a"
               type="checkbox"
               checked={includeA}
               onChange={(e) => setIncludeA(e.target.checked)}
               className="h-5 w-5"
             />
-            Include this vault
-          </label>
+            <label htmlFor="include-vault-a">Include this vault</label>
+          </div>
         </article>
 
         <article
@@ -247,36 +253,41 @@ export function CreateLoan(): JSX.Element {
             Amount
             <div className="mt-2 flex items-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 dark:border-white/15 dark:bg-slate-900">
               <input
+                id="vault-b-amount"
                 type="number"
                 min="0"
                 step="0.01"
                 value={amountB}
                 onChange={(e) => setAmountB(e.target.value)}
+                aria-label="Vault B amount in DOT"
                 className="w-full bg-transparent text-right text-sm outline-none"
               />
               <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
             </div>
           </label>
-          <label className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
+          <div className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
             <input
+              id="include-vault-b"
               type="checkbox"
               checked={includeB}
               onChange={(e) => setIncludeB(e.target.checked)}
               className="h-5 w-5"
             />
-            Include this vault
-          </label>
+            <label htmlFor="include-vault-b">Include this vault</label>
+          </div>
         </article>
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
-        <span className="text-sm font-medium">Duration (minutes)</span>
+        <label htmlFor="loan-duration-minutes" className="text-sm font-medium">Duration (minutes)</label>
         <input
+          id="loan-duration-minutes"
           type="number"
           min="5"
           step="1"
           value={durationMinutes}
           onChange={(e) => setDurationMinutes(e.target.value)}
+          aria-label="Loan duration in minutes"
           className="min-h-11 w-full rounded-lg border border-ink/20 px-3 py-2 text-right text-sm dark:border-white/15 dark:bg-slate-900 sm:w-28"
         />
       </div>
@@ -293,16 +304,19 @@ export function CreateLoan(): JSX.Element {
         type="button"
         onClick={() => setConfirmOpen(true)}
         disabled={!canSubmit}
+        aria-label="Create loan and lock bond"
         className={`mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:w-auto ${createdLoanId ? "animate-success-morph bg-success text-ink dark:bg-success dark:text-ink" : "bg-ink text-white dark:bg-white dark:text-slate-950"}`}
       >
         {submitting ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent dark:border-ink dark:border-t-transparent" /> : null}
         {createdLoanId && !submitting ? "Created ✓" : submitLabel}
       </button>
 
-      {!isConnected ? <p className="mt-3 text-sm text-danger">Connect wallet first.</p> : null}
-      {isConnected && !isCorrectNetwork ? (
-        <p className="mt-3 text-sm text-danger">Switch to Polkadot Hub EVM network.</p>
-      ) : null}
+      <div className="mt-3 space-y-1" aria-live="polite">
+        {!isConnected ? <p className="text-sm text-danger">Connect wallet first.</p> : null}
+        {isConnected && !isCorrectNetwork ? (
+          <p className="text-sm text-danger">Switch to Polkadot Hub EVM network.</p>
+        ) : null}
+      </div>
       {submitting ? (
         <div className="mt-4 rounded-xl border border-ink/15 bg-ink/5 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
           <p className="inline-flex items-center gap-2 font-semibold">
@@ -341,7 +355,8 @@ export function CreateLoan(): JSX.Element {
       {confirmOpen ? (
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
           <div className="w-full max-w-md rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
-            <h3 className="text-lg font-semibold">Confirm Bond Lock</h3>
+            <div role="dialog" aria-modal="true" aria-labelledby="confirm-loan-lock-title">
+            <h3 id="confirm-loan-lock-title" className="text-lg font-semibold">Confirm Bond Lock</h3>
             <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
               Lock {formatDot(preview.totalBond)} as bond for this flash loan?
             </p>
@@ -352,6 +367,7 @@ export function CreateLoan(): JSX.Element {
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}
+                aria-label="Cancel bond lock confirmation"
                 className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
               >
                 Cancel
@@ -361,10 +377,12 @@ export function CreateLoan(): JSX.Element {
                 onClick={() => {
                   void onSubmit();
                 }}
+                aria-label="Confirm and submit loan creation"
                 className="rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
               >
                 Confirm & Create
               </button>
+            </div>
             </div>
           </div>
         </div>

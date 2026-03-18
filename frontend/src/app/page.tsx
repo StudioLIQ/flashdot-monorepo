@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import { CreateLoan } from "../components/CreateLoan";
 import { FlashDotMark } from "../components/FlashDotMark";
@@ -28,6 +28,7 @@ function LoadingMetric(): JSX.Element {
 
 export default function HomePage(): JSX.Element {
   const { showToast } = useToast();
+  const wasConnectedRef = useRef(false);
   const {
     account,
     balanceDot,
@@ -73,6 +74,14 @@ export default function HomePage(): JSX.Element {
       showToast({ tone: "error", title: "Copy failed", description: "Clipboard access was blocked." });
     }
   };
+
+  useEffect(() => {
+    if (!wasConnectedRef.current && isConnected) {
+      const firstField = document.getElementById("vault-a-amount");
+      firstField?.focus();
+    }
+    wasConnectedRef.current = isConnected;
+  }, [isConnected]);
 
   return (
     <main className="min-h-screen bg-mesh px-6 py-10 text-ink dark:bg-mesh-dark dark:text-white md:px-10">
@@ -120,6 +129,7 @@ export default function HomePage(): JSX.Element {
                 type="button"
                 onClick={() => void connectWallet()}
                 disabled={walletBusy}
+                aria-label="Connect MetaMask wallet"
                 className="rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
               >
                 <span className="inline-flex items-center gap-2">
@@ -140,6 +150,7 @@ export default function HomePage(): JSX.Element {
                   type="button"
                   onClick={disconnectWallet}
                   title="This clears the local session only. MetaMask remains connected."
+                  aria-label="Disconnect local wallet session"
                   className="min-h-11 rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
                 >
                   Disconnect

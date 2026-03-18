@@ -117,7 +117,8 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
 
   if (loading) {
     return (
-      <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
+      <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-loading-title">
+        <h2 id="loan-status-loading-title" className="sr-only">Loan status loading</h2>
         <div className="flex items-center justify-between gap-3">
           <div className="h-7 w-32 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
           <div className="h-5 w-24 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
@@ -147,8 +148,8 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
 
   if (!loan) {
     return (
-      <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-        <h2 className="text-xl font-semibold">Create your first flash loan</h2>
+      <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-empty-title">
+        <h2 id="loan-status-empty-title" className="text-xl font-semibold">Create your first flash loan</h2>
         <p className="mt-2 text-sm text-ink/70 dark:text-white/65">
           No active loan selected yet. Use the action zone to launch a bonded plan in one signature.
         </p>
@@ -174,11 +175,11 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
   }
 
   return (
-    <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
+    <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-title">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold">Loan #{loan.loanId}</h2>
+        <h2 id="loan-status-title" className="text-xl font-semibold">Loan #{loan.loanId}</h2>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <p className="text-sm text-ink/70 dark:text-white/65">
+          <p className="text-sm text-ink/70 dark:text-white/65" aria-live="polite">
             {stateMeta ? `${stateMeta.icon} ${stateMeta.label}` : `State ${loan.state}`}
             {refreshing ? " · updating..." : ""}
           </p>
@@ -224,32 +225,34 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
         </p>
       ) : null}
       {cancelError ? (
-        <p className="mt-3 text-xs text-danger">{cancelError}</p>
+        <p role="alert" className="mt-3 text-xs text-danger">{cancelError}</p>
       ) : null}
 
       {cancelConfirmOpen ? (
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
           <div className="w-full max-w-md rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
-            <h3 className="text-lg font-semibold">Cancel loan #{loan.loanId}?</h3>
-            <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
-              Your bond will be returned minus fees after cancellation is finalized.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setCancelConfirmOpen(false)}
-                className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
-              >
-                Keep Loan
-              </button>
-              <button
-                type="button"
-                onClick={() => void cancelLoan()}
-                disabled={cancelPending}
-                className="rounded-lg bg-danger px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-danger"
-              >
-                {cancelPending ? "Cancelling..." : "Confirm Cancel"}
-              </button>
+            <div role="dialog" aria-modal="true" aria-labelledby="cancel-loan-title">
+              <h3 id="cancel-loan-title" className="text-lg font-semibold">Cancel loan #{loan.loanId}?</h3>
+              <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
+                Your bond will be returned minus fees after cancellation is finalized.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCancelConfirmOpen(false)}
+                  className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+                >
+                  Keep Loan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void cancelLoan()}
+                  disabled={cancelPending}
+                  className="rounded-lg bg-danger px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-danger"
+                >
+                  {cancelPending ? "Cancelling..." : "Confirm Cancel"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
