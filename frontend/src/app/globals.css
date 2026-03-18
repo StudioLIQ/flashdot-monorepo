@@ -288,6 +288,7 @@ body {
 .elevation-0 {
   box-shadow: none;
   background-color: var(--fd-bg);
+  border: 1px solid var(--fd-border);
 }
 .elevation-1 {
   box-shadow: var(--fd-shadow-sm);
@@ -302,7 +303,13 @@ body {
 .elevation-3 {
   box-shadow: var(--fd-shadow-xl);
   background-color: var(--fd-surface-overlay);
-  border: 1px solid var(--fd-border);
+  border: 1px solid var(--fd-border-2);
+}
+
+/* Optional hover: lift elevation by one tier */
+.elevation-hover-lift:hover {
+  box-shadow: var(--fd-shadow-md);
+  transition: box-shadow 0.2s ease;
 }
 
 /* Safe area inset for iOS bottom bar */

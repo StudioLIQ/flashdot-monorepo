@@ -82,7 +82,7 @@ export function ConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
-        className="animate-dialog-enter w-full max-w-md rounded-t-2xl border border-ink/10 bg-white p-5 shadow-2xl sm:rounded-2xl dark:border-white/10 dark:bg-slate-900"
+        className="elevation-3 animate-dialog-enter w-full max-w-md rounded-t-2xl p-5 sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 id="confirm-dialog-title" className="text-lg font-semibold">

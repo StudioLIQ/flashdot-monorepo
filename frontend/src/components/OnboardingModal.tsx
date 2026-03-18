@@ -66,7 +66,7 @@ function OnboardingModal({ onComplete }: OnboardingModalProps): JSX.Element {
       />
 
       {/* Panel */}
-      <div className="relative w-full max-w-md rounded-2xl border border-ink/15 bg-white p-6 shadow-xl dark:border-white/15 dark:bg-slate-900">
+      <div className="elevation-3 relative w-full max-w-md rounded-2xl p-6">
         {/* Header */}
         <div className="mb-5 flex items-center gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15">

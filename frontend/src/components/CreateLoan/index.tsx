@@ -55,7 +55,7 @@ export function CreateLoan(): JSX.Element {
 
   return (
     <section
-      className="rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5"
+      className="elevation-1 rounded-2xl p-6"
       aria-labelledby="create-loan-title"
     >
       {/* Header */}

@@ -74,7 +74,7 @@ function KpiCard({ icon, label, value, sub, accent = "primary" }: KpiCardProps):
     info: "text-info",
   };
   return (
-    <div className="rounded-2xl border border-ink/10 bg-white/80 p-4 backdrop-blur dark:border-white/10 dark:bg-white/5">
+    <div className="elevation-1 elevation-hover-lift rounded-2xl p-4">
       <div className="flex items-center gap-2.5">
         <div className={`${accentMap[accent]} shrink-0`}>{icon}</div>
         <p className="text-xs font-semibold uppercase tracking-[0.07em] text-ink/55 dark:text-white/50">

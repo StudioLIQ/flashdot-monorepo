@@ -54,7 +54,7 @@ function HistoryRow({ loan, expanded, onToggle }: HistoryRowProps): JSX.Element 
   const legs = loanQuery.data?.legs ?? [];
 
   return (
-    <div className="rounded-xl border border-ink/10 bg-white/60 dark:border-white/10 dark:bg-white/5">
+    <div className="elevation-0 rounded-xl">
       <button
         type="button"
         onClick={onToggle}
