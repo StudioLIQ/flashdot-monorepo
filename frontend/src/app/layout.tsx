@@ -16,6 +16,26 @@ export const metadata: Metadata = {
   title: "FlashDot",
   description: "Bonded cross-chain flash loan coordinator on Polkadot Hub",
   applicationName: "FlashDot",
+  metadataBase: new URL("https://flashdot.app"),
+  openGraph: {
+    title: "FlashDot",
+    description: "Bonded cross-chain flash loan coordinator on Polkadot Hub",
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "FlashDot bonded cross-chain flash loan",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FlashDot",
+    description: "Bonded cross-chain flash loan coordinator on Polkadot Hub",
+    images: ["/opengraph-image"],
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
