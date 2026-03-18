@@ -35,6 +35,12 @@ export function LoanHistoryPage(): JSX.Element {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8 animate-content-fade">
+      <div className="mb-6">
+        <h1 className="page-title">Loan History</h1>
+        <p className="page-subtitle">
+          Settled, defaulted, and aborted loans from your account.
+        </p>
+      </div>
       <LoanHistory loans={loanHistoryQuery.data ?? []} loading={false} />
     </main>
   );

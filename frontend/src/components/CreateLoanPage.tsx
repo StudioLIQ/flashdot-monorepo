@@ -10,6 +10,12 @@ export function CreateLoanPage(): JSX.Element {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
+      <div className="mb-6">
+        <h1 className="page-title">Create New Loan</h1>
+        <p className="page-subtitle">
+          Configure vaults, amounts, and duration for your bonded flash loan.
+        </p>
+      </div>
       <div
         className={`animate-content-fade transition ${
           isConnected ? "opacity-100" : "pointer-events-none opacity-40 blur-[1px]"

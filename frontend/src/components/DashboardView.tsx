@@ -81,7 +81,7 @@ function KpiCard({ icon, label, value, sub, accent = "primary" }: KpiCardProps):
           {label}
         </p>
       </div>
-      <p className="mt-2 font-mono text-2xl font-bold text-ink dark:text-white">{value}</p>
+      <p className="type-h2 mt-2 font-mono text-ink dark:text-white">{value}</p>
       {sub ? (
         <p className="mt-0.5 text-xs text-ink/55 dark:text-white/45">{sub}</p>
       ) : null}

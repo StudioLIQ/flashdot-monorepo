@@ -312,6 +312,64 @@ body {
   transition: box-shadow 0.2s ease;
 }
 
+/* ─── Typography scale (FE-13) ──────────────────────────────────────── */
+/* Display — 36px/44px — large KPI numbers */
+.type-display {
+  font-size: 36px;
+  line-height: 44px;
+  font-weight: 700;
+}
+/* H1 — 28px/36px — page titles */
+.type-h1 {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+}
+/* H2 — 22px/28px — section titles */
+.type-h2 {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 600;
+}
+/* H3 — 18px/24px — card titles */
+.type-h3 {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+}
+/* Body — 15px/24px — main body text */
+.type-body {
+  font-size: 15px;
+  line-height: 24px;
+}
+/* Caption — 13px/20px — secondary text */
+.type-caption {
+  font-size: 13px;
+  line-height: 20px;
+}
+/* Overline — 11px/16px — labels, badges */
+.type-overline {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ─── Page Title pattern (FE-13) ─────────────────────────────────────── */
+.page-title {
+  font-size: 28px;
+  line-height: 36px;
+  font-weight: 700;
+  color: var(--fd-text);
+}
+.page-subtitle {
+  font-size: 15px;
+  line-height: 24px;
+  color: var(--fd-text-2);
+  margin-top: 4px;
+}
+
 /* Safe area inset for iOS bottom bar */
 .pb-safe {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
