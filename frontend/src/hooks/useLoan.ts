@@ -75,5 +75,7 @@ export function useLoan(loanId: string | null) {
       }
       return 5_000;
     },
+    // Do not poll when the browser tab is hidden
+    refetchIntervalInBackground: false,
   });
 }

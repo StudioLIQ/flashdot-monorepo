@@ -55,5 +55,6 @@ export function useLoanHistory(account: string | null) {
     enabled: Boolean(account),
     staleTime: 10_000,
     refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
   });
 }

@@ -11,16 +11,19 @@ import { ToastProvider } from "../providers/ToastProvider";
 import { WalletModalProvider } from "../providers/WalletModalProvider";
 import { WalletProvider } from "../providers/WalletProvider";
 
+// Reduced font weights: 400 + 600 only (500/700 visually indistinguishable on small screens)
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600"],
   variable: "--font-sans",
+  display: "swap",
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "600"],
   variable: "--font-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {

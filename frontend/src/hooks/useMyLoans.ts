@@ -55,5 +55,7 @@ export function useMyLoans(account: string | null) {
     enabled: Boolean(account),
     staleTime: 3_000,
     refetchInterval: 5_000,
+    // Do not poll when the browser tab is hidden — saves network and CPU
+    refetchIntervalInBackground: false,
   });
 }

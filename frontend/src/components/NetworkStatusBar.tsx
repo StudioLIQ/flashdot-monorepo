@@ -64,7 +64,10 @@ function useNetworkStatus(): NetworkStatus {
     };
 
     void poll();
-    const interval = setInterval(() => void poll(), 12_000);
+    const interval = setInterval(() => {
+      // Skip polling when tab is hidden to save network requests
+      if (document.visibilityState !== "hidden") void poll();
+    }, 12_000);
     return () => {
       cancelled = true;
       clearInterval(interval);

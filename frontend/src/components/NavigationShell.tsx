@@ -11,6 +11,7 @@ import {
   Settings,
   Wallet,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -27,10 +28,12 @@ import { useToast } from "../providers/ToastProvider";
 import { FlashDotMark } from "./FlashDotMark";
 import { Identicon } from "./Identicon";
 import { NetworkStatusBar } from "./NetworkStatusBar";
-import { OnboardingGate } from "./OnboardingModal";
 import { ThemeToggle } from "./ThemeToggle";
-import { WalletPanel } from "./WalletPanel";
-import { WalletSelectModal } from "./WalletSelectModal";
+
+// Lazy-load heavy wallet/onboarding components (not needed on initial render)
+const WalletPanel = dynamic(() => import("./WalletPanel").then((m) => ({ default: m.WalletPanel })), { ssr: false });
+const WalletSelectModal = dynamic(() => import("./WalletSelectModal").then((m) => ({ default: m.WalletSelectModal })), { ssr: false });
+const OnboardingGate = dynamic(() => import("./OnboardingModal").then((m) => ({ default: m.OnboardingGate })), { ssr: false });
 
 function shortAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
