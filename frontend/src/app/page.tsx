@@ -1,7 +1,7 @@
 "use client";
 
 import { Wallet } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { CreateLoan } from "../components/CreateLoan";
 import { FlashDotMark } from "../components/FlashDotMark";
@@ -16,6 +16,8 @@ import { useWallet } from "../hooks/useWallet";
 import { LoanState } from "../lib/loan-types";
 import { useToast } from "../providers/ToastProvider";
 
+type Tab = "create" | "active" | "history";
+
 function shortAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
@@ -23,6 +25,7 @@ function shortAddress(address: string): string {
 export default function HomePage(): JSX.Element {
   const { showToast } = useToast();
   const wasConnectedRef = useRef(false);
+  const [activeTab, setActiveTab] = useState<Tab>("create");
   const {
     account,
     balanceDot,
@@ -54,11 +57,16 @@ export default function HomePage(): JSX.Element {
   const activeLoanQuery = useLoan(activeLoanId);
   const statusLoading = Boolean(isConnected && (myLoansQuery.isLoading || activeLoanQuery.isLoading));
   const hasActiveLoan = Boolean(activeLoanQuery.data?.loan);
-  const statusExpanded = statusLoading || hasActiveLoan;
-  const myLoanCount = (myLoansQuery.data ?? []).length;
+  const activeLoansCount = useMemo(
+    () => (myLoansQuery.data ?? []).filter(
+      (l) => l.state !== LoanState.Settled && l.state !== LoanState.Defaulted && l.state !== LoanState.Aborted
+    ).length,
+    [myLoansQuery.data]
+  );
   const historyCount = (loanHistoryQuery.data ?? []).length;
   const walletBusy = isConnecting || isSwitchingNetwork;
   const walletErrorIsMetaMaskMissing = (connectionError ?? "").toLowerCase().includes("metamask not detected");
+
   const copyAddress = async (): Promise<void> => {
     if (!account) return;
     try {
@@ -69,6 +77,7 @@ export default function HomePage(): JSX.Element {
     }
   };
 
+  // Auto-focus first input after connect
   useEffect(() => {
     if (!wasConnectedRef.current && isConnected) {
       const firstField = document.getElementById("vault-a-amount");
@@ -77,242 +86,254 @@ export default function HomePage(): JSX.Element {
     wasConnectedRef.current = isConnected;
   }, [isConnected]);
 
+  // Auto-switch to Active tab when a loan becomes active
+  useEffect(() => {
+    if (hasActiveLoan && activeTab === "create") {
+      setActiveTab("active");
+    }
+  }, [hasActiveLoan]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const tabs: Array<{ id: Tab; label: string; badge?: number | undefined; disabled?: boolean | undefined }> = [
+    { id: "create", label: "Create" },
+    { id: "active", label: "Active Loan", badge: activeLoansCount || undefined, disabled: !isConnected },
+    { id: "history", label: "History", disabled: !isConnected },
+  ];
+
   return (
-    <main className="min-h-screen bg-mesh px-6 py-10 text-ink dark:bg-mesh-dark dark:text-white md:px-10">
-      {isConnected ? (
-        <div className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4">
-          <div className="pointer-events-auto inline-flex flex-wrap items-center gap-2 rounded-full border border-ink/15 bg-white/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur dark:border-white/15 dark:bg-slate-950/85">
-            <span className="font-mono">{account ? shortAddress(account) : "-"}</span>
-            <span className="rounded-full bg-info/15 px-2 py-1 font-mono text-ink dark:bg-info/25 dark:text-white">DOT {balanceDot ?? "-"}</span>
-            <span className={`rounded-full px-2 py-1 ${isCorrectNetwork ? "bg-success/25 text-ink dark:text-white" : "bg-danger/15 text-danger dark:bg-danger/20 dark:text-danger"}`}>
-              {isCorrectNetwork ? "Polkadot Hub EVM" : "Wrong network"}
-            </span>
-            <ThemeToggle className="min-h-8 min-w-8 rounded-full p-0" />
-          </div>
-        </div>
-      ) : null}
-      <div className="mx-auto max-w-5xl space-y-6 md:space-y-8">
-        <section
-          className={`interactive-card rounded-3xl border border-ink/10 bg-white/75 shadow-glow backdrop-blur transition-all dark:border-white/10 dark:bg-slate-950/70 ${isConnected ? "p-8 md:p-10" : "min-h-[72vh] p-8 md:min-h-[78vh] md:p-12"}`}
-        >
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl border border-ink/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-white/5">
-                <FlashDotMark className="h-11 w-11" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink/70 dark:text-white/65">
-                  FlashDot
-                </p>
-                <p className="mt-1 text-sm text-ink/65 dark:text-white/55">Bond-backed liquidity router</p>
-              </div>
+    <div className="min-h-screen bg-mesh text-ink dark:bg-mesh-dark dark:text-white">
+      {/* Skip link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-fg"
+      >
+        Skip to main content
+      </a>
+
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-40 w-full border-b border-ink/10 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-slate-950/85">
+        <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3 md:px-6">
+          {/* Logo */}
+          <div className="flex shrink-0 items-center gap-2.5">
+            <div className="grid h-8 w-8 place-items-center rounded-xl border border-ink/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-white/5">
+              <FlashDotMark className="h-6 w-6" />
             </div>
-            {!isConnected ? <ThemeToggle /> : null}
+            <span className="hidden text-sm font-bold tracking-tight sm:block">FlashDot</span>
           </div>
 
-          <h1 className={`font-bold leading-tight ${isConnected ? "mt-3 text-4xl md:text-5xl" : "mt-10 text-5xl md:text-6xl"}`}>
-            One Signature, Multi-Chain Flash Liquidity
-          </h1>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink/80 dark:text-white/75 md:text-lg">
-            Connect MetaMask on Polkadot Hub EVM and create a bonded cross-chain loan plan.
-            Loan creation is disabled until wallet is connected.
-          </p>
+          {/* Tab Nav */}
+          <nav aria-label="Main navigation" className="flex flex-1 items-center gap-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => !tab.disabled && setActiveTab(tab.id)}
+                disabled={tab.disabled}
+                aria-current={activeTab === tab.id ? "page" : undefined}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
+                  activeTab === tab.id
+                    ? "bg-primary/15 text-ink dark:text-white"
+                    : tab.disabled
+                      ? "cursor-not-allowed text-ink/35 dark:text-white/30"
+                      : "text-ink/70 hover:bg-ink/5 dark:text-white/65 dark:hover:bg-white/8"
+                }`}
+              >
+                {tab.label}
+                {tab.badge ? (
+                  <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-fg leading-none">
+                    {tab.badge}
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </nav>
 
-          <div className={`mt-8 flex flex-wrap items-center gap-3 ${isConnected ? "" : "md:mt-10"}`}>
-            {!isConnected ? (
+          {/* Right: Network + Account + Theme */}
+          <div className="flex shrink-0 items-center gap-2">
+            {isConnected ? (
+              <>
+                <span
+                  className={`hidden rounded-full px-2.5 py-1 text-xs font-semibold sm:inline-flex items-center gap-1 ${
+                    isCorrectNetwork
+                      ? "bg-success/20 text-ink dark:text-white"
+                      : "bg-danger/15 text-danger"
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${isCorrectNetwork ? "bg-success" : "bg-danger"}`} />
+                  {isCorrectNetwork ? "Polkadot Hub" : "Wrong network"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void copyAddress()}
+                  className="hidden rounded-full border border-ink/15 bg-white/80 px-3 py-1 font-mono text-xs font-semibold hover:bg-ink/5 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10 sm:block"
+                  title="Click to copy address"
+                >
+                  {account ? shortAddress(account) : "-"}
+                </button>
+                <span className="rounded-full bg-info/15 px-2 py-1 font-mono text-xs font-semibold text-ink dark:bg-info/20 dark:text-white">
+                  {balanceDot ?? "-"} DOT
+                </span>
+                <button
+                  type="button"
+                  onClick={disconnectWallet}
+                  title="Disconnect local wallet session"
+                  className="rounded-full border border-ink/15 px-2.5 py-1 text-xs font-semibold text-ink/70 hover:bg-ink/5 dark:border-white/15 dark:text-white/65 dark:hover:bg-white/10"
+                >
+                  Disconnect
+                </button>
+              </>
+            ) : (
               <button
                 type="button"
                 onClick={() => void connectWallet()}
                 disabled={walletBusy}
                 aria-label="Connect MetaMask wallet"
-                className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="inline-flex items-center gap-2">
-                  <Wallet size={16} className="shrink-0" />
-                  {isSwitchingNetwork
-                    ? "Switching to Polkadot Hub EVM..."
-                    : isConnecting
-                      ? "Connecting MetaMask..."
-                      : "Connect MetaMask"}
-                </span>
+                <Wallet size={14} className="shrink-0" />
+                {isSwitchingNetwork ? "Switching..." : isConnecting ? "Connecting..." : "Connect"}
               </button>
-            ) : (
-              <>
-                <span className="rounded-xl border border-ink/15 bg-white px-4 py-2 font-mono text-sm font-semibold dark:border-white/15 dark:bg-white/10">
-                  {account ? shortAddress(account) : "-"}
-                </span>
-                <button
-                  type="button"
-                  onClick={disconnectWallet}
-                  title="This clears the local session only. MetaMask remains connected."
-                  aria-label="Disconnect local wallet session"
-                  className="min-h-11 rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
-                >
-                  Disconnect
-                </button>
-              </>
             )}
+            <ThemeToggle className="rounded-full" />
           </div>
+        </div>
+      </header>
 
-          {connectionError ? (
-            <div className="mt-3 rounded-xl border border-danger/45 bg-danger/10 px-4 py-3 text-sm text-danger dark:border-danger/40 dark:bg-danger/20 dark:text-danger">
-              <p className="font-semibold">{connectionError}</p>
-              {walletErrorIsMetaMaskMissing ? (
-                <p className="mt-1">
-                  Install MetaMask from{" "}
-                  <a
-                    href="https://metamask.io/download/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline underline-offset-2"
-                  >
-                    metamask.io/download
-                  </a>
-                  .
-                </p>
-              ) : null}
+      {/* Hero Banner — shown only when disconnected */}
+      {!isConnected ? (
+        <div className="border-b border-ink/10 bg-white/40 px-4 py-8 backdrop-blur dark:border-white/10 dark:bg-white/3">
+          <div className="mx-auto max-w-5xl">
+            <h1 className="text-3xl font-bold leading-tight md:text-4xl">
+              One Signature,<br className="sm:hidden" /> Multi-Chain Flash Liquidity
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/75 dark:text-white/70 md:text-base">
+              Bonded cross-chain flash loans on Polkadot Hub EVM. Economic atomicity via 2PC + bond escrow.
+            </p>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                onClick={clearConnectionError}
-                className="mt-2 rounded-lg border border-danger/45 px-3 py-1.5 text-xs font-semibold hover:bg-danger/10 dark:border-danger/40 dark:hover:bg-danger/20"
+                onClick={() => void connectWallet()}
+                disabled={walletBusy}
+                aria-label="Connect MetaMask wallet"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Dismiss
+                <Wallet size={16} className="shrink-0" />
+                {isSwitchingNetwork
+                  ? "Switching to Polkadot Hub EVM..."
+                  : isConnecting
+                    ? "Connecting MetaMask..."
+                    : "Connect MetaMask"}
               </button>
             </div>
-          ) : null}
 
-          {!isConnected ? (
-            <div className="mt-8 rounded-2xl border border-ink/10 bg-white/85 p-5 dark:border-white/10 dark:bg-white/5">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/60">
-                How it works
-              </p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-ink/10 bg-surface p-3 dark:border-white/10 dark:bg-surface-dark">
-                  <p className="text-sm font-semibold">1. Pick vaults</p>
-                  <p className="mt-1 text-xs text-ink/75 dark:text-white/75">Select chain legs and borrowing amounts.</p>
-                </div>
-                <div className="rounded-xl border border-ink/10 bg-surface p-3 dark:border-white/10 dark:bg-surface-dark">
-                  <p className="text-sm font-semibold">2. Lock bond</p>
-                  <p className="mt-1 text-xs text-ink/75 dark:text-white/75">One signature secures repayment coverage.</p>
-                </div>
-                <div className="rounded-xl border border-ink/10 bg-surface p-3 dark:border-white/10 dark:bg-surface-dark">
-                  <p className="text-sm font-semibold">3. Track status</p>
-                  <p className="mt-1 text-xs text-ink/75 dark:text-white/75">Follow prepare, commit, and repay in real time.</p>
-                </div>
+            {connectionError ? (
+              <div className="mt-4 max-w-lg rounded-xl border border-danger/45 bg-danger/10 px-4 py-3 text-sm text-danger dark:border-danger/40 dark:bg-danger/20">
+                <p className="font-semibold">{connectionError}</p>
+                {walletErrorIsMetaMaskMissing ? (
+                  <p className="mt-1">
+                    Install MetaMask from{" "}
+                    <a
+                      href="https://metamask.io/download/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline underline-offset-2"
+                    >
+                      metamask.io/download
+                    </a>
+                    .
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={clearConnectionError}
+                  className="mt-2 rounded-lg border border-danger/45 px-3 py-1.5 text-xs font-semibold hover:bg-danger/10"
+                >
+                  Dismiss
+                </button>
+              </div>
+            ) : null}
+
+            {/* How it works */}
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-ink/10 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/55 dark:text-white/55">Step 1</p>
+                <p className="mt-1 text-sm font-semibold">Pick vaults</p>
+                <p className="mt-1 text-xs text-ink/70 dark:text-white/65">Select chain legs and borrowing amounts.</p>
+              </div>
+              <div className="rounded-xl border border-ink/10 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/55 dark:text-white/55">Step 2</p>
+                <p className="mt-1 text-sm font-semibold">Lock bond</p>
+                <p className="mt-1 text-xs text-ink/70 dark:text-white/65">One signature secures repayment coverage.</p>
+              </div>
+              <div className="rounded-xl border border-ink/10 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/55 dark:text-white/55">Step 3</p>
+                <p className="mt-1 text-sm font-semibold">Track status</p>
+                <p className="mt-1 text-xs text-ink/70 dark:text-white/65">Follow prepare, commit, and repay in real time.</p>
               </div>
             </div>
-          ) : null}
+          </div>
+        </div>
+      ) : null}
 
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Connection</p>
-              <p className="mt-2 text-lg font-semibold">{isConnected ? "Connected" : "Not connected"}</p>
-              {account ? (
-                <div className="mt-2 flex items-center gap-2">
-                  <p className="text-sm font-semibold">{shortAddress(account)}</p>
-                  <button
-                    type="button"
-                    onClick={() => void copyAddress()}
-                    className="rounded-md border border-ink/20 px-2 py-1 text-xs font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
-                  >
-                    Copy
-                  </button>
-                </div>
-              ) : (
-                <p className="mt-1 text-sm text-ink/70 dark:text-white/65">No wallet connected</p>
-              )}
-            </div>
-            <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Network</p>
-              <p className="mt-2 text-lg font-semibold">Polkadot Hub EVM</p>
-              <p className={`mt-1 text-sm ${isCorrectNetwork ? "text-success" : "text-danger"}`}>
-                {isCorrectNetwork ? "Connected and ready" : "Switch network required"}
+      {/* Main Content */}
+      <main id="main-content" className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
+        {/* Create Tab */}
+        {activeTab === "create" ? (
+          <div className={`transition ${isConnected ? "opacity-100" : "pointer-events-none opacity-40 blur-[1px]"}`}>
+            {!isConnected ? (
+              <p className="mb-4 rounded-xl border border-ink/10 bg-white/60 px-4 py-3 text-center text-sm font-semibold text-ink/70 dark:border-white/10 dark:bg-white/5 dark:text-white/65">
+                Connect wallet to create a loan.
               </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="interactive-card relative rounded-3xl border border-ink/10 bg-white/75 p-5 shadow-glow backdrop-blur transition dark:border-white/10 dark:bg-slate-950/65 md:p-7">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold uppercase tracking-[0.12em]">Action Zone</h2>
-            <p className="text-sm text-ink/70 dark:text-white/65">Create and confirm a new loan plan.</p>
-          </div>
-          <div className={`transition ${isConnected ? "opacity-100" : "pointer-events-none opacity-25 blur-[2px]"}`}>
+            ) : null}
             <CreateLoan />
           </div>
-          {!isConnected ? (
-            <p className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-sm font-semibold text-ink dark:text-white">
-              Connect wallet to unlock loan creation.
-            </p>
-          ) : null}
-        </section>
+        ) : null}
 
-        <section
-          id="status-zone"
-          className={`interactive-card rounded-3xl border border-ink/10 bg-white/75 p-5 shadow-glow backdrop-blur transition-all duration-500 dark:border-white/10 dark:bg-slate-950/65 md:p-7 ${statusExpanded ? "opacity-100" : "opacity-80"}`}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold uppercase tracking-[0.12em]">Status Zone</h2>
-            <p className="text-sm text-ink/70 dark:text-white/65">
-              {statusExpanded
-                ? "Tracking active loan and leg-level execution."
-                : "Status tracker expands after an active loan is detected."}
-            </p>
+        {/* Active Loan Tab */}
+        {activeTab === "active" ? (
+          <div>
+            {!isConnected ? (
+              <div className="rounded-2xl border border-ink/10 bg-white/75 p-8 text-center backdrop-blur dark:border-white/10 dark:bg-slate-950/65">
+                <p className="text-sm font-semibold text-ink/70 dark:text-white/65">Connect wallet to view active loans.</p>
+              </div>
+            ) : (
+              <LoanStatus
+                loan={activeLoanQuery.data?.loan ?? null}
+                legs={activeLoanQuery.data?.legs ?? []}
+                loading={statusLoading}
+                refreshing={activeLoanQuery.isFetching || myLoansQuery.isFetching}
+                onRepaid={() => {
+                  void activeLoanQuery.refetch();
+                  void myLoansQuery.refetch();
+                  void loanHistoryQuery.refetch();
+                }}
+              />
+            )}
           </div>
-          {statusExpanded ? (
-            <LoanStatus
-              loan={activeLoanQuery.data?.loan ?? null}
-              legs={activeLoanQuery.data?.legs ?? []}
-              loading={statusLoading}
-              refreshing={activeLoanQuery.isFetching || myLoansQuery.isFetching}
-              onRepaid={() => {
-                void activeLoanQuery.refetch();
-                void myLoansQuery.refetch();
-                void loanHistoryQuery.refetch();
-              }}
-            />
-          ) : (
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
-                {myLoansQuery.isLoading ? (
-                  <div className="mt-2 space-y-2">
-                    <Skeleton width={64} height={28} />
-                    <Skeleton width={128} height={16} />
-                  </div>
-                ) : (
-                  <div className="animate-content-fade">
-                    <p className="mt-2 text-lg font-semibold">{myLoanCount}</p>
-                    <p className="mt-1 text-sm text-ink/70 dark:text-white/65">
-                      {myLoanCount === 0 ? "No loans yet. Create your first flash loan." : "Live updates enabled"}
-                    </p>
-                  </div>
-                )}
+        ) : null}
+
+        {/* History Tab */}
+        {activeTab === "history" ? (
+          <div>
+            {!isConnected ? (
+              <div className="rounded-2xl border border-ink/10 bg-white/75 p-8 text-center backdrop-blur dark:border-white/10 dark:bg-slate-950/65">
+                <p className="text-sm font-semibold text-ink/70 dark:text-white/65">Connect wallet to view loan history.</p>
               </div>
-              <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
-                {loanHistoryQuery.isLoading ? (
-                  <div className="mt-2 space-y-2">
-                    <Skeleton width={64} height={28} />
-                    <Skeleton width={128} height={16} />
-                  </div>
-                ) : (
-                  <div className="animate-content-fade">
-                    <p className="mt-2 text-lg font-semibold">{historyCount}</p>
-                    <p className="mt-1 text-sm text-ink/70 dark:text-white/65">
-                      {historyCount === 0 ? "No completed loans yet." : "Recent settled, defaulted, and aborted loans"}
-                    </p>
-                  </div>
-                )}
+            ) : loanHistoryQuery.isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} height={56} />
+                ))}
               </div>
-            </div>
-          )}
-          <LoanHistory
-            loans={loanHistoryQuery.data ?? []}
-            loading={Boolean(isConnected && loanHistoryQuery.isLoading)}
-          />
-        </section>
-      </div>
-    </main>
+            ) : (
+              <LoanHistory
+                loans={loanHistoryQuery.data ?? []}
+                loading={false}
+              />
+            )}
+          </div>
+        ) : null}
+      </main>
+    </div>
   );
 }
