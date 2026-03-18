@@ -2,9 +2,11 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
 import "./globals.css";
+import { NavigationShell } from "../components/NavigationShell";
 import { QueryProvider } from "../providers/QueryProvider";
 import { ThemeProvider } from "../providers/ThemeProvider";
 import { ToastProvider } from "../providers/ToastProvider";
+import { WalletModalProvider } from "../providers/WalletModalProvider";
 import { WalletProvider } from "../providers/WalletProvider";
 
 const ibmPlexSans = IBM_Plex_Sans({
@@ -72,7 +74,11 @@ export default function RootLayout({
         <ThemeProvider>
           <QueryProvider>
             <WalletProvider>
-              <ToastProvider>{children}</ToastProvider>
+              <WalletModalProvider>
+                <ToastProvider>
+                  <NavigationShell>{children}</NavigationShell>
+                </ToastProvider>
+              </WalletModalProvider>
             </WalletProvider>
           </QueryProvider>
         </ThemeProvider>
