@@ -277,7 +277,14 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
           ) : (
             <button
               type="button"
-              onClick={walletModal.open}
+              onClick={() => {
+                // If MetaMask is present, connect directly without the selection modal
+                if (isMetaMaskDetected) {
+                  void connectWallet();
+                } else {
+                  walletModal.open();
+                }
+              }}
               disabled={walletBusy}
               className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-fg transition hover:bg-primary-hover disabled:opacity-50"
             >
