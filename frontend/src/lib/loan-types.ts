@@ -22,6 +22,36 @@ export const LegState = {
   DefaultPaid: 7,
 } as const;
 
+export interface StatusMeta {
+  label: string;
+  icon: string;
+}
+
+export const LOAN_STATE_META: Record<number, StatusMeta> = {
+  [LoanState.Created]: { label: "Loan Created", icon: "✅" },
+  [LoanState.Preparing]: { label: "Locking Liquidity...", icon: "🔒" },
+  [LoanState.Prepared]: { label: "Liquidity Locked", icon: "🔐" },
+  [LoanState.Committing]: { label: "Disbursing Funds...", icon: "➡️" },
+  [LoanState.Committed]: { label: "Funds Received", icon: "📥" },
+  [LoanState.Repaying]: { label: "Repaying Vaults...", icon: "🔄" },
+  [LoanState.Settling]: { label: "Finalizing...", icon: "⏳" },
+  [LoanState.Settled]: { label: "Complete", icon: "✅✅" },
+  [LoanState.Aborted]: { label: "Cancelled", icon: "⛔" },
+  [LoanState.Defaulted]: { label: "Defaulted (Bond Slashed)", icon: "⚠️" },
+};
+
+export const LEG_STEP_META: ReadonlyArray<{
+  state: number;
+  label: string;
+  icon: string;
+}> = [
+  { state: LegState.PrepareSent, label: "Requesting Lock", icon: "🔒" },
+  { state: LegState.PreparedAcked, label: "Lock Confirmed", icon: "✅" },
+  { state: LegState.CommitSent, label: "Disbursing", icon: "➡️" },
+  { state: LegState.CommittedAcked, label: "Funds Sent", icon: "📤" },
+  { state: LegState.RepaidConfirmed, label: "Repaid", icon: "💸" },
+];
+
 export interface LoanView {
   loanId: string;
   state: number;

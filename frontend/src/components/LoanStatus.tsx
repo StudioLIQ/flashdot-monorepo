@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 
 import type { LegView, LoanView } from "../lib/loan-types";
-import { LoanState } from "../lib/loan-types";
+import { LOAN_STATE_META, LoanState } from "../lib/loan-types";
 import { LegTracker } from "./LegTracker";
 import { RepayOnlyBanner } from "./RepayOnlyBanner";
 
@@ -15,19 +15,6 @@ interface LoanStatusProps {
   onRepaid?: () => void;
 }
 
-const LOAN_STATE_LABEL: Record<number, string> = {
-  [LoanState.Created]: "Created",
-  [LoanState.Preparing]: "Preparing",
-  [LoanState.Prepared]: "Prepared",
-  [LoanState.Committing]: "Committing",
-  [LoanState.Committed]: "Committed",
-  [LoanState.Repaying]: "Repaying",
-  [LoanState.Settling]: "Settling",
-  [LoanState.Settled]: "Settled",
-  [LoanState.Aborted]: "Aborted",
-  [LoanState.Defaulted]: "Defaulted",
-};
-
 function formatDot(amount: bigint): string {
   return `${(Number(amount) / 1e18).toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -36,6 +23,8 @@ function formatDot(amount: bigint): string {
 }
 
 export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanStatusProps): JSX.Element {
+  const stateMeta = loan ? LOAN_STATE_META[loan.state] : null;
+
   const terminalMessage = useMemo(() => {
     if (!loan) return null;
     if (loan.state === LoanState.Settled) {
@@ -91,7 +80,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold">Loan #{loan.loanId}</h2>
         <p className="text-sm text-ink/70 dark:text-white/65">
-          {LOAN_STATE_LABEL[loan.state] ?? `State ${loan.state}`}
+          {stateMeta ? `${stateMeta.icon} ${stateMeta.label}` : `State ${loan.state}`}
           {refreshing ? " · updating..." : ""}
         </p>
       </div>

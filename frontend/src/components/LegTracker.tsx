@@ -4,16 +4,8 @@ import { BrowserProvider, Contract, formatEther } from "ethers";
 import { useEffect, useMemo, useState } from "react";
 
 import type { LegView } from "../lib/loan-types";
-import { LegState } from "../lib/loan-types";
+import { LEG_STEP_META, LegState } from "../lib/loan-types";
 import { VAULT_ABI, type VaultWriteContract } from "../lib/contracts";
-
-const LEG_STEPS = [
-  { label: "PrepareSent", state: LegState.PrepareSent },
-  { label: "PreparedAcked", state: LegState.PreparedAcked },
-  { label: "CommitSent", state: LegState.CommitSent },
-  { label: "CommittedAcked", state: LegState.CommittedAcked },
-  { label: "RepaidConfirmed", state: LegState.RepaidConfirmed },
-] as const;
 
 interface LegTrackerProps {
   leg: LegView;
@@ -58,6 +50,10 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
   const countdown = useMemo(() => formatRemaining(leg.expiryAt - nowSec), [leg.expiryAt, nowSec]);
 
   const canRepay = leg.state === LegState.CommittedAcked;
+  const currentStep = useMemo(
+    () => [...LEG_STEP_META].reverse().find((step) => leg.state >= step.state) ?? null,
+    [leg.state]
+  );
 
   const repay = async (): Promise<void> => {
     const ethereum = (window as EthereumWindow).ethereum;
@@ -88,11 +84,13 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
     <article className="rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">Leg #{leg.legId} · {shortAddress(leg.vault)}</h3>
-        <p className="text-xs text-ink/60 dark:text-white/55">Principal: {formatDotAmount(leg.amount)}</p>
+        <p className="text-xs text-ink/60 dark:text-white/55">
+          {currentStep ? `${currentStep.icon} ${currentStep.label}` : "Initialized"} · Principal: {formatDotAmount(leg.amount)}
+        </p>
       </div>
 
       <ol className="mt-3 grid gap-2 text-xs text-ink/70 dark:text-white/65 sm:grid-cols-5">
-        {LEG_STEPS.map((step) => {
+        {LEG_STEP_META.map((step) => {
           const done = leg.state >= step.state;
           return (
             <li
@@ -100,7 +98,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
               className={`rounded-lg border px-2 py-2 ${done ? "border-neon/40 bg-mint text-ink dark:bg-emerald-950/60 dark:text-white" : "border-ink/10 bg-ink/5 dark:border-white/10 dark:bg-white/5"}`}
             >
               <span className="mr-1">{done ? "●" : "○"}</span>
-              {step.label}
+              {step.icon} {step.label}
             </li>
           );
         })}
