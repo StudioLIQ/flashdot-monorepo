@@ -16,7 +16,7 @@ import { useMyLoans } from "../hooks/useMyLoans";
 import { useDotPrice } from "../hooks/useDotPrice";
 import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
 import { formatAmount, formatUsd, formatRelativeTime } from "../lib/format";
-import { Skeleton } from "./Skeleton";
+import { KpiCardSkeleton, LoanCardSkeleton } from "./Skeleton";
 
 interface DashboardViewProps {
   account: string;
@@ -154,7 +154,7 @@ export function DashboardView({ account }: DashboardViewProps): JSX.Element {
       <main className="mx-auto max-w-5xl px-4 py-8 md:px-6">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} height={96} />
+            <KpiCardSkeleton key={i} />
           ))}
         </div>
       </main>

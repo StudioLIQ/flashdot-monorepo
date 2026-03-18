@@ -11,7 +11,7 @@ import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
 import { formatAmount, formatRelativeTime, formatUsd } from "../lib/format";
 import { useDotPrice } from "../hooks/useDotPrice";
 import { EmptyState } from "./EmptyState";
-import { Skeleton } from "./Skeleton";
+import { LoanCardSkeleton } from "./Skeleton";
 
 const LOAN_PROGRESS: Record<number, number> = {
   [LoanState.Created]: 10,
@@ -175,9 +175,9 @@ export function ActiveLoansPage(): JSX.Element {
   if (myLoansQuery.isLoading) {
     return (
       <main className="mx-auto max-w-5xl px-4 py-8 md:px-6">
-        <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} height={104} />
+            <LoanCardSkeleton key={i} />
           ))}
         </div>
       </main>
