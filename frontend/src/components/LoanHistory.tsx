@@ -5,7 +5,8 @@ import { ChevronDown, ChevronUp, ChevronsUpDown, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useLoan } from "../hooks/useLoan";
-import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
+import { EXPLORER_TX_URL } from "../lib/contracts";
+import { LEG_STEP_META, LegState, LOAN_STATE_META, LoanState, type LegView, type LoanView } from "../lib/loan-types";
 import { Skeleton } from "./Skeleton";
 
 const PAGE_SIZE = 10;
@@ -54,6 +55,129 @@ function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; s
   return sortDir === "asc" ? <ChevronUp size={12} /> : <ChevronDown size={12} />;
 }
 
+function legStateLabel(state: number): string {
+  if (state === LegState.Init) return "Init";
+  if (state === LegState.PrepareSent) return "Requesting Lock";
+  if (state === LegState.PreparedAcked) return "Lock Confirmed";
+  if (state === LegState.CommitSent) return "Disbursing";
+  if (state === LegState.CommittedAcked) return "Funds Sent";
+  if (state === LegState.RepaidConfirmed) return "Repaid";
+  if (state === LegState.Aborted) return "Aborted";
+  if (state === LegState.DefaultPaid) return "Default Paid";
+  return `State ${state}`;
+}
+
+function legStateTone(state: number): string {
+  if (state === LegState.RepaidConfirmed) return "text-success";
+  if (state === LegState.Aborted || state === LegState.DefaultPaid) return "text-danger";
+  return "text-ink/65 dark:text-white/60";
+}
+
+interface LegMiniTimelineProps {
+  leg: LegView;
+}
+
+function LegMiniTimeline({ leg }: LegMiniTimelineProps): JSX.Element {
+  // Steps in order; show as a linear timeline
+  const steps = LEG_STEP_META;
+  const currentStateIdx = steps.findIndex((s) => s.state === leg.state);
+  const isTerminal = leg.state === LegState.RepaidConfirmed || leg.state === LegState.Aborted || leg.state === LegState.DefaultPaid;
+
+  return (
+    <div className="mt-2 flex items-center gap-0">
+      {steps.map((step, i) => {
+        const done = isTerminal
+          ? leg.state === LegState.RepaidConfirmed
+          : i <= currentStateIdx;
+        const active = i === currentStateIdx && !isTerminal;
+        return (
+          <div key={step.state} className="flex min-w-0 flex-1 flex-col items-center">
+            <div className="flex w-full items-center">
+              {i > 0 && (
+                <div
+                  className={`h-0.5 flex-1 ${done ? "bg-success" : "bg-ink/15 dark:bg-white/15"}`}
+                />
+              )}
+              <div
+                className={`relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[8px] font-bold ${
+                  done
+                    ? "bg-success text-white"
+                    : active
+                      ? "bg-primary text-white"
+                      : "bg-ink/10 text-ink/40 dark:bg-white/10 dark:text-white/40"
+                }`}
+              >
+                {done ? "✓" : i + 1}
+                {active && (
+                  <span className="absolute inset-0 animate-step-ring rounded-full bg-primary opacity-50" />
+                )}
+              </div>
+              {i < steps.length - 1 && (
+                <div
+                  className={`h-0.5 flex-1 ${done ? "bg-success" : "bg-ink/15 dark:bg-white/15"}`}
+                />
+              )}
+            </div>
+            <p className={`mt-1 text-center text-[9px] font-medium leading-tight ${
+              done ? "text-success" : active ? "text-primary" : "text-ink/40 dark:text-white/35"
+            }`}>
+              {step.label}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+interface LegMiniCardProps {
+  leg: LegView;
+}
+
+function LegMiniCard({ leg }: LegMiniCardProps): JSX.Element {
+  const explorerUrl = EXPLORER_TX_URL("");
+  const baseExplorer = explorerUrl.replace(/\/tx\/$/, "");
+  const vaultExplorerUrl = `${baseExplorer}/address/${leg.vault}`;
+
+  return (
+    <div className="rounded-xl border border-ink/10 bg-white/60 p-3 dark:border-white/10 dark:bg-white/5">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-ink/50 dark:text-white/40">
+            Leg #{leg.legId}
+          </p>
+          <a
+            href={vaultExplorerUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono text-[11px] text-ink/65 transition hover:text-primary dark:text-white/55"
+            title={leg.vault}
+          >
+            {leg.vault.slice(0, 8)}…{leg.vault.slice(-6)}
+          </a>
+        </div>
+        <span className={`text-xs font-semibold ${legStateTone(leg.state)}`}>
+          {legStateLabel(leg.state)}
+        </span>
+      </div>
+
+      <div className="mt-2 flex gap-4 text-xs">
+        <div>
+          <p className="text-[10px] text-ink/50 dark:text-white/40">Borrowed</p>
+          <p className="font-mono font-semibold">{formatDot(leg.amount)}</p>
+        </div>
+        <div>
+          <p className="text-[10px] text-ink/50 dark:text-white/40">To Repay</p>
+          <p className="font-mono font-semibold text-warning">{formatDot(leg.repayAmount)}</p>
+        </div>
+      </div>
+
+      {/* Mini step timeline */}
+      <LegMiniTimeline leg={leg} />
+    </div>
+  );
+}
+
 interface HistoryRowProps {
   loan: LoanView;
   expanded: boolean;
@@ -61,16 +185,16 @@ interface HistoryRowProps {
 }
 
 function HistoryRow({ loan, expanded, onToggle }: HistoryRowProps): JSX.Element {
-  const loanQuery = useLoan(loan.loanId);
+  const loanQuery = useLoan(expanded ? loan.loanId : null);
   const legs = loanQuery.data?.legs ?? [];
 
   return (
-    <div className="elevation-0 rounded-xl">
+    <div className="elevation-0 overflow-hidden rounded-xl">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={expanded}
-        className="w-full px-4 py-3 text-left hover:bg-ink/3 dark:hover:bg-white/3 rounded-xl transition"
+        className="w-full rounded-xl px-4 py-3 text-left transition hover:bg-ink/3 dark:hover:bg-white/3"
       >
         {/* Mobile */}
         <div className="flex items-center justify-between gap-3 sm:hidden">
@@ -99,26 +223,32 @@ function HistoryRow({ loan, expanded, onToggle }: HistoryRowProps): JSX.Element 
         </div>
       </button>
 
-      {expanded ? (
-        <div className="border-t border-ink/10 px-4 py-3 dark:border-white/10">
+      {/* Expandable details — CSS max-height transition for smooth animation */}
+      <div
+        className="transition-all duration-300 ease-in-out"
+        style={{
+          maxHeight: expanded ? "600px" : "0px",
+          overflow: "hidden",
+        }}
+        aria-hidden={!expanded}
+      >
+        <div className="border-t border-ink/10 px-4 pb-4 pt-3 dark:border-white/10">
           {loanQuery.isLoading ? (
-            <p className="text-xs text-ink/70 dark:text-white/70">Loading…</p>
+            <div className="space-y-2">
+              <Skeleton height={80} />
+              <Skeleton height={80} />
+            </div>
           ) : legs.length === 0 ? (
-            <p className="text-xs text-ink/70 dark:text-white/70">No leg data available.</p>
+            <p className="text-xs text-ink/55 dark:text-white/45">No leg data available.</p>
           ) : (
-            <div className="grid gap-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {legs.map((leg) => (
-                <div
-                  key={`${leg.loanId}-${leg.legId}`}
-                  className="rounded-lg border border-ink/10 bg-ink/5 px-3 py-2 text-xs dark:border-white/10 dark:bg-white/5"
-                >
-                  Leg #{leg.legId} · {formatDot(leg.amount)} · Repay {formatDot(leg.repayAmount)}
-                </div>
+                <LegMiniCard key={`${leg.loanId}-${leg.legId}`} leg={leg} />
               ))}
             </div>
           )}
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
