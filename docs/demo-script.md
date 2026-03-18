@@ -1,23 +1,29 @@
 # FlashDot Demo Script
 
-Target length: 3 to 5 minutes
+Target length: 3–5 minutes
 
-## 1. Problem and Architecture (30s)
+## 0. Prerequisites
+
+- Frontend live at <https://flashdot.vercel.app>
+- Coordinator health OK: <https://coordinator-production-1de8.up.railway.app/health>
+- MetaMask with Demo User wallet imported (PK in root `.env.example`)
+- Network: Polkadot Hub TestNet · Chain ID `420420417`
+
+## 1. Problem & Architecture (30s)
 
 - Cross-chain flash loans cannot rely on single-transaction atomic revert.
-- FlashDot uses bond-backed economic atomicity with Hub coordination plus vault legs.
-- Show the README architecture diagram and point out Hub, vaults, coordinator, frontend.
+- FlashDot uses bond-backed economic atomicity with Hub coordination + vault legs.
+- Show the README architecture diagram — point out Hub, vaults, coordinator, frontend.
 
 ## 2. Happy Path (2m)
 
-1. Start local stack or Zombienet deployment.
-2. Open frontend and connect MetaMask on Polkadot Hub EVM.
-3. Create a loan plan with Vault A + Vault B.
-4. Show loan status moving through `Created -> Preparing -> Prepared -> Committing -> Committed`.
-5. Repay committed legs.
-6. Finalize settlement and show the bond returning to the borrower.
+1. Open <https://flashdot.vercel.app> and connect MetaMask on Polkadot Hub TestNet.
+2. Create a loan plan with Vault A + Vault B.
+3. Show loan status moving through `Created → Preparing → Prepared → Committing → Committed`.
+4. Repay committed legs.
+5. Finalize settlement — bond returns to the borrower.
 
-## 3. Failure Path (45s to 60s)
+## 3. Failure Path (45–60s)
 
 - Show `RepayOnlyMode` after a commit timeout or failed commit ACK.
 - Explain that committed legs remain repayable while new commit progress is blocked.
@@ -25,11 +31,12 @@ Target length: 3 to 5 minutes
 
 ## 4. Technical Proof Points (30s)
 
-- Mention Hardhat + Foundry contract test suites.
-- Mention coordinator unit coverage and CI workflows for frontend build plus E2E.
-- Mention known-good XCM encoder byte tests and timeout recovery paths.
+- Hardhat + Foundry dual test suites.
+- Coordinator unit coverage and CI workflows.
+- XCM encoder byte tests and timeout recovery paths.
+- All contracts deployed and verified on Paseo testnet (block explorer link in README).
 
 ## 5. Submission Checklist
 
-- Replace the README demo section with the final Loom or YouTube URL.
+- Replace the README demo section with the final Loom / YouTube URL.
 - Keep one uncut recording for judges and one shorter highlight clip if time permits.
