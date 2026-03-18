@@ -15,6 +15,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { useNotifications } from "../providers/NotificationProvider";
+import { LOAN_STATE_META } from "../lib/loan-types";
+import { NotificationBell, NotificationPanel } from "./NotificationPanel";
+
 import { useMyLoans } from "../hooks/useMyLoans";
 import { useWallet } from "../hooks/useWallet";
 import { LoanState } from "../lib/loan-types";
@@ -50,6 +54,11 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
   const { showToast } = useToast();
   const walletModal = useWalletModal();
   const [walletPanelOpen, setWalletPanelOpen] = useState(false);
+  const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+  const notifBellRef = useRef<HTMLDivElement>(null);
+  const { addNotification } = useNotifications();
+  // Track previous loan states to detect changes
+  const prevLoanStatesRef = useRef<Record<string, number>>({});
 
   // Sidebar expand state — persisted to localStorage
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(() => {
@@ -156,6 +165,27 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
     setWalletPanelOpen(false);
   }, [pathname]);
 
+  // Watch for loan state changes and fire notifications
+  useEffect(() => {
+    const loans = myLoansQuery.data;
+    if (!loans) return;
+    const prev = prevLoanStatesRef.current;
+    for (const loan of loans) {
+      const prevState = prev[loan.loanId];
+      if (prevState !== undefined && prevState !== loan.state) {
+        const meta = LOAN_STATE_META[loan.state as keyof typeof LOAN_STATE_META];
+        addNotification({
+          type: "loan-status",
+          title: `Loan #${loan.loanId} — ${meta?.label ?? `State ${loan.state}`}`,
+          body: "",
+          href: `/loans/${loan.loanId}`,
+        });
+      }
+      prev[loan.loanId] = loan.state;
+    }
+    prevLoanStatesRef.current = { ...prev };
+  }, [myLoansQuery.data, addNotification]);
+
   return (
     <div className="flex min-h-screen bg-[#f5fff8] text-ink dark:bg-[#07110f] dark:text-white">
       {/* Skip link */}
@@ -251,6 +281,24 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
 
         {/* Bottom actions */}
         <div className="shrink-0 border-t border-ink/10 p-2 dark:border-white/10">
+          {/* Notifications bell */}
+          <div ref={notifBellRef} className="relative">
+            <button
+              type="button"
+              onClick={() => { setNotifPanelOpen((v) => !v); setWalletPanelOpen(false); }}
+              aria-label="Open notifications"
+              aria-expanded={notifPanelOpen}
+              title={!sidebarExpanded ? "Notifications" : undefined}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink/55 transition hover:bg-ink/5 hover:text-ink dark:text-white/45 dark:hover:bg-white/8 dark:hover:text-white"
+            >
+              <NotificationBell className="shrink-0" />
+              {sidebarExpanded ? <span>Notifications</span> : null}
+            </button>
+            {notifPanelOpen && (
+              <NotificationPanel onClose={() => setNotifPanelOpen(false)} />
+            )}
+          </div>
+
           {/* Settings */}
           <Link
             href="/settings"
@@ -357,6 +405,22 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
           </Link>
 
           <div className="flex items-center gap-2">
+            {/* Notification bell — mobile */}
+            <div className="relative" ref={notifBellRef}>
+              <button
+                type="button"
+                onClick={() => { setNotifPanelOpen((v) => !v); setWalletPanelOpen(false); }}
+                aria-label="Open notifications"
+                aria-expanded={notifPanelOpen}
+                className="rounded-full p-1.5 text-ink/60 transition hover:bg-ink/5 hover:text-ink dark:text-white/50 dark:hover:bg-white/8 dark:hover:text-white"
+              >
+                <NotificationBell />
+              </button>
+              {notifPanelOpen && (
+                <NotificationPanel onClose={() => setNotifPanelOpen(false)} />
+              )}
+            </div>
+
             {isConnected && account ? (
               <button
                 type="button"
