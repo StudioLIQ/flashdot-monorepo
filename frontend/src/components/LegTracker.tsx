@@ -7,6 +7,7 @@ import type { LegView } from "../lib/loan-types";
 import { LEG_STEP_META, LegState } from "../lib/loan-types";
 import { VAULT_ABI, type VaultWriteContract } from "../lib/contracts";
 import { useToast } from "../providers/ToastProvider";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface LegTrackerProps {
   leg: LegView;
@@ -158,38 +159,30 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
 
       {repayError ? <p role="alert" className="mt-2 text-xs text-danger">{repayError}</p> : null}
 
-      {confirmOpen ? (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
-          <div className="w-full max-w-sm rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
-            <div role="dialog" aria-modal="true" aria-labelledby={`confirm-repay-${leg.loanId}-${leg.legId}`}>
-              <h4 id={`confirm-repay-${leg.loanId}-${leg.legId}`} className="text-base font-semibold">Confirm Repayment</h4>
-              <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
-                Repay {formatDotAmount(leg.repayAmount)} to {shortAddress(leg.vault)}?
-              </p>
-              <p className="mt-1 text-xs text-ink/65 dark:text-white/65">This action cannot be undone.</p>
-              <div className="mt-5 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmOpen(false)}
-                  className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setConfirmOpen(false);
-                    void repay();
-                  }}
-                  className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover"
-                >
-                  Confirm Repay
-                </button>
-              </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Confirm Repayment"
+        description="This action cannot be undone."
+        confirmLabel="Confirm Repay"
+        onConfirm={() => {
+          setConfirmOpen(false);
+          void repay();
+        }}
+      >
+        <div className="rounded-lg border border-ink/15 bg-ink/5 p-3 dark:border-white/10 dark:bg-white/5">
+          <div className="grid gap-1.5 text-sm">
+            <div className="flex justify-between gap-2">
+              <span className="text-ink/70 dark:text-white/65">Repay Amount</span>
+              <span className="font-mono font-semibold">{formatDotAmount(leg.repayAmount)}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-ink/70 dark:text-white/65">Vault</span>
+              <span className="font-mono text-xs font-semibold">{shortAddress(leg.vault)}</span>
             </div>
           </div>
         </div>
-      ) : null}
+      </ConfirmDialog>
     </article>
   );
 }

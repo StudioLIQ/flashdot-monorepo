@@ -6,6 +6,7 @@ import { getHubContract } from "../lib/contracts";
 import type { LegView, LoanView } from "../lib/loan-types";
 import { LegState, LOAN_STATE_META, LoanState } from "../lib/loan-types";
 import { useToast } from "../providers/ToastProvider";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { LegTracker } from "./LegTracker";
 import { RepayOnlyBanner } from "./RepayOnlyBanner";
 import { Skeleton } from "./Skeleton";
@@ -238,35 +239,17 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
         <p role="alert" className="mt-3 text-xs text-danger">{cancelError}</p>
       ) : null}
 
-      {cancelConfirmOpen ? (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
-          <div className="w-full max-w-md rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
-            <div role="dialog" aria-modal="true" aria-labelledby="cancel-loan-title">
-              <h3 id="cancel-loan-title" className="text-lg font-semibold">Cancel loan #{loan.loanId}?</h3>
-              <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
-                Your bond will be returned minus fees after cancellation is finalized.
-              </p>
-              <div className="mt-5 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCancelConfirmOpen(false)}
-                  className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
-                >
-                  Keep Loan
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void cancelLoan()}
-                  disabled={cancelPending}
-                  className="rounded-lg bg-danger px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-danger"
-                >
-                  {cancelPending ? "Cancelling..." : "Confirm Cancel"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <ConfirmDialog
+        open={cancelConfirmOpen}
+        onClose={() => setCancelConfirmOpen(false)}
+        title={`Cancel loan #${loan.loanId}?`}
+        description="Your bond will be returned minus fees after cancellation is finalized."
+        cancelLabel="Keep Loan"
+        confirmLabel="Confirm Cancel"
+        confirmTone="destructive"
+        onConfirm={() => void cancelLoan()}
+        loading={cancelPending}
+      />
     </section>
   );
 }

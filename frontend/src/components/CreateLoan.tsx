@@ -5,6 +5,7 @@ import { Globe, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { BondPreviewChart } from "./BondPreviewChart";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { useWallet } from "../hooks/useWallet";
 import { useBondPreview } from "../hooks/useBondPreview";
 import { useToast } from "../providers/ToastProvider";
@@ -432,41 +433,34 @@ export function CreateLoan(): JSX.Element {
       ) : null}
       {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
 
-      {confirmOpen ? (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
-          <div className="w-full max-w-md rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
-            <div role="dialog" aria-modal="true" aria-labelledby="confirm-loan-lock-title">
-            <h3 id="confirm-loan-lock-title" className="text-lg font-semibold">Confirm Bond Lock</h3>
-            <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
-              Lock {formatDot(preview.totalBond)} as bond for this flash loan?
-            </p>
-            <p className="mt-1 text-xs text-ink/65 dark:text-white/60">
-              This sends an on-chain transaction and requires a wallet signature.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmOpen(false)}
-                aria-label="Cancel bond lock confirmation"
-                className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  void onSubmit();
-                }}
-                aria-label="Confirm and submit loan creation"
-                className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover"
-              >
-                Confirm & Create
-              </button>
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Confirm Bond Lock"
+        description="This sends an on-chain transaction and requires a wallet signature."
+        confirmLabel="Confirm & Create"
+        onConfirm={() => { void onSubmit(); }}
+      >
+        <div className="rounded-lg border border-ink/15 bg-ink/5 p-3 dark:border-white/10 dark:bg-white/5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink/60 dark:text-white/55">Transaction Summary</p>
+          <div className="grid gap-1.5 text-sm">
+            <div className="flex justify-between gap-2">
+              <span className="text-ink/70 dark:text-white/65">Bond Amount</span>
+              <span className="font-mono font-semibold">{formatDot(preview.totalBond)}</span>
             </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-ink/70 dark:text-white/65">Duration</span>
+              <span className="font-semibold">{durationMinutes} min</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-ink/70 dark:text-white/65">Legs</span>
+              <span className="font-semibold">
+                {[includeA && "Alpha", includeB && "Beta"].filter(Boolean).join(" + ")}
+              </span>
             </div>
           </div>
         </div>
-      ) : null}
+      </ConfirmDialog>
     </section>
   );
 }
