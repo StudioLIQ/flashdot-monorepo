@@ -1,10 +1,10 @@
 "use client";
 
 import { Globe } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { BondPreviewChart } from "../BondPreviewChart";
 import {
-  AMOUNT_PRESETS,
   DURATION_PRESETS,
   FEE_BUDGET_A,
   FEE_BUDGET_B,
@@ -17,6 +17,41 @@ import {
   type CreateLoanState,
 } from "../../hooks/useCreateLoan";
 import { VAULT_A_ADDRESS, VAULT_B_ADDRESS } from "../../lib/contracts";
+
+// DOT price hook — fetches from CoinGecko, falls back to a reasonable default
+function useDotUsdPrice(): number | null {
+  const [price, setPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd")
+      .then((r) => r.json())
+      .then((data: { polkadot?: { usd?: number } }) => {
+        if (!cancelled && data?.polkadot?.usd) setPrice(data.polkadot.usd);
+      })
+      .catch(() => {
+        if (!cancelled) setPrice(8.0); // fallback price
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  return price;
+}
+
+function toDisplayValue(raw: string): string {
+  if (!raw) return "";
+  const num = Number(raw.replace(/,/g, ""));
+  if (Number.isNaN(num)) return raw;
+  // Don't add commas while typing a decimal
+  if (raw.endsWith(".") || raw.endsWith(".0")) return raw;
+  const [int, dec] = raw.split(".");
+  const intFormatted = Number(int || "0").toLocaleString("en-US");
+  return dec !== undefined ? `${intFormatted}.${dec}` : intFormatted;
+}
+
+function stripCommas(value: string): string {
+  return value.replace(/,/g, "");
+}
 
 function shortAddress(address: string): string {
   if (!address) return "";
@@ -67,6 +102,7 @@ export function LoanTerms({
   onBack,
   onNext,
 }: LoanTermsProps): JSX.Element {
+  const dotPrice = useDotUsdPrice();
   const durationLabel =
     Number(durationMinutes) >= 60
       ? `${(Number(durationMinutes) / 60).toFixed(Number(durationMinutes) % 60 === 0 ? 0 : 1)}h`
@@ -75,7 +111,6 @@ export function LoanTerms({
   return (
     <>
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        {/* Vault A */}
         <VaultAmountCard
           label="Parachain Alpha"
           vaultAddress={VAULT_A_ADDRESS}
@@ -86,10 +121,10 @@ export function LoanTerms({
           liquidity={MOCK_LIQUIDITY_A}
           maxLiquidity={MAX_LIQUIDITY_A}
           inputId="vault-a-amount"
+          dotPrice={dotPrice}
           onToggle={() => setIncludeA(!includeA)}
           onAmountChange={setAmountA}
         />
-        {/* Vault B */}
         <VaultAmountCard
           label="Parachain Beta"
           vaultAddress={VAULT_B_ADDRESS}
@@ -100,12 +135,12 @@ export function LoanTerms({
           liquidity={MOCK_LIQUIDITY_B}
           maxLiquidity={MAX_LIQUIDITY_B}
           inputId="vault-b-amount"
+          dotPrice={dotPrice}
           onToggle={() => setIncludeB(!includeB)}
           onAmountChange={setAmountB}
         />
       </div>
 
-      {/* Duration */}
       <DurationControl
         durationMinutes={durationMinutes}
         durationLabel={durationLabel}
@@ -143,6 +178,12 @@ export function LoanTerms({
   );
 }
 
+const PERCENT_PRESETS = [
+  { label: "25%", pct: 0.25 },
+  { label: "50%", pct: 0.50 },
+  { label: "75%", pct: 0.75 },
+] as const;
+
 interface VaultAmountCardProps {
   label: string;
   vaultAddress: string;
@@ -153,6 +194,7 @@ interface VaultAmountCardProps {
   liquidity: string;
   maxLiquidity: string;
   inputId: string;
+  dotPrice: number | null;
   onToggle: () => void;
   onAmountChange: (v: string) => void;
 }
@@ -167,10 +209,27 @@ function VaultAmountCard({
   liquidity,
   maxLiquidity,
   inputId,
+  dotPrice,
   onToggle,
   onAmountChange,
 }: VaultAmountCardProps): JSX.Element {
   const isBorderPrimary = accentClass === "primary";
+  const numAmount = Number(amount) || 0;
+  const maxLiqNum = Number(maxLiquidity) || 0;
+  const exceedsLiquidity = numAmount > maxLiqNum && numAmount > 0;
+
+  const usdEstimate = dotPrice && numAmount > 0
+    ? `≈ $${(numAmount * dotPrice).toLocaleString("en-US", { maximumFractionDigits: 0 })} USD`
+    : null;
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const raw = stripCommas(e.target.value);
+    // Allow digits and a single decimal point
+    if (/^[0-9]*\.?[0-9]*$/.test(raw) || raw === "") {
+      onAmountChange(raw);
+    }
+  };
+
   return (
     <article
       className={`relative overflow-hidden rounded-2xl border transition ${
@@ -212,7 +271,7 @@ function VaultAmountCard({
             <input
               type="checkbox"
               checked={included}
-              onChange={(e) => { if (!e.target.checked) onToggle(); else onToggle(); }}
+              onChange={onToggle}
               className="peer sr-only"
             />
             <div
@@ -240,45 +299,45 @@ function VaultAmountCard({
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/60">
-              Amount
+              Amount (DOT)
             </span>
-            <div className="flex gap-1">
-              <button
-                type="button"
-                onClick={() => onAmountChange(maxLiquidity)}
-                className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
-              >
-                MAX
-              </button>
-              <button
-                type="button"
-                onClick={() => onAmountChange(String(Number(maxLiquidity) / 2))}
-                className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
-              >
-                50%
-              </button>
-            </div>
           </div>
           <div
             className={`flex items-center rounded-xl border bg-white px-4 py-3 dark:bg-slate-900 ${
-              isInvalid ? "border-danger" : "border-ink/20 dark:border-white/15"
+              isInvalid || exceedsLiquidity ? "border-danger" : "border-ink/20 dark:border-white/15"
             }`}
           >
             <input
               id={inputId}
               type="text"
               inputMode="decimal"
-              pattern="^[0-9]*[.]?[0-9]*$"
-              value={amount}
-              onChange={(e) => onAmountChange(e.target.value)}
+              value={toDisplayValue(amount)}
+              onChange={handleInput}
               aria-label={`${label} amount in DOT`}
-              aria-invalid={isInvalid}
+              aria-invalid={isInvalid || exceedsLiquidity}
+              aria-describedby={`${inputId}-error`}
               className="w-full bg-transparent font-mono text-2xl font-semibold text-right outline-none"
+              placeholder="0"
             />
             <span className="ml-2 text-sm font-semibold text-ink/50 dark:text-white/45">DOT</span>
           </div>
+
+          {/* USD estimate */}
+          {usdEstimate && !isInvalid && !exceedsLiquidity ? (
+            <p className="mt-1 text-right text-xs text-ink/50 dark:text-white/40">
+              {usdEstimate}
+            </p>
+          ) : null}
+
+          {/* Error messages */}
           {isInvalid ? (
-            <p className="mt-1 text-xs text-danger">Invalid amount</p>
+            <p id={`${inputId}-error`} role="alert" className="mt-1 text-xs text-danger">
+              Invalid amount
+            </p>
+          ) : exceedsLiquidity ? (
+            <p id={`${inputId}-error`} role="alert" className="mt-1 text-xs text-danger">
+              Exceeds available vault liquidity ({liquidity})
+            </p>
           ) : (
             <p className="mt-1 text-right text-xs text-ink/55 dark:text-white/50">
               Available: {liquidity}
@@ -286,23 +345,40 @@ function VaultAmountCard({
           )}
         </div>
 
+        {/* Percent-based presets */}
         <div className="mt-2 flex flex-wrap gap-1.5">
-          {AMOUNT_PRESETS.map((preset) => (
-            <button
-              key={`${inputId}-${preset}`}
-              type="button"
-              onClick={() => onAmountChange(preset)}
-              className={`min-h-8 rounded-lg border px-2 py-1 text-xs font-semibold ${
-                amount === preset
-                  ? isBorderPrimary
-                    ? "border-primary/50 bg-primary/15"
-                    : "border-info/50 bg-info/15"
-                  : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
-              }`}
-            >
-              {preset}
-            </button>
-          ))}
+          {PERCENT_PRESETS.map(({ label: pLabel, pct }) => {
+            const presetVal = String(Math.floor(maxLiqNum * pct));
+            return (
+              <button
+                key={pLabel}
+                type="button"
+                onClick={() => onAmountChange(presetVal)}
+                className={`min-h-8 rounded-lg border px-2.5 py-1 text-xs font-semibold ${
+                  amount === presetVal
+                    ? isBorderPrimary
+                      ? "border-primary/50 bg-primary/15"
+                      : "border-info/50 bg-info/15"
+                    : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
+                }`}
+              >
+                {pLabel}
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={() => onAmountChange(maxLiquidity)}
+            className={`min-h-8 rounded-lg border px-2.5 py-1 text-xs font-bold ${
+              amount === maxLiquidity
+                ? isBorderPrimary
+                  ? "border-primary/50 bg-primary/15"
+                  : "border-info/50 bg-info/15"
+                : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
+            }`}
+          >
+            MAX
+          </button>
         </div>
       </div>
     </article>
