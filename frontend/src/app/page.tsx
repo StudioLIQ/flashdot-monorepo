@@ -9,6 +9,7 @@ import { LoanHistory } from "../components/LoanHistory";
 import { LoanStatus } from "../components/LoanStatus";
 import { Skeleton } from "../components/Skeleton";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { WalletDropdown } from "../components/WalletDropdown";
 import { useLoan } from "../hooks/useLoan";
 import { useLoanHistory } from "../hooks/useLoanHistory";
 import { useMyLoans } from "../hooks/useMyLoans";
@@ -64,6 +65,7 @@ export default function HomePage(): JSX.Element {
     [myLoansQuery.data]
   );
   const historyCount = (loanHistoryQuery.data ?? []).length;
+  const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
   const walletBusy = isConnecting || isSwitchingNetwork;
   const walletErrorIsMetaMaskMissing = (connectionError ?? "").toLowerCase().includes("metamask not detected");
 
@@ -147,39 +149,49 @@ export default function HomePage(): JSX.Element {
             ))}
           </nav>
 
-          {/* Right: Network + Account + Theme */}
-          <div className="flex shrink-0 items-center gap-2">
+          {/* Right: Network + Account dropdown + Theme */}
+          <div className="relative flex shrink-0 items-center gap-2">
             {isConnected ? (
               <>
-                <span
-                  className={`hidden rounded-full px-2.5 py-1 text-xs font-semibold sm:inline-flex items-center gap-1 ${
+                <button
+                  type="button"
+                  onClick={() => setWalletDropdownOpen((v) => !v)}
+                  aria-expanded={walletDropdownOpen}
+                  aria-label="Wallet account menu"
+                  className={`hidden items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-xs font-semibold sm:inline-flex ${
                     isCorrectNetwork
-                      ? "bg-success/20 text-ink dark:text-white"
-                      : "bg-danger/15 text-danger"
+                      ? "border-ink/15 bg-white/80 hover:bg-ink/5 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+                      : "border-danger/40 bg-danger/10 text-danger"
                   }`}
                 >
                   <span className={`h-1.5 w-1.5 rounded-full ${isCorrectNetwork ? "bg-success" : "bg-danger"}`} />
-                  {isCorrectNetwork ? "Polkadot Hub" : "Wrong network"}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => void copyAddress()}
-                  className="hidden rounded-full border border-ink/15 bg-white/80 px-3 py-1 font-mono text-xs font-semibold hover:bg-ink/5 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10 sm:block"
-                  title="Click to copy address"
-                >
                   {account ? shortAddress(account) : "-"}
                 </button>
-                <span className="rounded-full bg-info/15 px-2 py-1 font-mono text-xs font-semibold text-ink dark:bg-info/20 dark:text-white">
-                  {balanceDot ?? "-"} DOT
-                </span>
+                {/* Mobile: just a small dot indicator */}
                 <button
                   type="button"
-                  onClick={disconnectWallet}
-                  title="Disconnect local wallet session"
-                  className="rounded-full border border-ink/15 px-2.5 py-1 text-xs font-semibold text-ink/70 hover:bg-ink/5 dark:border-white/15 dark:text-white/65 dark:hover:bg-white/10"
+                  onClick={() => setWalletDropdownOpen((v) => !v)}
+                  aria-expanded={walletDropdownOpen}
+                  aria-label="Wallet account menu"
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-xs font-semibold sm:hidden ${
+                    isCorrectNetwork
+                      ? "border-ink/15 bg-white/80 hover:bg-ink/5 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
+                      : "border-danger/40 bg-danger/10 text-danger"
+                  }`}
                 >
-                  Disconnect
+                  <span className={`h-1.5 w-1.5 rounded-full ${isCorrectNetwork ? "bg-success" : "bg-danger"}`} />
+                  {balanceDot ?? "-"} DOT
                 </button>
+                {walletDropdownOpen && account ? (
+                  <WalletDropdown
+                    account={account}
+                    balanceDot={balanceDot}
+                    isCorrectNetwork={isCorrectNetwork}
+                    onCopy={() => void copyAddress()}
+                    onDisconnect={disconnectWallet}
+                    onClose={() => setWalletDropdownOpen(false)}
+                  />
+                ) : null}
               </>
             ) : (
               <button
