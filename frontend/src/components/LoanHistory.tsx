@@ -1,12 +1,12 @@
 "use client";
 
-import { formatEther } from "ethers";
 import { ChevronDown, ChevronUp, ChevronsUpDown, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useLoan } from "../hooks/useLoan";
 import { EXPLORER_TX_URL } from "../lib/contracts";
 import { LEG_STEP_META, LegState, LOAN_STATE_META, LoanState, type LegView, type LoanView } from "../lib/loan-types";
+import { formatAmount } from "../lib/format";
 import { Skeleton } from "./Skeleton";
 
 const PAGE_SIZE = 10;
@@ -18,13 +18,6 @@ type StatusFilter = "all" | "settled" | "defaulted" | "aborted";
 interface LoanHistoryProps {
   loans: LoanView[];
   loading?: boolean;
-}
-
-function formatDot(value: bigint): string {
-  return `${Number(formatEther(value)).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 4,
-  })} DOT`;
 }
 
 function statusTone(state: number): string {
@@ -44,7 +37,7 @@ function formatRelative(seconds: number): string {
 }
 
 function bondOutcome(loan: LoanView): string {
-  if (loan.state === LoanState.Settled) return `Returned ${formatDot(loan.bondAmount)}`;
+  if (loan.state === LoanState.Settled) return `Returned ${formatAmount(loan.bondAmount)}`;
   if (loan.state === LoanState.Defaulted) return "Slashed by protocol";
   if (loan.state === LoanState.Aborted) return "Returned minus fees";
   return "—";
@@ -164,11 +157,11 @@ function LegMiniCard({ leg }: LegMiniCardProps): JSX.Element {
       <div className="mt-2 flex gap-4 text-xs">
         <div>
           <p className="text-[10px] text-ink/50 dark:text-white/40">Borrowed</p>
-          <p className="font-mono font-semibold">{formatDot(leg.amount)}</p>
+          <p className="font-mono font-semibold">{formatAmount(leg.amount)}</p>
         </div>
         <div>
           <p className="text-[10px] text-ink/50 dark:text-white/40">To Repay</p>
-          <p className="font-mono font-semibold text-warning">{formatDot(leg.repayAmount)}</p>
+          <p className="font-mono font-semibold text-warning">{formatAmount(leg.repayAmount)}</p>
         </div>
       </div>
 
@@ -200,7 +193,7 @@ function HistoryRow({ loan, expanded, onToggle }: HistoryRowProps): JSX.Element 
         <div className="flex items-center justify-between gap-3 sm:hidden">
           <div>
             <p className="font-mono text-sm font-semibold">Loan #{loan.loanId}</p>
-            <p className="mt-0.5 font-mono text-xs text-ink/70 dark:text-white/65">{formatDot(loan.bondAmount)}</p>
+            <p className="mt-0.5 font-mono text-xs text-ink/70 dark:text-white/65">{formatAmount(loan.bondAmount)}</p>
           </div>
           <div className="text-right">
             <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${statusTone(loan.state)}`}>
@@ -212,7 +205,7 @@ function HistoryRow({ loan, expanded, onToggle }: HistoryRowProps): JSX.Element 
         {/* Desktop */}
         <div className="hidden grid-cols-[80px_1fr_150px_1fr_110px] gap-3 sm:grid">
           <p className="font-mono text-sm font-semibold">#{loan.loanId}</p>
-          <p className="font-mono text-sm text-ink/80 dark:text-white/80">{formatDot(loan.bondAmount)}</p>
+          <p className="font-mono text-sm text-ink/80 dark:text-white/80">{formatAmount(loan.bondAmount)}</p>
           <p>
             <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusTone(loan.state)}`}>
               {LOAN_STATE_META[loan.state]?.label ?? "Unknown"}

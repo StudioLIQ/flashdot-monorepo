@@ -1,6 +1,5 @@
 "use client";
 
-import { formatEther } from "ethers";
 import { Activity, PlusCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo } from "react";
@@ -9,6 +8,7 @@ import { useMyLoans } from "../hooks/useMyLoans";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useWallet } from "../hooks/useWallet";
 import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
+import { formatAmount, formatRelativeTime } from "../lib/format";
 import { EmptyState } from "./EmptyState";
 import { Skeleton } from "./Skeleton";
 
@@ -33,22 +33,6 @@ function isActive(state: number): boolean {
   );
 }
 
-function formatDot(amount: bigint): string {
-  return `${Number(formatEther(amount)).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 4,
-  })} DOT`;
-}
-
-function formatRelative(seconds: number): string {
-  const now = Math.floor(Date.now() / 1000);
-  const delta = seconds - now;
-  if (delta <= 0) return "Expired";
-  if (delta < 60) return `${delta}s left`;
-  if (delta < 3600) return `${Math.floor(delta / 60)}m left`;
-  return `${Math.floor(delta / 3600)}h left`;
-}
-
 function statusTone(state: number): string {
   if (state === LoanState.Committed || state === LoanState.Repaying)
     return "bg-success/15 text-success";
@@ -67,7 +51,7 @@ interface LoanCardProps {
 function LoanCard({ loan }: LoanCardProps): JSX.Element {
   const meta = LOAN_STATE_META[loan.state];
   const progress = LOAN_PROGRESS[loan.state] ?? 0;
-  const timeLeft = loan.expiryAt > 0 ? formatRelative(loan.expiryAt) : "—";
+  const timeLeft = loan.expiryAt > 0 ? formatRelativeTime(loan.expiryAt) : "—";
 
   return (
     <Link
@@ -88,7 +72,7 @@ function LoanCard({ loan }: LoanCardProps): JSX.Element {
       {/* Bond + time */}
       <div className="mt-2 flex items-center justify-between gap-3">
         <p className="font-mono text-sm text-ink/80 dark:text-white/75">
-          {formatDot(loan.bondAmount)} bonded
+          {formatAmount(loan.bondAmount)} bonded
         </p>
         <p className="text-xs text-ink/55 dark:text-white/45">{timeLeft}</p>
       </div>

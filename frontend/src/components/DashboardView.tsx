@@ -1,6 +1,5 @@
 "use client";
 
-import { formatEther } from "ethers";
 import {
   Activity,
   CheckCircle2,
@@ -15,26 +14,11 @@ import { useMemo } from "react";
 import { useLoanHistory } from "../hooks/useLoanHistory";
 import { useMyLoans } from "../hooks/useMyLoans";
 import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
+import { formatAmount, formatRelativeTime } from "../lib/format";
 import { Skeleton } from "./Skeleton";
 
 interface DashboardViewProps {
   account: string;
-}
-
-function formatDot(value: bigint): string {
-  return `${Number(formatEther(value)).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 4,
-  })}`;
-}
-
-function formatRelative(seconds: number): string {
-  const now = Math.floor(Date.now() / 1000);
-  const delta = seconds - now;
-  if (delta <= 0) return "Expired";
-  if (delta < 60) return `${delta}s left`;
-  if (delta < 3600) return `${Math.floor(delta / 60)}m left`;
-  return `${Math.floor(delta / 3600)}h left`;
 }
 
 const LOAN_PROGRESS: Record<number, number> = {
@@ -96,7 +80,7 @@ interface ActiveLoanRowProps {
 function ActiveLoanRow({ loan }: ActiveLoanRowProps): JSX.Element {
   const progress = LOAN_PROGRESS[loan.state] ?? 0;
   const meta = LOAN_STATE_META[loan.state];
-  const timeLeft = loan.expiryAt > 0 ? formatRelative(loan.expiryAt) : "-";
+  const timeLeft = loan.expiryAt > 0 ? formatRelativeTime(loan.expiryAt) : "-";
 
   return (
     <Link
@@ -109,7 +93,7 @@ function ActiveLoanRow({ loan }: ActiveLoanRowProps): JSX.Element {
           <span className="shrink-0 text-xs text-ink/55 dark:text-white/45">{timeLeft}</span>
         </div>
         <p className="mt-0.5 text-xs text-ink/60 dark:text-white/55">
-          {meta?.label ?? "Processing"} · {formatDot(loan.bondAmount)} DOT bonded
+          {meta?.label ?? "Processing"} · {formatAmount(loan.bondAmount)} bonded
         </p>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/10 dark:bg-white/10">
           <div
@@ -182,7 +166,7 @@ export function DashboardView({ account }: DashboardViewProps): JSX.Element {
         <KpiCard
           icon={<Zap size={18} />}
           label="Locked Bond"
-          value={`${formatDot(totalLockedBond)} DOT`}
+          value={formatAmount(totalLockedBond)}
           sub={activeLoans.length > 0 ? `across ${activeLoans.length} loan${activeLoans.length > 1 ? "s" : ""}` : "No active loans"}
           accent="primary"
         />
@@ -196,7 +180,7 @@ export function DashboardView({ account }: DashboardViewProps): JSX.Element {
         <KpiCard
           icon={<CheckCircle2 size={18} />}
           label="Total Repaid"
-          value={settledLoans.length > 0 ? `${formatDot(totalRepaid)} DOT` : "—"}
+          value={settledLoans.length > 0 ? formatAmount(totalRepaid) : "—"}
           sub={settledLoans.length > 0 ? `${settledLoans.length} settled loan${settledLoans.length > 1 ? "s" : ""}` : "No settled loans yet"}
           accent="success"
         />
