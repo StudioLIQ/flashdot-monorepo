@@ -13,6 +13,7 @@ export const CHAIN_B = "0xa5ff17ebf09d6f005eb77f137f6f4e911552f0668f31f3e3065fd1
 export const HUB_ABI = [
   "event LoanCreated(uint256 indexed loanId, address borrower, address asset, uint256 targetAmount, uint256 bondAmount)",
   "function createLoan((address asset,uint256 targetAmount,uint32 interestBps,uint64 expiryAt) params,(bytes32 chain,address vault,uint256 amount,uint256 feeBudget,uint32 legInterestBps)[] legSpecs) returns (uint256 loanId)",
+  "function cancelBeforeCommit(uint256 loanId)",
   "function getLoan(uint256 loanId) view returns (tuple(address borrower,address asset,uint256 targetAmount,uint32 interestBps,uint64 createdAt,uint64 expiryAt,uint8 state,bool repayOnlyMode,bytes32 planHash))",
   "function getBondInfo(uint256 loanId) view returns (tuple(uint256 bondAmount,uint64 lockedAt,bool slashed))",
   "function getLegCount(uint256 loanId) view returns (uint256)",
@@ -75,6 +76,7 @@ export interface HubWriteContract {
       legInterestBps: number;
     }>
   ) => Promise<{ wait: () => Promise<{ logs: unknown[] }> }>;
+  cancelBeforeCommit: (loanId: bigint) => Promise<{ wait: () => Promise<unknown> }>;
   interface: {
     parseLog: (log: unknown) => { name?: string; args: Array<{ toString: () => string }> } | null;
   };

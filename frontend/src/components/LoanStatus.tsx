@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { getHubContract } from "../lib/contracts";
 import type { LegView, LoanView } from "../lib/loan-types";
 import { LOAN_STATE_META, LoanState } from "../lib/loan-types";
 import { useToast } from "../providers/ToastProvider";
@@ -14,6 +15,10 @@ interface LoanStatusProps {
   refreshing?: boolean;
   loading?: boolean;
   onRepaid?: () => void;
+}
+
+interface EthereumWindow extends Window {
+  ethereum?: unknown;
 }
 
 const LOAN_PROGRESS_PERCENT: Record<number, number> = {
@@ -39,8 +44,15 @@ function formatDot(amount: bigint): string {
 export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanStatusProps): JSX.Element {
   const { showToast } = useToast();
   const previousStateRef = useRef<{ loanId: string; state: number } | null>(null);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [cancelPending, setCancelPending] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const stateMeta = loan ? LOAN_STATE_META[loan.state] : null;
   const progressPercent = loan ? LOAN_PROGRESS_PERCENT[loan.state] ?? 0 : 0;
+  const canCancel = Boolean(
+    loan &&
+      (loan.state === LoanState.Created || loan.state === LoanState.Preparing || loan.state === LoanState.Prepared)
+  );
 
   const terminalMessage = useMemo(() => {
     if (!loan) return null;
@@ -71,6 +83,37 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
 
     previousStateRef.current = { loanId: loan.loanId, state: loan.state };
   }, [loan, showToast]);
+
+  const cancelLoan = async (): Promise<void> => {
+    if (!loan || !canCancel) return;
+
+    const ethereum = (window as EthereumWindow).ethereum;
+    setCancelPending(true);
+    setCancelError(null);
+
+    try {
+      const hub = await getHubContract(ethereum);
+      const tx = await hub.cancelBeforeCommit(BigInt(loan.loanId));
+      await tx.wait();
+      setCancelConfirmOpen(false);
+      showToast({
+        tone: "success",
+        title: `Loan #${loan.loanId} cancelled`,
+        description: "Bond return is now in progress.",
+      });
+      onRepaid?.();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setCancelError(message);
+      showToast({
+        tone: "error",
+        title: `Cancel failed for loan #${loan.loanId}`,
+        description: message,
+      });
+    } finally {
+      setCancelPending(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -134,10 +177,21 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
     <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold">Loan #{loan.loanId}</h2>
-        <p className="text-sm text-ink/70 dark:text-white/65">
-          {stateMeta ? `${stateMeta.icon} ${stateMeta.label}` : `State ${loan.state}`}
-          {refreshing ? " · updating..." : ""}
-        </p>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <p className="text-sm text-ink/70 dark:text-white/65">
+            {stateMeta ? `${stateMeta.icon} ${stateMeta.label}` : `State ${loan.state}`}
+            {refreshing ? " · updating..." : ""}
+          </p>
+          {canCancel ? (
+            <button
+              type="button"
+              onClick={() => setCancelConfirmOpen(true)}
+              className="min-h-11 rounded-lg border border-red-300 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 dark:border-red-400/40 dark:text-red-100 dark:hover:bg-red-950/40"
+            >
+              Cancel Loan
+            </button>
+          ) : null}
+        </div>
       </div>
       <div className="mt-4">
         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
@@ -168,6 +222,37 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
         <p className="mt-5 rounded-lg border border-ink/15 bg-mint p-3 text-sm font-semibold text-ink dark:border-white/10 dark:bg-emerald-950/50 dark:text-white">
           {terminalMessage}
         </p>
+      ) : null}
+      {cancelError ? (
+        <p className="mt-3 text-xs text-red-600 dark:text-red-300">{cancelError}</p>
+      ) : null}
+
+      {cancelConfirmOpen ? (
+        <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
+          <div className="w-full max-w-md rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
+            <h3 className="text-lg font-semibold">Cancel loan #{loan.loanId}?</h3>
+            <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
+              Your bond will be returned minus fees after cancellation is finalized.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setCancelConfirmOpen(false)}
+                className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+              >
+                Keep Loan
+              </button>
+              <button
+                type="button"
+                onClick={() => void cancelLoan()}
+                disabled={cancelPending}
+                className="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-red-500"
+              >
+                {cancelPending ? "Cancelling..." : "Confirm Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </section>
   );
