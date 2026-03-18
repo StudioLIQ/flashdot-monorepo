@@ -60,6 +60,8 @@ export default function HomePage(): JSX.Element {
   const statusLoading = Boolean(isConnected && (myLoansQuery.isLoading || activeLoanQuery.isLoading));
   const hasActiveLoan = Boolean(activeLoanQuery.data?.loan);
   const statusExpanded = statusLoading || hasActiveLoan;
+  const myLoanCount = (myLoansQuery.data ?? []).length;
+  const historyCount = (loanHistoryQuery.data ?? []).length;
 
   return (
     <main className="min-h-screen bg-mesh px-6 py-10 text-ink dark:bg-mesh-dark dark:text-white md:px-10">
@@ -115,6 +117,28 @@ export default function HomePage(): JSX.Element {
               </>
             )}
           </div>
+
+          {!isConnected ? (
+            <div className="mt-8 rounded-2xl border border-ink/10 bg-white/85 p-5 dark:border-white/10 dark:bg-white/5">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/60">
+                How it works
+              </p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-ink/10 bg-mint/60 p-3 dark:border-white/10 dark:bg-emerald-950/35">
+                  <p className="text-sm font-semibold">1. Pick vaults</p>
+                  <p className="mt-1 text-xs text-ink/75 dark:text-white/75">Select chain legs and borrowing amounts.</p>
+                </div>
+                <div className="rounded-xl border border-ink/10 bg-mint/60 p-3 dark:border-white/10 dark:bg-emerald-950/35">
+                  <p className="text-sm font-semibold">2. Lock bond</p>
+                  <p className="mt-1 text-xs text-ink/75 dark:text-white/75">One signature secures repayment coverage.</p>
+                </div>
+                <div className="rounded-xl border border-ink/10 bg-mint/60 p-3 dark:border-white/10 dark:bg-emerald-950/35">
+                  <p className="text-sm font-semibold">3. Track status</p>
+                  <p className="mt-1 text-xs text-ink/75 dark:text-white/75">Follow prepare, commit, and repay in real time.</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
@@ -174,27 +198,31 @@ export default function HomePage(): JSX.Element {
           ) : (
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
-                {myLoansQuery.isLoading ? (
-                  <LoadingMetric />
-                ) : (
-                  <>
-                    <p className="mt-2 text-lg font-semibold">{(myLoansQuery.data ?? []).length}</p>
-                    <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Polling every 5s</p>
-                  </>
-                )}
-              </div>
-              <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
-                {loanHistoryQuery.isLoading ? (
-                  <LoadingMetric />
-                ) : (
-                  <>
-                    <p className="mt-2 text-lg font-semibold">{(loanHistoryQuery.data ?? []).length}</p>
-                    <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Settled / Defaulted / Aborted</p>
-                  </>
-                )}
-              </div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
+              {myLoansQuery.isLoading ? (
+                <LoadingMetric />
+              ) : (
+                <>
+                    <p className="mt-2 text-lg font-semibold">{myLoanCount}</p>
+                    <p className="mt-1 text-sm text-ink/70 dark:text-white/65">
+                      {myLoanCount === 0 ? "No loans yet. Create your first flash loan." : "Live updates enabled"}
+                    </p>
+                </>
+              )}
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
+              {loanHistoryQuery.isLoading ? (
+                <LoadingMetric />
+              ) : (
+                <>
+                    <p className="mt-2 text-lg font-semibold">{historyCount}</p>
+                    <p className="mt-1 text-sm text-ink/70 dark:text-white/65">
+                      {historyCount === 0 ? "No completed loans yet." : "Recent settled, defaulted, and aborted loans"}
+                    </p>
+                </>
+              )}
+            </div>
             </div>
           )}
         </section>

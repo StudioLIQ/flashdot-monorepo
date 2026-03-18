@@ -83,8 +83,27 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
   if (!loan) {
     return (
       <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-        <h2 className="text-xl font-semibold">Loan Status</h2>
-        <p className="mt-2 text-sm text-ink/70 dark:text-white/65">No active loan selected.</p>
+        <h2 className="text-xl font-semibold">Create your first flash loan</h2>
+        <p className="mt-2 text-sm text-ink/70 dark:text-white/65">
+          No active loan selected yet. Use the action zone to launch a bonded plan in one signature.
+        </p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl border border-ink/10 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/60 dark:text-white/60">Step 1</p>
+            <p className="mt-1 text-sm font-semibold">Select vaults</p>
+            <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Choose where to borrow and set leg amounts.</p>
+          </div>
+          <div className="rounded-xl border border-ink/10 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/60 dark:text-white/60">Step 2</p>
+            <p className="mt-1 text-sm font-semibold">Set duration</p>
+            <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Define expiry and review the required bond.</p>
+          </div>
+          <div className="rounded-xl border border-ink/10 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/60 dark:text-white/60">Step 3</p>
+            <p className="mt-1 text-sm font-semibold">Sign once</p>
+            <p className="mt-1 text-xs text-ink/70 dark:text-white/70">One signature locks bond and starts execution.</p>
+          </div>
+        </div>
       </section>
     );
   }
