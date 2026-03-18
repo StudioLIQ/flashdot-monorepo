@@ -59,6 +59,10 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
     () => [...LEG_STEP_META].reverse().find((step) => leg.state >= step.state) ?? null,
     [leg.state]
   );
+  const activeStepIndex = useMemo(() => {
+    const idx = LEG_STEP_META.findIndex((step) => leg.state <= step.state);
+    return idx === -1 ? LEG_STEP_META.length - 1 : idx;
+  }, [leg.state]);
   const countdownTone = useMemo(() => {
     if (remainingSec > 300) return "text-success";
     if (remainingSec > 60) return "text-warning";
@@ -114,7 +118,27 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
         </p>
       </div>
 
-      <ol className="mt-4 flex flex-col gap-3 text-[11px] text-ink/75 dark:text-white/70 sm:flex-row sm:gap-1">
+      {/* Mobile: compact step indicator */}
+      <div className="mt-4 sm:hidden">
+        <div className="flex items-center justify-between text-xs font-semibold text-ink/60 dark:text-white/55">
+          <span>Step {activeStepIndex + 1} of {LEG_STEP_META.length}</span>
+          {currentStep ? (
+            <span className="inline-flex items-center gap-1 text-success">
+              <currentStep.icon size={11} />
+              {currentStep.label}
+            </span>
+          ) : null}
+        </div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/10 dark:bg-white/10">
+          <div
+            className="h-full rounded-full bg-success transition-[width] duration-500 ease-out"
+            style={{ width: `${Math.round(((activeStepIndex) / (LEG_STEP_META.length - 1)) * 100)}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Desktop: horizontal timeline */}
+      <ol className="mt-4 hidden text-[11px] text-ink/75 sm:flex sm:gap-1 dark:text-white/70">
         {LEG_STEP_META.map((step, index) => {
           const done = leg.state > step.state;
           const current = leg.state === step.state;
@@ -122,20 +146,28 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
           const connectorDone = Boolean(nextStep && leg.state >= nextStep.state);
 
           return (
-            <li key={step.label} className="flex items-start sm:flex-1">
-              <div className="flex min-w-8 flex-col items-center text-center">
-                <span
-                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors duration-300 ease-out ${done ? "border-success bg-success text-ink" : ""} ${current ? "border-success bg-success/15 text-ink animate-pulse dark:bg-success/30 dark:text-white" : ""} ${!done && !current ? "border-ink/25 text-ink/60 dark:border-white/25 dark:text-white/60" : ""}`}
-                >
-                  <step.icon size={11} strokeWidth={2.5} />
+            <li key={step.label} className="flex flex-1 items-start">
+              <div className="flex flex-col items-center text-center" style={{ minWidth: "2rem" }}>
+                <span className="relative grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors duration-300 ease-out">
+                  {current ? (
+                    <span className="animate-step-ring absolute inset-0 rounded-full border-2 border-success" aria-hidden />
+                  ) : null}
+                  <span
+                    className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors duration-300 ease-out ${
+                      done ? "border-success bg-success text-ink" :
+                      current ? "border-success bg-success/20 text-success dark:bg-success/30" :
+                      "border-ink/25 text-ink/45 dark:border-white/25 dark:text-white/45"
+                    }`}
+                  >
+                    <step.icon size={11} strokeWidth={2.5} />
+                  </span>
                 </span>
                 <span className="mt-2 leading-tight">{step.label}</span>
               </div>
               {index < LEG_STEP_META.length - 1 ? (
-                <span
-                  aria-hidden
-                  className={`ml-3 mt-1 h-5 w-[2px] shrink-0 rounded sm:ml-0 sm:mt-3 sm:h-[2px] sm:w-auto sm:flex-1 ${connectorDone ? "bg-success/75" : "bg-ink/20 dark:bg-white/20"}`}
-                />
+                connectorDone
+                  ? <div aria-hidden className="mx-1 mt-3 h-[2px] flex-1 rounded-full bg-gradient-to-r from-success/70 to-success/40" />
+                  : <div aria-hidden className="mx-1 mt-3 flex-1 border-t-2 border-dashed border-ink/20 dark:border-white/15" />
               ) : null}
             </li>
           );
