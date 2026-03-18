@@ -131,9 +131,15 @@ body {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.interactive-card:hover {
+/* Lift effect only on explicitly interactive cards (e.g. LegTracker) */
+.interactive-card-lift:hover {
   transform: translateY(-2px);
   box-shadow: 0 14px 32px rgba(16, 33, 31, 0.16);
+}
+
+/* Tab panel content fade-in */
+.tab-panel-enter {
+  animation: content-fade 0.2s ease-out both;
 }
 
 .animate-content-fade {

@@ -110,7 +110,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
   };
 
   return (
-    <article className="interactive-card rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5" aria-labelledby={`leg-${leg.loanId}-${leg.legId}-title`}>
+    <article className="interactive-card interactive-card-lift rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5" aria-labelledby={`leg-${leg.loanId}-${leg.legId}-title`}>
       <div className="flex items-center justify-between gap-3">
         <h3 id={`leg-${leg.loanId}-${leg.legId}-title`} className="text-sm font-semibold">Leg #{leg.legId} · {shortAddress(leg.vault)}</h3>
         <p className="inline-flex items-center gap-1 text-xs text-ink/60 dark:text-white/55">

@@ -125,7 +125,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
 
   if (loading) {
     return (
-      <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-loading-title">
+      <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-loading-title">
         <h2 id="loan-status-loading-title" className="sr-only">Loan status loading</h2>
         <div className="flex items-center justify-between gap-3">
           <Skeleton width={128} height={28} />
@@ -153,7 +153,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
 
   if (!loan) {
     return (
-      <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-empty-title">
+      <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-empty-title">
         <div className="flex flex-col items-center gap-4 py-6 text-center">
           {/* Empty state illustration — dashboard with lightning */}
           <svg width="100" height="100" viewBox="0 0 100 100" fill="none" aria-hidden="true" className="opacity-65">
@@ -193,7 +193,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
   }
 
   return (
-    <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-title">
+    <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-title">
       <div className="flex items-center justify-between gap-3">
         <h2 id="loan-status-title" className="font-mono text-xl font-semibold">Loan #{loan.loanId}</h2>
         <div className="flex flex-wrap items-center justify-end gap-2">

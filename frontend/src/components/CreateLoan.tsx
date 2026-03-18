@@ -270,7 +270,7 @@ export function CreateLoan(): JSX.Element {
 
   return (
     <section
-      className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5"
+      className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5"
       aria-labelledby="create-loan-title"
     >
       <h2 id="create-loan-title" className="text-xl font-semibold">Create Loan</h2>

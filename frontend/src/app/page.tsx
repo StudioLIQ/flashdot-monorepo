@@ -291,7 +291,7 @@ export default function HomePage(): JSX.Element {
       <main id="main-content" aria-label="Flash loan interface" className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
         {/* Create Tab */}
         {activeTab === "create" ? (
-          <div className={`transition ${isConnected ? "opacity-100" : "pointer-events-none opacity-40 blur-[1px]"}`}>
+          <div className={`tab-panel-enter transition ${isConnected ? "opacity-100" : "pointer-events-none opacity-40 blur-[1px]"}`}>
             {!isConnected ? (
               <p className="mb-4 rounded-xl border border-ink/10 bg-white/60 px-4 py-3 text-center text-sm font-semibold text-ink/70 dark:border-white/10 dark:bg-white/5 dark:text-white/65">
                 Connect wallet to create a loan.
@@ -303,7 +303,7 @@ export default function HomePage(): JSX.Element {
 
         {/* Active Loan Tab */}
         {activeTab === "active" ? (
-          <div>
+          <div className="tab-panel-enter">
             {!isConnected ? (
               <div className="rounded-2xl border border-ink/10 bg-white/75 p-8 text-center backdrop-blur dark:border-white/10 dark:bg-slate-950/65">
                 <p className="text-sm font-semibold text-ink/70 dark:text-white/65">Connect wallet to view active loans.</p>
@@ -326,7 +326,7 @@ export default function HomePage(): JSX.Element {
 
         {/* History Tab */}
         {activeTab === "history" ? (
-          <div>
+          <div className="tab-panel-enter">
             {!isConnected ? (
               <div className="rounded-2xl border border-ink/10 bg-white/75 p-8 text-center backdrop-blur dark:border-white/10 dark:bg-slate-950/65">
                 <p className="text-sm font-semibold text-ink/70 dark:text-white/65">Connect wallet to view loan history.</p>
