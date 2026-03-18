@@ -1,150 +1,248 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import { Activity, Globe, TrendingUp, Zap } from "lucide-react";
 
 import { DashboardView } from "../components/DashboardView";
 import { useWallet } from "../hooks/useWallet";
-import { useWalletModal } from "../providers/WalletModalProvider";
+import { useProtocolStats } from "../hooks/useProtocolStats";
+import {
+  INTEREST_LABEL,
+  MOCK_LIQUIDITY_A,
+  MOCK_LIQUIDITY_B,
+} from "../hooks/useCreateLoan";
+import { VAULT_A_ADDRESS, VAULT_B_ADDRESS, EXPLORER_TX_URL } from "../lib/contracts";
+
+function shortAddress(address: string): string {
+  if (!address) return "—";
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function explorerAddressUrl(address: string): string {
+  return EXPLORER_TX_URL("").replace("/tx/", `/address/${address}`);
+}
 
 export default function HomePage(): JSX.Element {
-  const walletModal = useWalletModal();
-  const {
-    account,
-    isConnected,
-    isConnecting,
-    isSwitchingNetwork,
-    connectionError,
-    clearConnectionError,
-  } = useWallet();
-
-  const walletBusy = isConnecting || isSwitchingNetwork;
-  const walletErrorIsMetaMaskMissing = (connectionError ?? "")
-    .toLowerCase()
-    .includes("metamask not detected");
+  const { account, isConnected } = useWallet();
 
   if (isConnected && account) {
     return <DashboardView account={account} />;
   }
 
+  return <ProtocolDashboard />;
+}
+
+function ProtocolDashboard(): JSX.Element {
+  const stats = useProtocolStats();
+
+  const vaults = [
+    {
+      label: "Parachain Alpha",
+      address: VAULT_A_ADDRESS,
+      liquidity: MOCK_LIQUIDITY_A,
+      utilization: "12%",
+      accent: "primary" as const,
+    },
+    {
+      label: "Parachain Beta",
+      address: VAULT_B_ADDRESS,
+      liquidity: MOCK_LIQUIDITY_B,
+      utilization: "8%",
+      accent: "info" as const,
+    },
+  ];
+
   return (
-    <div className="animate-content-fade">
-      {/* Hero — gradient scoped to landing section only */}
+    <main className="mx-auto max-w-5xl px-4 py-8 md:px-6 animate-content-fade">
+      {/* Protocol KPIs */}
+      <div className="mb-2">
+        <h1 className="text-xl font-bold text-ink dark:text-white">
+          Protocol Overview
+        </h1>
+        <p className="mt-0.5 text-sm text-ink/60 dark:text-white/50">
+          Polkadot Hub EVM Testnet · Bonded cross-chain flash loans
+        </p>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <StatCard
+          icon={<Zap size={18} />}
+          label="Total Loans"
+          value={stats.totalLoans !== null ? String(stats.totalLoans) : "—"}
+          sub="all time"
+          accent="primary"
+          loading={stats.loading}
+        />
+        <StatCard
+          icon={<Activity size={18} />}
+          label="Active Loans"
+          value={stats.activeLoans !== null ? String(stats.activeLoans) : "—"}
+          sub="in progress"
+          accent="info"
+          loading={stats.loading}
+        />
+        <StatCard
+          icon={<TrendingUp size={18} />}
+          label="Success Rate"
+          value={stats.successRate !== null ? `${stats.successRate}%` : "—"}
+          sub="settled / total closed"
+          accent="success"
+          loading={stats.loading}
+        />
+      </div>
+
+      {/* Vault info */}
+      <div className="mt-8">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.07em] text-ink/55 dark:text-white/50">
+          Available Vaults
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {vaults.map((vault) => (
+            <VaultCard key={vault.label} {...vault} />
+          ))}
+        </div>
+      </div>
+
+      {/* Connect CTA */}
+      <div className="mt-8 rounded-2xl border border-ink/10 bg-white/60 p-6 text-center backdrop-blur dark:border-white/10 dark:bg-white/5">
+        <p className="text-sm font-semibold text-ink/80 dark:text-white/70">
+          Connect your wallet to create flash loans and view your positions
+        </p>
+        <p className="mt-1 text-xs text-ink/50 dark:text-white/40">
+          Requires MetaMask on Polkadot Hub EVM Testnet
+        </p>
+      </div>
+    </main>
+  );
+}
+
+interface StatCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub: string;
+  accent: "primary" | "info" | "success";
+  loading?: boolean;
+}
+
+function StatCard({ icon, label, value, sub, accent, loading }: StatCardProps): JSX.Element {
+  const accentMap = {
+    primary: "text-primary",
+    info: "text-info",
+    success: "text-success",
+  };
+  return (
+    <div className="elevation-1 elevation-hover-lift rounded-2xl p-4">
+      <div className="flex items-center gap-2.5">
+        <div className={`${accentMap[accent]} shrink-0`}>{icon}</div>
+        <p className="text-xs font-semibold uppercase tracking-[0.07em] text-ink/55 dark:text-white/50">
+          {label}
+        </p>
+      </div>
+      {loading ? (
+        <div className="mt-2 h-7 w-20 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
+      ) : (
+        <p className="type-h2 mt-2 font-mono text-ink dark:text-white">{value}</p>
+      )}
+      <p className="mt-0.5 text-xs text-ink/55 dark:text-white/45">{sub}</p>
+    </div>
+  );
+}
+
+interface VaultCardProps {
+  label: string;
+  address: string;
+  liquidity: string;
+  utilization: string;
+  accent: "primary" | "info";
+}
+
+function VaultCard({ label, address, liquidity, utilization, accent }: VaultCardProps): JSX.Element {
+  const isBorderPrimary = accent === "primary";
+  const utilizationNum = parseFloat(utilization);
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl border p-4 ${
+        isBorderPrimary
+          ? "border-primary/20 bg-primary/5 dark:border-primary/15 dark:bg-primary/8"
+          : "border-info/20 bg-info/5 dark:border-info/15 dark:bg-info/8"
+      }`}
+    >
       <div
-        className="border-b border-ink/10 px-4 py-8 dark:border-white/10"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(66,219,141,0.14), transparent), linear-gradient(to bottom, #f5fff8, #f8fff6)",
-        }}
-      >
-        <div className="mx-auto max-w-5xl">
-          <h1 className="text-3xl font-bold leading-tight md:text-4xl">
-            One Signature,
-            <br className="sm:hidden" /> Multi-Chain Flash Liquidity
-          </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-ink/75 dark:text-white/70 md:text-base">
-            Bonded cross-chain flash loans on Polkadot Hub EVM. Economic
-            atomicity via 2PC + bond escrow.
-          </p>
+        className={`absolute left-0 top-0 h-full w-1 ${
+          isBorderPrimary ? "bg-primary" : "bg-info"
+        }`}
+      />
+      <div className="pl-3">
+        <div className="flex items-center gap-2.5">
+          <div
+            className={`grid h-8 w-8 place-items-center rounded-xl ${
+              isBorderPrimary ? "bg-primary/15" : "bg-info/15"
+            }`}
+          >
+            <Globe
+              size={14}
+              className={isBorderPrimary ? "text-primary" : "text-info"}
+            />
+          </div>
+          <div>
+            <p className="text-sm font-semibold">{label}</p>
+            {address ? (
+              <a
+                href={explorerAddressUrl(address)}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-[10px] text-ink/45 transition hover:text-ink/70 dark:text-white/40 dark:hover:text-white/60"
+              >
+                {shortAddress(address)} ↗
+              </a>
+            ) : (
+              <p className="font-mono text-[10px] text-ink/45 dark:text-white/40">
+                Not configured
+              </p>
+            )}
+          </div>
+        </div>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={walletModal.open}
-              disabled={walletBusy}
-              aria-label="Connect wallet"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+        <div className="mt-3 grid grid-cols-3 gap-3 text-xs">
+          <div>
+            <p className="text-ink/50 dark:text-white/45">Liquidity</p>
+            <p className="mt-0.5 font-semibold">{liquidity}</p>
+          </div>
+          <div>
+            <p className="text-ink/50 dark:text-white/45">Interest</p>
+            <p className="mt-0.5 font-semibold">{INTEREST_LABEL}</p>
+          </div>
+          <div>
+            <p className="text-ink/50 dark:text-white/45">Utilization</p>
+            <p
+              className={`mt-0.5 font-semibold ${
+                utilizationNum > 80
+                  ? "text-danger"
+                  : utilizationNum > 50
+                    ? "text-warning"
+                    : "text-success"
+              }`}
             >
-              <Wallet size={16} className="shrink-0" />
-              {isSwitchingNetwork
-                ? "Switching to Polkadot Hub EVM..."
-                : isConnecting
-                  ? "Connecting..."
-                  : "Connect Wallet"}
-            </button>
+              {utilization}
+            </p>
           </div>
+        </div>
 
-          {connectionError ? (
-            <div className="mt-4 max-w-lg rounded-xl border border-danger/45 bg-danger/10 px-4 py-3 text-sm text-danger dark:border-danger/40 dark:bg-danger/20">
-              <p className="font-semibold">{connectionError}</p>
-              {walletErrorIsMetaMaskMissing ? (
-                <p className="mt-1">
-                  Install MetaMask from{" "}
-                  <a
-                    href="https://metamask.io/download/"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline underline-offset-2"
-                  >
-                    metamask.io/download
-                  </a>
-                  .
-                </p>
-              ) : null}
-              <button
-                type="button"
-                onClick={clearConnectionError}
-                className="mt-2 rounded-lg border border-danger/45 px-3 py-1.5 text-xs font-semibold hover:bg-danger/10"
-              >
-                Dismiss
-              </button>
-            </div>
-          ) : null}
-
-          {/* Trust signals */}
-          <div className="mt-5 flex flex-wrap gap-2">
-            {[
-              "⚡ Economic Atomicity",
-              "🔗 XCM-Native",
-              "🛡 Bond-Secured",
-              "🏆 Polkadot Hackathon APAC 2026",
-            ].map((badge) => (
-              <span
-                key={badge}
-                className="rounded-full border border-ink/15 bg-white/60 px-3 py-1 text-xs font-semibold text-ink/70 backdrop-blur dark:border-white/15 dark:bg-white/5 dark:text-white/60"
-              >
-                {badge}
-              </span>
-            ))}
-          </div>
-
-          {/* How it works */}
-          <div className="mt-6 grid gap-3 sm:grid-cols-4">
-            {[
-              {
-                step: "Step 1",
-                title: "Connect",
-                desc: "Link your MetaMask wallet to Polkadot Hub EVM.",
-              },
-              {
-                step: "Step 2",
-                title: "Configure",
-                desc: "Select chain legs, amounts, and duration.",
-              },
-              {
-                step: "Step 3",
-                title: "Execute",
-                desc: "One signature locks bond and triggers flash loan.",
-              },
-              {
-                step: "Step 4",
-                title: "Settle",
-                desc: "Repay across chains; bond returned on success.",
-              },
-            ].map(({ step, title, desc }) => (
-              <div
-                key={step}
-                className="rounded-xl border border-ink/10 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/55 dark:text-white/55">
-                  {step}
-                </p>
-                <p className="mt-1 text-sm font-semibold">{title}</p>
-                <p className="mt-1 text-xs text-ink/70 dark:text-white/65">
-                  {desc}
-                </p>
-              </div>
-            ))}
-          </div>
+        {/* Utilization bar */}
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink/10 dark:bg-white/10">
+          <div
+            className={`h-full rounded-full transition-all ${
+              utilizationNum > 80
+                ? "bg-danger"
+                : utilizationNum > 50
+                  ? "bg-warning"
+                  : isBorderPrimary
+                    ? "bg-primary"
+                    : "bg-info"
+            }`}
+            style={{ width: utilization }}
+          />
         </div>
       </div>
     </div>
