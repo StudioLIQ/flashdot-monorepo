@@ -1,65 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ExternalLink, Wallet } from "lucide-react";
+import { useState } from "react";
 
-import { useCreateLoan } from "../../hooks/useCreateLoan";
+import { useCreateLoan, formatDot } from "../../hooks/useCreateLoan";
+import { useWallet } from "../../hooks/useWallet";
+import { useWalletModal } from "../../providers/WalletModalProvider";
+import { EXPLORER_TX_URL } from "../../lib/contracts";
+import { ConfirmDialog } from "../ConfirmDialog";
 import { LoanTerms } from "./LoanTerms";
-import { ReviewConfirm } from "./ReviewConfirm";
-import { VaultSelector } from "./VaultSelector";
-
-type WizardStep = 1 | 2 | 3;
-type StepDirection = "forward" | "backward";
-
-const WIZARD_STEPS = [
-  { num: 1 as const, label: "Select Vaults" },
-  { num: 2 as const, label: "Set Terms" },
-  { num: 3 as const, label: "Review & Confirm" },
-] as const;
-
-function stepHash(step: WizardStep): string {
-  return `#step-${step}`;
-}
-
-function hashToStep(hash: string): WizardStep | null {
-  if (hash === "#step-1") return 1;
-  if (hash === "#step-2") return 2;
-  if (hash === "#step-3") return 3;
-  return null;
-}
-
-function stepAnimationClass(direction: StepDirection | null): string {
-  if (!direction) return "";
-  return direction === "forward" ? "animate-slide-from-right" : "animate-slide-from-left";
-}
 
 export function CreateLoan(): JSX.Element {
   const state = useCreateLoan();
-  const [wizardStep, setWizardStep] = useState<WizardStep>(1);
-  const [stepDirection, setStepDirection] = useState<StepDirection | null>(null);
+  const { isConnected, isCorrectNetwork } = useWallet();
+  const walletModal = useWalletModal();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  // Sync step from URL hash on mount
-  useEffect(() => {
-    const step = hashToStep(window.location.hash);
-    if (step) setWizardStep(step);
-  }, []);
-
-  // Update URL hash on step change
-  const goToStep = (step: WizardStep, direction: StepDirection): void => {
-    setStepDirection(direction);
-    setWizardStep(step);
-    window.history.replaceState(null, "", stepHash(step));
-  };
-
-  const handleNext = (from: WizardStep): void => {
-    const next = Math.min(from + 1, 3) as WizardStep;
-    goToStep(next, "forward");
-  };
-
-  const handleBack = (from: WizardStep): void => {
-    const prev = Math.max(from - 1, 1) as WizardStep;
-    goToStep(prev, "backward");
-  };
+  const durationLabel =
+    Number(state.durationMinutes) >= 60
+      ? `${(Number(state.durationMinutes) / 60).toFixed(Number(state.durationMinutes) % 60 === 0 ? 0 : 1)}h`
+      : `${state.durationMinutes}m`;
 
   return (
     <section
@@ -69,119 +29,181 @@ export function CreateLoan(): JSX.Element {
       {/* Header */}
       <div className="mb-5">
         <h2 id="create-loan-title" className="text-xl font-semibold">
-          Create New Loan
+          Create Flash Loan
         </h2>
         <p className="mt-0.5 text-sm text-ink/70 dark:text-white/65">
-          Configure vaults, amounts, and duration for your bonded flash loan.
+          Select vaults, set amounts and duration, then confirm with one signature.
         </p>
       </div>
 
-      {/* Step indicator */}
-      <div className="flex items-center gap-1" aria-label="Loan creation steps">
-        {WIZARD_STEPS.map((s, idx) => (
-          <div key={s.num} className="flex flex-1 items-center gap-1">
-            <div className="flex flex-col items-center gap-1">
-              <button
-                type="button"
-                onClick={() => wizardStep > s.num && goToStep(s.num, "backward")}
-                disabled={wizardStep <= s.num}
-                aria-label={`${wizardStep > s.num ? "Go back to" : ""} Step ${s.num}: ${s.label}`}
-                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold transition-colors ${
-                  s.num === wizardStep
-                    ? "bg-primary text-primary-fg"
-                    : s.num < wizardStep
-                      ? "cursor-pointer bg-primary/25 text-primary hover:bg-primary/35"
-                      : "bg-ink/10 text-ink/40 dark:bg-white/10 dark:text-white/35"
-                }`}
+      {/* Vault selectors + amount inputs + duration */}
+      <LoanTerms
+        includeA={state.includeA}
+        includeB={state.includeB}
+        amountA={state.amountA}
+        amountB={state.amountB}
+        amountABigint={state.amountABigint}
+        amountBBigint={state.amountBBigint}
+        isInvalidA={state.isInvalidA}
+        isInvalidB={state.isInvalidB}
+        durationMinutes={state.durationMinutes}
+        setIncludeA={state.setIncludeA}
+        setIncludeB={state.setIncludeB}
+        setAmountA={state.setAmountA}
+        setAmountB={state.setAmountB}
+        setDurationMinutes={state.setDurationMinutes}
+        preview={state.preview}
+        canProceedToStep3={state.canProceedToStep3}
+        isGuided={false}
+        onBack={() => {}}
+        onNext={() => {}}
+      />
+
+      {/* Gas estimate */}
+      {isConnected && isCorrectNetwork ? (
+        <p className="mt-3 font-mono text-xs text-ink/55 dark:text-white/45">
+          {state.gasEstimateUnable
+            ? "Est. Gas: Unable to estimate"
+            : state.gasEstimate
+              ? `Est. Gas: ~${state.gasEstimate}`
+              : "Est. Gas: Calculating..."}
+        </p>
+      ) : null}
+
+      {/* Wallet status */}
+      <div className="mt-3 space-y-1" aria-live="polite">
+        {!isConnected ? (
+          <button
+            type="button"
+            onClick={walletModal.open}
+            className="text-sm font-semibold text-primary hover:underline"
+          >
+            Connect wallet to create a loan →
+          </button>
+        ) : isConnected && !isCorrectNetwork ? (
+          <p className="text-sm text-danger">
+            Switch to Polkadot Hub EVM network to continue.
+          </p>
+        ) : null}
+      </div>
+
+      {/* Primary CTA */}
+      <button
+        type="button"
+        onClick={() => setConfirmOpen(true)}
+        disabled={!state.canSubmit}
+        aria-label="Create loan and lock bond"
+        className={`mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all active:scale-[0.97] disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:min-h-11 ${
+          state.createdLoanId
+            ? "animate-success-morph bg-primary text-primary-fg"
+            : "bg-primary text-primary-fg hover:bg-primary-hover"
+        }`}
+      >
+        {state.submitting ? (
+          <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent dark:border-ink dark:border-t-transparent" />
+        ) : null}
+        {state.createdLoanId && !state.submitting
+          ? "Created ✓"
+          : state.submitting
+            ? "Creating..."
+            : "Create Loan & Lock Bond"}
+      </button>
+
+      {/* Submitting indicator */}
+      {state.submitting ? (
+        <div className="mt-3 rounded-xl border border-ink/15 bg-ink/5 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
+          <p className="inline-flex items-center gap-2 font-semibold">
+            <Wallet size={16} className="shrink-0" />
+            Waiting for confirmation in MetaMask...
+          </p>
+          <p className="mt-1 text-ink/70 dark:text-white/70">
+            Review and approve the bond lock transaction in your wallet.
+          </p>
+        </div>
+      ) : null}
+
+      {/* Success */}
+      {state.createdLoanId ? (
+        <div className="mt-3 animate-bounce-in rounded-xl border border-success/45 bg-success/10 px-4 py-4 dark:border-success/40 dark:bg-success/20">
+          <div className="inline-flex items-center gap-2">
+            <span className="relative grid h-8 w-8 place-items-center rounded-full bg-success text-ink">
+              <span className="absolute inset-0 rounded-full bg-success/45 animate-ping" />
+              <span className="relative text-lg font-bold">✓</span>
+            </span>
+            <p className="text-lg font-bold text-ink dark:text-white">
+              Loan #{state.createdLoanId} created!
+            </p>
+          </div>
+          <p className="mt-2 text-sm text-ink/80 dark:text-white/80">
+            Bond locked: {formatDot(state.submittedBondAmount ?? state.preview.totalBond)}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {state.createdTxHash ? (
+              <a
+                href={EXPLORER_TX_URL(state.createdTxHash)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
               >
-                {s.num < wizardStep ? "✓" : s.num}
-              </button>
-              <span
-                className={`hidden text-[10px] font-semibold sm:block ${
-                  s.num === wizardStep
-                    ? "text-ink dark:text-white"
-                    : "text-ink/45 dark:text-white/40"
-                }`}
-              >
-                {s.label}
-              </span>
-            </div>
-            {idx < WIZARD_STEPS.length - 1 ? (
-              <div
-                className={`mb-4 h-px flex-1 ${
-                  s.num < wizardStep ? "bg-primary/40" : "bg-ink/15 dark:bg-white/10"
-                }`}
-              />
+                View on Explorer <ExternalLink size={12} />
+              </a>
             ) : null}
           </div>
-        ))}
-      </div>
+        </div>
+      ) : null}
 
-      {/* Step content with directional slide animation */}
-      <div className={`overflow-hidden ${stepAnimationClass(stepDirection)}`} key={wizardStep}>
-        {/* Step 1 */}
-        {wizardStep === 1 ? (
-          <VaultSelector
-            includeA={state.includeA}
-            includeB={state.includeB}
-            onToggleA={() => state.setIncludeA(!state.includeA)}
-            onToggleB={() => state.setIncludeB(!state.includeB)}
-            canProceed={state.canProceedToStep2}
-            onNext={() => handleNext(1)}
-          />
-        ) : null}
+      {/* Error */}
+      {state.error ? (
+        <p className="mt-3 text-sm text-danger">{state.error}</p>
+      ) : null}
 
-        {/* Step 2 */}
-        {wizardStep === 2 ? (
-          <LoanTerms
-            includeA={state.includeA}
-            includeB={state.includeB}
-            amountA={state.amountA}
-            amountB={state.amountB}
-            amountABigint={state.amountABigint}
-            amountBBigint={state.amountBBigint}
-            isInvalidA={state.isInvalidA}
-            isInvalidB={state.isInvalidB}
-            durationMinutes={state.durationMinutes}
-            setIncludeA={state.setIncludeA}
-            setIncludeB={state.setIncludeB}
-            setAmountA={state.setAmountA}
-            setAmountB={state.setAmountB}
-            setDurationMinutes={state.setDurationMinutes}
-            preview={state.preview}
-            canProceedToStep3={state.canProceedToStep3}
-            isGuided
-            onBack={() => handleBack(2)}
-            onNext={() => handleNext(2)}
-          />
-        ) : null}
-
-        {/* Step 3 */}
-        {wizardStep === 3 ? (
-          <ReviewConfirm
-            includeA={state.includeA}
-            includeB={state.includeB}
-            amountA={state.amountA}
-            amountB={state.amountB}
-            durationMinutes={state.durationMinutes}
-            preview={state.preview}
-            gasEstimate={state.gasEstimate}
-            gasEstimateUnable={state.gasEstimateUnable}
-            canSubmit={state.canSubmit}
-            submitting={state.submitting}
-            message={state.message}
-            error={state.error}
-            createdLoanId={state.createdLoanId}
-            createdTxHash={state.createdTxHash}
-            submittedBondAmount={state.submittedBondAmount}
-            onSubmit={state.onSubmit}
-            onBack={() => handleBack(3)}
-            confirmOpen={confirmOpen}
-            onOpenConfirm={() => setConfirmOpen(true)}
-            onCloseConfirm={() => setConfirmOpen(false)}
-          />
-        ) : null}
-      </div>
+      {/* Confirm dialog */}
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        title="Confirm Bond Lock"
+        description="This sends an on-chain transaction and requires a wallet signature."
+        confirmLabel="Confirm & Create"
+        onConfirm={() => { void state.onSubmit(); }}
+      >
+        <div className="rounded-lg border border-ink/15 bg-ink/5 p-3 dark:border-white/10 dark:bg-white/5">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.08em] text-ink/60 dark:text-white/55">
+            Transaction Summary
+          </p>
+          <div className="grid gap-1.5 text-sm">
+            {state.includeA ? (
+              <div className="flex justify-between gap-2">
+                <span className="text-ink/70 dark:text-white/65">Vault Alpha</span>
+                <span className="font-mono font-semibold">{state.amountA} DOT</span>
+              </div>
+            ) : null}
+            {state.includeB ? (
+              <div className="flex justify-between gap-2">
+                <span className="text-ink/70 dark:text-white/65">Vault Beta</span>
+                <span className="font-mono font-semibold">{state.amountB} DOT</span>
+              </div>
+            ) : null}
+            <div className="flex justify-between gap-2">
+              <span className="text-ink/70 dark:text-white/65">Duration</span>
+              <span className="font-semibold">{durationLabel}</span>
+            </div>
+            <div className="flex justify-between gap-2 border-t border-ink/10 pt-1 dark:border-white/10">
+              <span className="font-semibold text-ink dark:text-white">Total Bond</span>
+              <span className="font-mono font-bold">{formatDot(state.preview.totalBond)}</span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-ink/70 dark:text-white/65">Est. Gas</span>
+              <span className="font-mono font-semibold">
+                {state.gasEstimateUnable
+                  ? "Unable to estimate"
+                  : state.gasEstimate
+                    ? `~${state.gasEstimate}`
+                    : "Calculating..."}
+              </span>
+            </div>
+          </div>
+        </div>
+      </ConfirmDialog>
     </section>
   );
 }
