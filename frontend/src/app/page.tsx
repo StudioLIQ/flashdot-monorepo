@@ -334,6 +334,45 @@ export default function HomePage(): JSX.Element {
           </div>
         ) : null}
       </main>
+
+      {/* Footer */}
+      <footer className="mt-12 border-t border-ink/10 dark:border-white/10">
+        <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold">FlashDot</p>
+              <p className="mt-0.5 text-xs text-ink/60 dark:text-white/55">Bonded Cross-Chain Flash Loans on Polkadot Hub EVM</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-4 text-xs text-ink/60 dark:text-white/55">
+              <a
+                href="https://github.com/flashdot"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-ink dark:hover:text-white"
+              >
+                GitHub
+              </a>
+              <span className="hidden sm:inline">·</span>
+              <a
+                href="https://dorahacks.io"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-ink dark:hover:text-white"
+              >
+                DoraHacks
+              </a>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-ink/50 dark:text-white/40">
+              ⚠ This is experimental software on testnet. Use at your own risk. Funds may be lost.
+            </p>
+            <span className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-warning">
+              v0.1.0-testnet
+            </span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
