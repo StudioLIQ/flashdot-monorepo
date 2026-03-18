@@ -218,6 +218,11 @@ body {
   animation: step-ring 1.8s ease-out infinite;
 }
 
+/* Safe area inset for iOS bottom bar */
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

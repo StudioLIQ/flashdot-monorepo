@@ -1,9 +1,21 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import {
+  Activity,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  HelpCircle,
+  Home,
+  Menu,
+  PlusCircle,
+  Settings,
+  Wallet,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useMyLoans } from "../hooks/useMyLoans";
 import { useWallet } from "../hooks/useWallet";
@@ -19,15 +31,48 @@ function shortAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-export function NavigationShell({
-  children,
-}: {
+/** Simple letter-avatar for wallet account */
+function WalletAvatar({ address }: { address: string }): JSX.Element {
+  const letter = address.slice(2, 4).toUpperCase();
+  return (
+    <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/20 font-mono text-[10px] font-bold text-primary">
+      {letter}
+    </div>
+  );
+}
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  badge?: number | undefined;
+  disabled?: boolean | undefined;
+}
+
+interface NavigationShellProps {
   children: React.ReactNode;
-}): JSX.Element {
+}
+
+export function NavigationShell({ children }: NavigationShellProps): JSX.Element {
   const pathname = usePathname();
   const { showToast } = useToast();
   const walletModal = useWalletModal();
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Sidebar expand state — persisted to localStorage
+  const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("sidebar-expanded") === "true";
+  });
+
+  const toggleSidebar = (): void => {
+    setSidebarExpanded((v) => {
+      const next = !v;
+      localStorage.setItem("sidebar-expanded", String(next));
+      return next;
+    });
+  };
 
   const {
     account,
@@ -75,120 +120,219 @@ export function NavigationShell({
     }
   };
 
-  const navLinks = [
-    { href: "/create", label: "Create" },
+  const navItems: NavItem[] = [
+    { href: "/", label: "Dashboard", icon: <Home size={18} /> },
+    { href: "/create", label: "Create", icon: <PlusCircle size={18} /> },
     {
       href: "/loans",
       label: "Active Loans",
+      icon: <Activity size={18} />,
       badge: activeLoansCount || undefined,
       disabled: !isConnected,
     },
-    { href: "/history", label: "History", disabled: !isConnected },
+    {
+      href: "/history",
+      label: "History",
+      icon: <Clock size={18} />,
+      disabled: !isConnected,
+    },
   ];
 
+  const isActive = (href: string): boolean => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || pathname.startsWith(href + "/");
+  };
+
+  // Keyboard navigation within sidebar nav
+  const sidebarNavRef = useRef<HTMLElement>(null);
+  const handleNavKeyDown = (e: React.KeyboardEvent): void => {
+    if (!sidebarNavRef.current) return;
+    const links = Array.from(
+      sidebarNavRef.current.querySelectorAll<HTMLElement>("a:not([aria-disabled='true'])")
+    );
+    const idx = links.findIndex((el) => el === document.activeElement);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      links[(idx + 1) % links.length]?.focus();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      links[(idx - 1 + links.length) % links.length]?.focus();
+    }
+  };
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   return (
-    <div className="min-h-screen bg-mesh text-ink dark:bg-mesh-dark dark:text-white">
+    <div className="flex min-h-screen bg-mesh text-ink dark:bg-mesh-dark dark:text-white">
       {/* Skip link */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-fg"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-fg"
       >
         Skip to main content
       </a>
 
-      {/* Sticky Header */}
-      <header className="sticky top-0 z-40 w-full border-b border-ink/10 bg-white/90 backdrop-blur dark:border-white/10 dark:bg-slate-950/85">
-        <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3 md:px-6">
-          {/* Logo */}
-          <Link href="/" className="flex shrink-0 items-center gap-2.5">
-            <div className="grid h-8 w-8 place-items-center rounded-xl border border-ink/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-white/5">
-              <FlashDotMark className="h-6 w-6" />
+      {/* ─── Desktop sidebar (lg+) ─────────────────────────────────── */}
+      <aside
+        style={{ width: sidebarExpanded ? 220 : 60 }}
+        className="hidden lg:flex lg:flex-col lg:shrink-0 sticky top-0 h-screen overflow-hidden border-r border-ink/10 bg-white/90 backdrop-blur transition-[width] duration-200 ease-in-out dark:border-white/10 dark:bg-slate-950/90"
+      >
+        {/* Logo + toggle */}
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-ink/10 px-3 dark:border-white/10">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 overflow-hidden"
+            title="FlashDot Home"
+          >
+            <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl border border-ink/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-white/5">
+              <FlashDotMark className="h-5 w-5" />
             </div>
-            <span className="hidden text-sm font-bold tracking-tight sm:block">
-              FlashDot
-            </span>
+            {sidebarExpanded ? (
+              <span className="whitespace-nowrap text-sm font-bold tracking-tight">
+                FlashDot
+              </span>
+            ) : null}
+          </Link>
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            className="rounded-lg p-1 text-ink/50 transition hover:bg-ink/5 hover:text-ink dark:text-white/40 dark:hover:bg-white/8 dark:hover:text-white"
+          >
+            {sidebarExpanded ? (
+              <ChevronLeft size={16} />
+            ) : (
+              <ChevronRight size={16} />
+            )}
+          </button>
+        </div>
+
+        {/* Primary nav */}
+        <nav
+          ref={sidebarNavRef}
+          aria-label="Main navigation"
+          onKeyDown={handleNavKeyDown}
+          className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2"
+        >
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.disabled ? "#" : item.href}
+                aria-current={active ? "page" : undefined}
+                aria-disabled={item.disabled}
+                {...(item.disabled
+                  ? { onClick: (e: React.MouseEvent) => e.preventDefault() }
+                  : {})}
+                title={!sidebarExpanded ? item.label : undefined}
+                className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-primary/15 text-ink dark:text-white"
+                    : item.disabled
+                      ? "cursor-not-allowed text-ink/30 dark:text-white/25"
+                      : "text-ink/65 hover:bg-ink/5 hover:text-ink dark:text-white/60 dark:hover:bg-white/8 dark:hover:text-white"
+                }`}
+              >
+                {/* Active left bar */}
+                {active ? (
+                  <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-primary" />
+                ) : null}
+                <span className="shrink-0">{item.icon}</span>
+                {sidebarExpanded ? (
+                  <span className="flex-1 whitespace-nowrap">{item.label}</span>
+                ) : null}
+                {item.badge && sidebarExpanded ? (
+                  <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-fg leading-none">
+                    {item.badge}
+                  </span>
+                ) : null}
+                {item.badge && !sidebarExpanded ? (
+                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary" />
+                ) : null}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Bottom actions */}
+        <div className="shrink-0 border-t border-ink/10 p-2 dark:border-white/10">
+          {/* Settings */}
+          <Link
+            href="#"
+            title={!sidebarExpanded ? "Settings" : undefined}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink/55 transition hover:bg-ink/5 hover:text-ink dark:text-white/45 dark:hover:bg-white/8 dark:hover:text-white"
+          >
+            <Settings size={18} className="shrink-0" />
+            {sidebarExpanded ? <span>Settings</span> : null}
           </Link>
 
-          {/* Tab Nav */}
-          <nav aria-label="Main navigation" className="flex flex-1 items-center gap-1">
-            {navLinks.map((link) => {
-              const isActive =
-                pathname === link.href ||
-                (link.href !== "/" && pathname.startsWith(link.href + "/"));
-              return (
-                <Link
-                  key={link.href}
-                  href={link.disabled ? "#" : link.href}
-                  aria-current={isActive ? "page" : undefined}
-                  aria-disabled={link.disabled}
-                  {...(link.disabled
-                    ? { onClick: (e: React.MouseEvent) => e.preventDefault() }
-                    : {})}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
-                    isActive
-                      ? "bg-primary/15 text-ink dark:text-white"
-                      : link.disabled
-                        ? "cursor-not-allowed text-ink/35 dark:text-white/30"
-                        : "text-ink/70 hover:bg-ink/5 dark:text-white/65 dark:hover:bg-white/8"
-                  }`}
-                >
-                  {link.label}
-                  {link.badge ? (
-                    <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-primary-fg leading-none">
-                      {link.badge}
-                    </span>
-                  ) : null}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Help */}
+          <a
+            href="https://github.com/flashdot"
+            target="_blank"
+            rel="noreferrer"
+            title={!sidebarExpanded ? "GitHub / Docs" : undefined}
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink/55 transition hover:bg-ink/5 hover:text-ink dark:text-white/45 dark:hover:bg-white/8 dark:hover:text-white"
+          >
+            <HelpCircle size={18} className="shrink-0" />
+            {sidebarExpanded ? <span>Docs / GitHub</span> : null}
+          </a>
 
-          {/* Right: Account dropdown + Theme */}
-          <div className="relative flex shrink-0 items-center gap-2">
-            {isConnected ? (
+          {/* Theme toggle */}
+          <div
+            className="flex items-center gap-3 rounded-xl px-3 py-2"
+            title={!sidebarExpanded ? "Toggle theme" : undefined}
+          >
+            <ThemeToggle />
+            {sidebarExpanded ? (
+              <span className="text-sm font-medium text-ink/55 dark:text-white/45">
+                Theme
+              </span>
+            ) : null}
+          </div>
+
+          {/* Wallet area */}
+          <div className="relative mt-1 border-t border-ink/10 pt-2 dark:border-white/10">
+            {isConnected && account ? (
               <>
                 <button
                   type="button"
                   onClick={() => setWalletDropdownOpen((v) => !v)}
                   aria-expanded={walletDropdownOpen}
                   aria-label="Wallet account menu"
-                  className={`hidden items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-xs font-semibold sm:inline-flex ${
-                    isCorrectNetwork
-                      ? "border-ink/15 bg-white/80 hover:bg-ink/5 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
-                      : "border-danger/40 bg-danger/10 text-danger"
-                  }`}
+                  title={!sidebarExpanded ? shortAddress(account) : undefined}
+                  className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition hover:bg-ink/5 dark:hover:bg-white/8"
                 >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${isCorrectNetwork ? "bg-success" : "bg-danger"}`}
-                  />
-                  {account ? shortAddress(account) : "-"}
+                  <WalletAvatar address={account} />
+                  {sidebarExpanded ? (
+                    <div className="min-w-0 flex-1 overflow-hidden">
+                      <p className="truncate font-mono text-xs font-semibold">
+                        {shortAddress(account)}
+                      </p>
+                      <p className="flex items-center gap-1 text-[10px] text-ink/55 dark:text-white/45">
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${isCorrectNetwork ? "bg-success" : "bg-danger"}`}
+                        />
+                        {balanceDot ?? "…"} DOT
+                      </p>
+                    </div>
+                  ) : null}
                 </button>
-                {/* Mobile: balance indicator */}
-                <button
-                  type="button"
-                  onClick={() => setWalletDropdownOpen((v) => !v)}
-                  aria-expanded={walletDropdownOpen}
-                  aria-label="Wallet account menu"
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-xs font-semibold sm:hidden ${
-                    isCorrectNetwork
-                      ? "border-ink/15 bg-white/80 hover:bg-ink/5 dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
-                      : "border-danger/40 bg-danger/10 text-danger"
-                  }`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${isCorrectNetwork ? "bg-success" : "bg-danger"}`}
-                  />
-                  {balanceDot ?? "-"} DOT
-                </button>
-                {walletDropdownOpen && account ? (
-                  <WalletDropdown
-                    account={account}
-                    balanceDot={balanceDot}
-                    isCorrectNetwork={isCorrectNetwork}
-                    onCopy={() => void copyAddress()}
-                    onDisconnect={disconnectWallet}
-                    onClose={() => setWalletDropdownOpen(false)}
-                  />
+                {walletDropdownOpen ? (
+                  <div className="absolute bottom-full left-0 mb-1 w-56">
+                    <WalletDropdown
+                      account={account}
+                      balanceDot={balanceDot}
+                      isCorrectNetwork={isCorrectNetwork}
+                      onCopy={() => void copyAddress()}
+                      onDisconnect={disconnectWallet}
+                      onClose={() => setWalletDropdownOpen(false)}
+                    />
+                  </div>
                 ) : null}
               </>
             ) : (
@@ -196,66 +340,166 @@ export function NavigationShell({
                 type="button"
                 onClick={walletModal.open}
                 disabled={walletBusy}
-                aria-label="Connect wallet"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                title={!sidebarExpanded ? "Connect Wallet" : undefined}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover disabled:opacity-50"
               >
                 <Wallet size={14} className="shrink-0" />
-                {isSwitchingNetwork
-                  ? "Switching..."
-                  : isConnecting
-                    ? "Connecting..."
-                    : "Connect"}
+                {sidebarExpanded ? (
+                  <span>
+                    {isSwitchingNetwork
+                      ? "Switching…"
+                      : isConnecting
+                        ? "Connecting…"
+                        : "Connect Wallet"}
+                  </span>
+                ) : null}
+              </button>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* ─── Main content (lg+: beside sidebar, else full width) ───── */}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* ─── Mobile / Tablet top bar (< lg) ──────────────────────── */}
+        <header className="sticky top-0 z-40 flex lg:hidden w-full items-center justify-between border-b border-ink/10 bg-white/90 px-4 py-3 backdrop-blur dark:border-white/10 dark:bg-slate-950/85">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="grid h-8 w-8 place-items-center rounded-xl border border-ink/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-white/5">
+              <FlashDotMark className="h-5 w-5" />
+            </div>
+            <span className="text-sm font-bold tracking-tight">FlashDot</span>
+          </Link>
+
+          <div className="flex items-center gap-2">
+            {isConnected && account ? (
+              <button
+                type="button"
+                onClick={() => setWalletDropdownOpen((v) => !v)}
+                aria-expanded={walletDropdownOpen}
+                aria-label="Wallet account menu"
+                className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-xs font-semibold ${
+                  isCorrectNetwork
+                    ? "border-ink/15 bg-white/80 hover:bg-ink/5 dark:border-white/15 dark:bg-white/5"
+                    : "border-danger/40 bg-danger/10 text-danger"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${isCorrectNetwork ? "bg-success" : "bg-danger"}`}
+                />
+                <span className="hidden sm:inline">{shortAddress(account)}</span>
+                <span className="sm:hidden">{balanceDot ?? "…"} DOT</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={walletModal.open}
+                disabled={walletBusy}
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-fg transition hover:bg-primary-hover disabled:opacity-50"
+              >
+                <Wallet size={13} />
+                {isConnecting ? "…" : "Connect"}
               </button>
             )}
             <ThemeToggle className="rounded-full" />
           </div>
+
+          {/* Wallet dropdown (mobile) */}
+          {walletDropdownOpen && account ? (
+            <div className="absolute right-4 top-full mt-1 z-50">
+              <WalletDropdown
+                account={account}
+                balanceDot={balanceDot}
+                isCorrectNetwork={isCorrectNetwork}
+                onCopy={() => void copyAddress()}
+                onDisconnect={disconnectWallet}
+                onClose={() => setWalletDropdownOpen(false)}
+              />
+            </div>
+          ) : null}
+        </header>
+
+        {/* Page content */}
+        <div id="main-content" className="flex-1 pb-safe">
+          {children}
         </div>
-      </header>
 
-      {/* Page content */}
-      <div id="main-content">{children}</div>
-
-      {/* Footer */}
-      <footer className="mt-12 border-t border-ink/10 dark:border-white/10">
-        <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold">FlashDot</p>
-              <p className="mt-0.5 text-xs text-ink/60 dark:text-white/55">
-                Bonded Cross-Chain Flash Loans on Polkadot Hub EVM
+        {/* Footer — shown above mobile bottom nav */}
+        <footer className="mt-12 border-t border-ink/10 pb-20 dark:border-white/10 lg:pb-0">
+          <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold">FlashDot</p>
+                <p className="mt-0.5 text-xs text-ink/60 dark:text-white/55">
+                  Bonded Cross-Chain Flash Loans on Polkadot Hub EVM
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-4 text-xs text-ink/60 dark:text-white/55">
+                <a
+                  href="https://github.com/flashdot"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-ink dark:hover:text-white"
+                >
+                  GitHub
+                </a>
+                <span className="hidden sm:inline">·</span>
+                <a
+                  href="https://dorahacks.io"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-ink dark:hover:text-white"
+                >
+                  DoraHacks
+                </a>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-ink/50 dark:text-white/40">
+                ⚠ This is experimental software on testnet. Use at your own risk.
+                Funds may be lost.
               </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-4 text-xs text-ink/60 dark:text-white/55">
-              <a
-                href="https://github.com/flashdot"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-ink dark:hover:text-white"
-              >
-                GitHub
-              </a>
-              <span className="hidden sm:inline">·</span>
-              <a
-                href="https://dorahacks.io"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-ink dark:hover:text-white"
-              >
-                DoraHacks
-              </a>
+              <span className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-warning">
+                v0.1.0-testnet
+              </span>
             </div>
           </div>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-ink/50 dark:text-white/40">
-              ⚠ This is experimental software on testnet. Use at your own risk.
-              Funds may be lost.
-            </p>
-            <span className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-warning">
-              v0.1.0-testnet
-            </span>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
+
+      {/* ─── Mobile bottom nav bar (< lg) ────────────────────────────── */}
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-ink/10 bg-white/95 pb-safe backdrop-blur lg:hidden dark:border-white/10 dark:bg-slate-950/95"
+      >
+        {navItems.map((item) => {
+          const active = isActive(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.disabled ? "#" : item.href}
+              aria-current={active ? "page" : undefined}
+              aria-disabled={item.disabled}
+              {...(item.disabled
+                ? { onClick: (e: React.MouseEvent) => e.preventDefault() }
+                : {})}
+              className={`relative flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-semibold transition-colors ${
+                active
+                  ? "text-primary"
+                  : item.disabled
+                    ? "cursor-not-allowed text-ink/25 dark:text-white/20"
+                    : "text-ink/55 hover:text-ink dark:text-white/50 dark:hover:text-white"
+              }`}
+            >
+              {/* Badge dot */}
+              {item.badge ? (
+                <span className="absolute right-[calc(50%-14px)] top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
+              ) : null}
+              <span className={active ? "text-primary" : ""}>{item.icon}</span>
+              <span>{item.label === "Active Loans" ? "Active" : item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
       {/* Global Wallet Select Modal */}
       <WalletSelectModal
