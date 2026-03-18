@@ -89,7 +89,7 @@ export default function HomePage(): JSX.Element {
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink/80 dark:text-white/75 md:text-lg">
             Connect MetaMask on Polkadot Hub EVM and create a bonded cross-chain loan plan.
-            Wallet 미연결 상태에서는 대출 생성 액션이 자동 비활성화됩니다.
+            Loan creation is disabled until wallet is connected.
           </p>
 
           <div className={`mt-8 flex flex-wrap items-center gap-3 ${isConnected ? "" : "md:mt-10"}`}>
