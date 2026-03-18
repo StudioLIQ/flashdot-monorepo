@@ -21,11 +21,12 @@ function detectInitialTheme(): ThemeMode {
     return stored;
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  // Default to dark mode; respect system preference only if explicitly set to light
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }): JSX.Element {
-  const [theme, setTheme] = useState<ThemeMode>("light");
+  const [theme, setTheme] = useState<ThemeMode>("dark");
 
   useEffect(() => {
     setTheme(detectInitialTheme());
