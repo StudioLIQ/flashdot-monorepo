@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Button press feedback — scale down on active */
+button:not(:disabled):active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: scale(0.97);
+  transition: transform 80ms ease;
+}
+
 /* Custom focus ring — brand mint green, keyboard only */
 :focus-visible {
   outline: 2px solid #42db8d;
