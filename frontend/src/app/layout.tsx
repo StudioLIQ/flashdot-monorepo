@@ -4,6 +4,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { NavigationShell } from "../components/NavigationShell";
 import { QueryProvider } from "../providers/QueryProvider";
+import { SettingsProvider } from "../providers/SettingsProvider";
 import { ThemeProvider } from "../providers/ThemeProvider";
 import { ToastProvider } from "../providers/ToastProvider";
 import { WalletModalProvider } from "../providers/WalletModalProvider";
@@ -72,15 +73,17 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-sans`}>
         <ThemeProvider>
-          <QueryProvider>
-            <WalletProvider>
-              <WalletModalProvider>
-                <ToastProvider>
-                  <NavigationShell>{children}</NavigationShell>
-                </ToastProvider>
-              </WalletModalProvider>
-            </WalletProvider>
-          </QueryProvider>
+          <SettingsProvider>
+            <QueryProvider>
+              <WalletProvider>
+                <WalletModalProvider>
+                  <ToastProvider>
+                    <NavigationShell>{children}</NavigationShell>
+                  </ToastProvider>
+                </WalletModalProvider>
+              </WalletProvider>
+            </QueryProvider>
+          </SettingsProvider>
         </ThemeProvider>
       </body>
     </html>

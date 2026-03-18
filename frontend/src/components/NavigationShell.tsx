@@ -253,9 +253,14 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
         <div className="shrink-0 border-t border-ink/10 p-2 dark:border-white/10">
           {/* Settings */}
           <Link
-            href="#"
+            href="/settings"
+            aria-current={pathname === "/settings" ? "page" : undefined}
             title={!sidebarExpanded ? "Settings" : undefined}
-            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-ink/55 transition hover:bg-ink/5 hover:text-ink dark:text-white/45 dark:hover:bg-white/8 dark:hover:text-white"
+            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+              pathname === "/settings"
+                ? "bg-primary/15 text-ink dark:text-white"
+                : "text-ink/55 hover:bg-ink/5 hover:text-ink dark:text-white/45 dark:hover:bg-white/8 dark:hover:text-white"
+            }`}
           >
             <Settings size={18} className="shrink-0" />
             {sidebarExpanded ? <span>Settings</span> : null}
