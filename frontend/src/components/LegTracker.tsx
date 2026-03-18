@@ -103,7 +103,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
   };
 
   return (
-    <article className="rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5">
+    <article className="interactive-card rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold">Leg #{leg.legId} · {shortAddress(leg.vault)}</h3>
         <p className="text-xs text-ink/60 dark:text-white/55">
@@ -122,7 +122,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
             <li key={step.label} className="flex items-start sm:flex-1">
               <div className="flex min-w-8 flex-col items-center text-center">
                 <span
-                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[10px] font-bold ${done ? "border-neon bg-neon text-ink" : ""} ${current ? "border-neon bg-mint text-ink animate-pulse dark:bg-emerald-950/60 dark:text-white" : ""} ${!done && !current ? "border-ink/25 text-ink/60 dark:border-white/25 dark:text-white/60" : ""}`}
+                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[10px] font-bold transition-colors duration-300 ease-out ${done ? "border-neon bg-neon text-ink" : ""} ${current ? "border-neon bg-mint text-ink animate-pulse dark:bg-emerald-950/60 dark:text-white" : ""} ${!done && !current ? "border-ink/25 text-ink/60 dark:border-white/25 dark:text-white/60" : ""}`}
                 >
                   {step.icon}
                 </span>
@@ -141,7 +141,9 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
 
       {canRepay ? (
         <div className="mt-4">
-          <p className={`text-sm font-semibold ${countdownTone}`}>Repay countdown: {countdown}</p>
+          <p className={`text-sm font-semibold ${countdownTone}`}>
+            Repay countdown: <span key={countdown} className="inline-block animate-countdown-tick">{countdown}</span>
+          </p>
           <button
             type="button"
             onClick={() => setConfirmOpen(true)}

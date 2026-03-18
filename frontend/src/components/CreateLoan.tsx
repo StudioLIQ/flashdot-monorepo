@@ -201,7 +201,7 @@ export function CreateLoan(): JSX.Element {
   };
 
   return (
-    <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
+    <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
       <h2 className="text-xl font-semibold">Create Loan</h2>
       <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Estimated bond breakdown before transaction submission.</p>
 
@@ -293,10 +293,10 @@ export function CreateLoan(): JSX.Element {
         type="button"
         onClick={() => setConfirmOpen(true)}
         disabled={!canSubmit}
-        className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:bg-white dark:text-slate-950 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:w-auto"
+        className={`mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:w-auto ${createdLoanId ? "animate-success-morph bg-neon text-ink dark:bg-neon dark:text-ink" : "bg-ink text-white dark:bg-white dark:text-slate-950"}`}
       >
-        {submitting ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" /> : null}
-        {submitLabel}
+        {submitting ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent dark:border-ink dark:border-t-transparent" /> : null}
+        {createdLoanId && !submitting ? "Created ✓" : submitLabel}
       </button>
 
       {!isConnected ? <p className="mt-3 text-sm text-red-600">Connect wallet first.</p> : null}
@@ -313,7 +313,7 @@ export function CreateLoan(): JSX.Element {
         </div>
       ) : null}
       {createdLoanId ? (
-        <div className="mt-4 rounded-xl border border-neon/45 bg-mint px-4 py-4 dark:border-neon/40 dark:bg-emerald-950/40">
+        <div className="animate-content-fade mt-4 rounded-xl border border-neon/45 bg-mint px-4 py-4 dark:border-neon/40 dark:bg-emerald-950/40">
           <div className="inline-flex items-center gap-2">
             <span className="relative grid h-8 w-8 place-items-center rounded-full bg-neon text-ink">
               <span className="absolute inset-0 rounded-full bg-neon/45 animate-ping" />

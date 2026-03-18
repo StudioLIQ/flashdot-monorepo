@@ -58,3 +58,79 @@ body {
 .animate-toast-out {
   animation: toast-out 0.2s ease-in both;
 }
+
+@keyframes content-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes success-morph {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.03);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes countdown-tick {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.interactive-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(16, 33, 31, 0.16);
+}
+
+.animate-content-fade {
+  animation: content-fade 0.2s ease-out both;
+}
+
+.animate-success-morph {
+  animation: success-morph 0.35s ease-out both;
+}
+
+.animate-countdown-tick {
+  animation: countdown-tick 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .interactive-card:hover {
+    transform: none;
+  }
+}

@@ -89,7 +89,7 @@ export default function HomePage(): JSX.Element {
       ) : null}
       <div className="mx-auto max-w-5xl space-y-6 md:space-y-8">
         <section
-          className={`rounded-3xl border border-ink/10 bg-white/75 shadow-glow backdrop-blur transition-all dark:border-white/10 dark:bg-slate-950/70 ${isConnected ? "p-8 md:p-10" : "min-h-[72vh] p-8 md:min-h-[78vh] md:p-12"}`}
+          className={`interactive-card rounded-3xl border border-ink/10 bg-white/75 shadow-glow backdrop-blur transition-all dark:border-white/10 dark:bg-slate-950/70 ${isConnected ? "p-8 md:p-10" : "min-h-[72vh] p-8 md:min-h-[78vh] md:p-12"}`}
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -198,7 +198,7 @@ export default function HomePage(): JSX.Element {
           ) : null}
 
           <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+            <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Connection</p>
               <p className="mt-2 text-lg font-semibold">{isConnected ? "Connected" : "Not connected"}</p>
               {account ? (
@@ -216,7 +216,7 @@ export default function HomePage(): JSX.Element {
                 <p className="mt-1 text-sm text-ink/70 dark:text-white/65">No wallet connected</p>
               )}
             </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+            <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Network</p>
               <p className="mt-2 text-lg font-semibold">Polkadot Hub EVM</p>
               <p className={`mt-1 text-sm ${isCorrectNetwork ? "text-neon" : "text-red-600"}`}>
@@ -226,7 +226,7 @@ export default function HomePage(): JSX.Element {
           </div>
         </section>
 
-        <section className="relative rounded-3xl border border-ink/10 bg-white/75 p-5 shadow-glow backdrop-blur transition dark:border-white/10 dark:bg-slate-950/65 md:p-7">
+        <section className="interactive-card relative rounded-3xl border border-ink/10 bg-white/75 p-5 shadow-glow backdrop-blur transition dark:border-white/10 dark:bg-slate-950/65 md:p-7">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-semibold uppercase tracking-[0.12em]">Action Zone</h2>
             <p className="text-sm text-ink/70 dark:text-white/65">Create and confirm a new loan plan.</p>
@@ -243,7 +243,7 @@ export default function HomePage(): JSX.Element {
 
         <section
           id="status-zone"
-          className={`rounded-3xl border border-ink/10 bg-white/75 p-5 shadow-glow backdrop-blur transition-all duration-500 dark:border-white/10 dark:bg-slate-950/65 md:p-7 ${statusExpanded ? "opacity-100" : "opacity-80"}`}
+          className={`interactive-card rounded-3xl border border-ink/10 bg-white/75 p-5 shadow-glow backdrop-blur transition-all duration-500 dark:border-white/10 dark:bg-slate-950/65 md:p-7 ${statusExpanded ? "opacity-100" : "opacity-80"}`}
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-semibold uppercase tracking-[0.12em]">Status Zone</h2>
@@ -267,32 +267,32 @@ export default function HomePage(): JSX.Element {
             />
           ) : (
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
-              {myLoansQuery.isLoading ? (
-                <LoadingMetric />
-              ) : (
-                <>
+              <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
+                {myLoansQuery.isLoading ? (
+                  <LoadingMetric />
+                ) : (
+                  <div className="animate-content-fade">
                     <p className="mt-2 text-lg font-semibold">{myLoanCount}</p>
                     <p className="mt-1 text-sm text-ink/70 dark:text-white/65">
                       {myLoanCount === 0 ? "No loans yet. Create your first flash loan." : "Live updates enabled"}
                     </p>
-                </>
-              )}
-            </div>
-            <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
-              {loanHistoryQuery.isLoading ? (
-                <LoadingMetric />
-              ) : (
-                <>
+                  </div>
+                )}
+              </div>
+              <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
+                {loanHistoryQuery.isLoading ? (
+                  <LoadingMetric />
+                ) : (
+                  <div className="animate-content-fade">
                     <p className="mt-2 text-lg font-semibold">{historyCount}</p>
                     <p className="mt-1 text-sm text-ink/70 dark:text-white/65">
                       {historyCount === 0 ? "No completed loans yet." : "Recent settled, defaulted, and aborted loans"}
                     </p>
-                </>
-              )}
-            </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </section>

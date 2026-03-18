@@ -117,7 +117,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
 
   if (loading) {
     return (
-      <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
+      <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
         <div className="flex items-center justify-between gap-3">
           <div className="h-7 w-32 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
           <div className="h-5 w-24 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
@@ -147,7 +147,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
 
   if (!loan) {
     return (
-      <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
+      <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
         <h2 className="text-xl font-semibold">Create your first flash loan</h2>
         <p className="mt-2 text-sm text-ink/70 dark:text-white/65">
           No active loan selected yet. Use the action zone to launch a bonded plan in one signature.
@@ -174,7 +174,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
   }
 
   return (
-    <section className="mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
+    <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold">Loan #{loan.loanId}</h2>
         <div className="flex flex-wrap items-center justify-end gap-2">
@@ -208,7 +208,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
 
       {loan.repayOnlyMode ? <div className="mt-4"><RepayOnlyBanner /></div> : null}
 
-      <div className="mt-5 grid gap-3">
+      <div className="animate-content-fade mt-5 grid gap-3">
         {legs.map((leg) => (
           <LegTracker
             key={`${leg.loanId}-${leg.legId}`}
