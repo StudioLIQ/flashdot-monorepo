@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom focus ring — brand mint green, keyboard only */
+:focus-visible {
+  outline: 2px solid #42db8d;
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* Hide focus ring for mouse/pointer interactions */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Input focus: border color + subtle glow */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: #42db8d !important;
+  box-shadow: 0 0 0 3px rgba(66, 219, 141, 0.18);
+}
+
 :root {
   color-scheme: light;
 }
