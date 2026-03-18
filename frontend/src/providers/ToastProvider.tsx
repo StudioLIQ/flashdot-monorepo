@@ -25,8 +25,8 @@ interface ToastContextValue {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 function defaultDuration(tone: ToastTone): number {
-  if (tone === "error") return 0;
-  return 3_000;
+  if (tone === "error") return 12_000; // longer for error — user needs to read
+  return 4_000;
 }
 
 export function ToastProvider({ children }: PropsWithChildren): JSX.Element {
@@ -63,7 +63,7 @@ export function ToastProvider({ children }: PropsWithChildren): JSX.Element {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="pointer-events-none fixed right-4 top-4 z-50 flex w-[min(360px,calc(100vw-2rem))] flex-col gap-3">
+      <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-[min(360px,calc(100vw-2rem))] flex-col gap-3">
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">
             <Toast toast={toast} onClose={closeToast} />
