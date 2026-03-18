@@ -8,6 +8,16 @@ import { useMyLoans } from "../hooks/useMyLoans";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useWallet } from "../hooks/useWallet";
 import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
+
+const LOAN_ACTION_HINT: Record<number, string> = {
+  [LoanState.Created]: "Starting up...",
+  [LoanState.Preparing]: "Locking liquidity on chain",
+  [LoanState.Prepared]: "Awaiting fund disbursement",
+  [LoanState.Committing]: "Disbursing funds to wallet",
+  [LoanState.Committed]: "Repay needed",
+  [LoanState.Repaying]: "Processing repayment",
+  [LoanState.Settling]: "Finalizing settlement",
+};
 import { formatAmount, formatRelativeTime, formatUsd } from "../lib/format";
 import { useDotPrice } from "../hooks/useDotPrice";
 import { EmptyState } from "./EmptyState";
@@ -76,6 +86,7 @@ function LoanCard({ loan, dotPrice }: LoanCardProps): JSX.Element {
   const timeLeft = loan.expiryAt > 0 ? formatRelativeTime(loan.expiryAt) : "—";
   const bondUsd = formatUsd(loan.bondAmount, dotPrice);
   const tier = loan.expiryAt > 0 ? timeHealth(loan.expiryAt) : "none";
+  const actionHint = LOAN_ACTION_HINT[loan.state];
   const health = TIME_HEALTH_CLASSES[tier];
 
   return (
@@ -108,9 +119,20 @@ function LoanCard({ loan, dotPrice }: LoanCardProps): JSX.Element {
             <p className="text-xs text-ink/45 dark:text-white/35">{bondUsd}</p>
           ) : null}
         </div>
-        <p className={`text-xs ${health.time || "text-ink/55 dark:text-white/45"}`}>
-          {timeLeft}
-        </p>
+        <div className="text-right">
+          <p className={`text-xs ${health.time || "text-ink/55 dark:text-white/45"}`}>
+            {timeLeft}
+          </p>
+          {actionHint ? (
+            <p className={`text-[10px] font-medium ${
+              loan.state === LoanState.Committed
+                ? "text-warning"
+                : "text-ink/45 dark:text-white/35"
+            }`}>
+              {actionHint}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       {/* Workflow progress bar */}
