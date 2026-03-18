@@ -3,6 +3,7 @@
 import { parseEther, formatEther } from "ethers";
 import { useMemo, useState } from "react";
 
+import { BondPreviewChart } from "./BondPreviewChart";
 import { useWallet } from "../hooks/useWallet";
 import { useBondPreview } from "../hooks/useBondPreview";
 import {
@@ -255,15 +256,13 @@ export function CreateLoan(): JSX.Element {
         />
       </div>
 
-      <div className="mt-6 rounded-xl bg-mint p-4 text-sm dark:bg-emerald-950/50">
-        <p>Repay A: {formatDot(preview.repayA)}</p>
-        <p>Repay B: {formatDot(preview.repayB)}</p>
-        <p>Fee budgets: {formatDot(preview.feeBudgets)}</p>
-        <p>Hub fee buffer: {formatDot(HUB_FEE_BUFFER)}</p>
-        <p className="mt-2 border-t border-ink/20 pt-2 text-base font-semibold dark:border-white/10">
-          Total Bond Required: {formatDot(preview.totalBond)}
-        </p>
-      </div>
+      <BondPreviewChart
+        repayA={preview.repayA}
+        repayB={preview.repayB}
+        feeBudgets={preview.feeBudgets}
+        hubBuffer={HUB_FEE_BUFFER}
+        totalBond={preview.totalBond}
+      />
 
       <button
         type="button"
