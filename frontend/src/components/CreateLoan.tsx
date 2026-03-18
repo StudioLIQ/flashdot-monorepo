@@ -1,6 +1,7 @@
 "use client";
 
 import { parseEther, formatEther } from "ethers";
+import { Globe, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { BondPreviewChart } from "./BondPreviewChart";
@@ -214,7 +215,7 @@ export function CreateLoan(): JSX.Element {
         <article
           className={`rounded-2xl border p-4 transition ${includeA ? "border-success bg-success/10 shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-success/20" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
         >
-          <p className="text-sm font-semibold">🔵 Parachain Alpha</p>
+          <p className="inline-flex items-center gap-2 text-sm font-semibold"><Globe size={14} className="text-info shrink-0" /> Parachain Alpha</p>
           <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_A}</p>
           <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Interest: {INTEREST_LABEL}</p>
           <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
@@ -260,7 +261,7 @@ export function CreateLoan(): JSX.Element {
         <article
           className={`rounded-2xl border p-4 transition ${includeB ? "border-success bg-success/10 shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-success/20" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
         >
-          <p className="text-sm font-semibold">🟢 Parachain Beta</p>
+          <p className="inline-flex items-center gap-2 text-sm font-semibold"><Globe size={14} className="text-success shrink-0" /> Parachain Beta</p>
           <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_B}</p>
           <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Interest: {INTEREST_LABEL}</p>
           <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
@@ -363,7 +364,7 @@ export function CreateLoan(): JSX.Element {
       {submitting ? (
         <div className="mt-4 rounded-xl border border-ink/15 bg-ink/5 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
           <p className="inline-flex items-center gap-2 font-semibold">
-            <span className="text-base">🦊</span>
+            <Wallet size={16} className="shrink-0" />
             Waiting for confirmation in MetaMask...
           </p>
           <p className="mt-1 text-ink/70 dark:text-white/70">Review and approve the bond lock transaction in your wallet.</p>

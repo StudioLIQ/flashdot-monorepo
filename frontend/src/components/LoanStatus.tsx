@@ -181,8 +181,8 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
       <div className="flex items-center justify-between gap-3">
         <h2 id="loan-status-title" className="text-xl font-semibold">Loan #{loan.loanId}</h2>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <p className="text-sm text-ink/70 dark:text-white/65" aria-live="polite">
-            {stateMeta ? `${stateMeta.icon} ${stateMeta.label}` : `State ${loan.state}`}
+          <p className="inline-flex items-center gap-1.5 text-sm text-ink/70 dark:text-white/65" aria-live="polite">
+            {stateMeta ? <><stateMeta.icon size={14} className="shrink-0" />{stateMeta.label}</> : `State ${loan.state}`}
             {refreshing ? " · updating..." : ""}
           </p>
           {canCancel ? (

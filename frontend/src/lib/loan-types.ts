@@ -1,3 +1,18 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Ban,
+  CheckCircle2,
+  CircleDollarSign,
+  Download,
+  Lock,
+  LockKeyhole,
+  RefreshCw,
+  Send,
+  Timer,
+} from "lucide-react";
+
 export const LoanState = {
   Created: 0,
   Preparing: 1,
@@ -24,32 +39,32 @@ export const LegState = {
 
 export interface StatusMeta {
   label: string;
-  icon: string;
+  icon: LucideIcon;
 }
 
 export const LOAN_STATE_META: Record<number, StatusMeta> = {
-  [LoanState.Created]: { label: "Loan Created", icon: "✅" },
-  [LoanState.Preparing]: { label: "Locking Liquidity...", icon: "🔒" },
-  [LoanState.Prepared]: { label: "Liquidity Locked", icon: "🔐" },
-  [LoanState.Committing]: { label: "Disbursing Funds...", icon: "➡️" },
-  [LoanState.Committed]: { label: "Funds Received", icon: "📥" },
-  [LoanState.Repaying]: { label: "Repaying Vaults...", icon: "🔄" },
-  [LoanState.Settling]: { label: "Finalizing...", icon: "⏳" },
-  [LoanState.Settled]: { label: "Complete", icon: "✅✅" },
-  [LoanState.Aborted]: { label: "Cancelled", icon: "⛔" },
-  [LoanState.Defaulted]: { label: "Defaulted (Bond Slashed)", icon: "⚠️" },
+  [LoanState.Created]: { label: "Loan Created", icon: CheckCircle2 },
+  [LoanState.Preparing]: { label: "Locking Liquidity...", icon: Lock },
+  [LoanState.Prepared]: { label: "Liquidity Locked", icon: LockKeyhole },
+  [LoanState.Committing]: { label: "Disbursing Funds...", icon: ArrowRight },
+  [LoanState.Committed]: { label: "Funds Received", icon: Download },
+  [LoanState.Repaying]: { label: "Repaying Vaults...", icon: RefreshCw },
+  [LoanState.Settling]: { label: "Finalizing...", icon: Timer },
+  [LoanState.Settled]: { label: "Complete", icon: CheckCircle2 },
+  [LoanState.Aborted]: { label: "Cancelled", icon: Ban },
+  [LoanState.Defaulted]: { label: "Defaulted (Bond Slashed)", icon: AlertTriangle },
 };
 
 export const LEG_STEP_META: ReadonlyArray<{
   state: number;
   label: string;
-  icon: string;
+  icon: LucideIcon;
 }> = [
-  { state: LegState.PrepareSent, label: "Requesting Lock", icon: "🔒" },
-  { state: LegState.PreparedAcked, label: "Lock Confirmed", icon: "✅" },
-  { state: LegState.CommitSent, label: "Disbursing", icon: "➡️" },
-  { state: LegState.CommittedAcked, label: "Funds Sent", icon: "📤" },
-  { state: LegState.RepaidConfirmed, label: "Repaid", icon: "💸" },
+  { state: LegState.PrepareSent, label: "Requesting Lock", icon: Lock },
+  { state: LegState.PreparedAcked, label: "Lock Confirmed", icon: CheckCircle2 },
+  { state: LegState.CommitSent, label: "Disbursing", icon: ArrowRight },
+  { state: LegState.CommittedAcked, label: "Funds Sent", icon: Send },
+  { state: LegState.RepaidConfirmed, label: "Repaid", icon: CircleDollarSign },
 ];
 
 export interface LoanView {

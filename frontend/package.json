@@ -11,12 +11,13 @@
     "clean": "rm -rf .next out"
   },
   "dependencies": {
-    "next": "^14.2.3",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "@tanstack/react-query": "^5.37.1",
     "ethers": "^6.12.1",
+    "lucide-react": "^0.577.0",
+    "next": "^14.2.3",
     "polkadot-api": "^1.23.3",
-    "@tanstack/react-query": "^5.37.1"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",

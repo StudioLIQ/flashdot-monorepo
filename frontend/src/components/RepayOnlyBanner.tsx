@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 interface RepayOnlyBannerProps {
@@ -28,7 +29,7 @@ export function RepayOnlyBanner({ committedLegs, totalLegs, expiryAt }: RepayOnl
 
   return (
     <div className="rounded-xl border border-danger/45 bg-danger/10 px-4 py-4 text-sm dark:border-danger/40 dark:bg-danger/20">
-      <p className="text-base font-semibold text-danger">⚠️ Partial Commit Failure</p>
+      <p className="inline-flex items-center gap-2 text-base font-semibold text-danger"><AlertTriangle size={16} className="shrink-0" /> Partial Commit Failure</p>
       <p className="mt-2 text-danger">
         Some vaults failed to commit. Additional commits are blocked and only committed legs can be repaid.
       </p>

@@ -106,8 +106,8 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
     <article className="interactive-card rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5" aria-labelledby={`leg-${leg.loanId}-${leg.legId}-title`}>
       <div className="flex items-center justify-between gap-3">
         <h3 id={`leg-${leg.loanId}-${leg.legId}-title`} className="text-sm font-semibold">Leg #{leg.legId} · {shortAddress(leg.vault)}</h3>
-        <p className="text-xs text-ink/60 dark:text-white/55">
-          {currentStep ? `${currentStep.icon} ${currentStep.label}` : "Initialized"} · Principal: {formatDotAmount(leg.amount)}
+        <p className="inline-flex items-center gap-1 text-xs text-ink/60 dark:text-white/55">
+          {currentStep ? <><currentStep.icon size={12} className="shrink-0" />{currentStep.label}</> : "Initialized"}{" · "}Principal: {formatDotAmount(leg.amount)}
         </p>
       </div>
 
@@ -122,9 +122,9 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
             <li key={step.label} className="flex items-start sm:flex-1">
               <div className="flex min-w-8 flex-col items-center text-center">
                 <span
-                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[10px] font-bold transition-colors duration-300 ease-out ${done ? "border-success bg-success text-ink" : ""} ${current ? "border-success bg-success/15 text-ink animate-pulse dark:bg-success/30 dark:text-white" : ""} ${!done && !current ? "border-ink/25 text-ink/60 dark:border-white/25 dark:text-white/60" : ""}`}
+                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-colors duration-300 ease-out ${done ? "border-success bg-success text-ink" : ""} ${current ? "border-success bg-success/15 text-ink animate-pulse dark:bg-success/30 dark:text-white" : ""} ${!done && !current ? "border-ink/25 text-ink/60 dark:border-white/25 dark:text-white/60" : ""}`}
                 >
-                  {step.icon}
+                  <step.icon size={11} strokeWidth={2.5} />
                 </span>
                 <span className="mt-2 leading-tight">{step.label}</span>
               </div>

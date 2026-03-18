@@ -1,5 +1,6 @@
 "use client";
 
+import { Wallet } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 
 import { CreateLoan } from "../components/CreateLoan";
@@ -127,7 +128,7 @@ export default function HomePage(): JSX.Element {
                 className="rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
               >
                 <span className="inline-flex items-center gap-2">
-                  <span className="text-base">🦊</span>
+                  <Wallet size={16} className="shrink-0" />
                   {isSwitchingNetwork
                     ? "Switching to Polkadot Hub EVM..."
                     : isConnecting
