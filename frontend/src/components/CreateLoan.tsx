@@ -530,7 +530,7 @@ export function CreateLoan(): JSX.Element {
         onClick={() => setConfirmOpen(true)}
         disabled={!canSubmit}
         aria-label="Create loan and lock bond"
-        className={`mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:w-auto ${createdLoanId ? "animate-success-morph bg-primary text-primary-fg" : "bg-primary text-primary-fg hover:bg-primary-hover"}`}
+        className={`mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:min-h-11 sm:w-auto ${createdLoanId ? "animate-success-morph bg-primary text-primary-fg" : "bg-primary text-primary-fg hover:bg-primary-hover"}`}
       >
         {submitting ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent dark:border-ink dark:border-t-transparent" /> : null}
         {createdLoanId && !submitting ? "Created ✓" : submitLabel}

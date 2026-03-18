@@ -71,7 +71,7 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="animate-dialog-backdrop fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70"
+      className="animate-dialog-backdrop fixed inset-0 z-40 flex items-end bg-ink/55 px-4 pb-[env(safe-area-inset-bottom)] backdrop-blur-sm sm:grid sm:place-items-center dark:bg-slate-950/70"
       aria-hidden="true"
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) onClose();
@@ -82,7 +82,7 @@ export function ConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
-        className="animate-dialog-enter w-full max-w-md rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900"
+        className="animate-dialog-enter w-full max-w-md rounded-t-2xl border border-ink/10 bg-white p-5 shadow-2xl sm:rounded-2xl dark:border-white/10 dark:bg-slate-900"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 id="confirm-dialog-title" className="text-lg font-semibold">

@@ -58,17 +58,33 @@ function HistoryRow({ loan, expanded, onToggle }: HistoryRowProps): JSX.Element 
       <button
         type="button"
         onClick={onToggle}
-        className="grid w-full grid-cols-[auto_1fr] gap-3 px-4 py-3 text-left sm:grid-cols-[80px_1fr_150px_1fr_110px]"
+        className="w-full px-4 py-3 text-left"
       >
-        <p className="font-mono text-sm font-semibold">#{loan.loanId}</p>
-        <p className="font-mono text-sm text-ink/80 dark:text-white/80">{formatDot(loan.bondAmount)}</p>
-        <p className="sm:justify-self-start">
-          <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusTone(loan.state)}`}>
-            {LOAN_STATE_META[loan.state]?.label ?? "Unknown"}
-          </span>
-        </p>
-        <p className="text-sm text-ink/80 dark:text-white/80">{bondOutcome(loan)}</p>
-        <p className="text-sm text-ink/70 dark:text-white/70">{formatRelative(loan.expiryAt)}</p>
+        {/* Mobile card layout */}
+        <div className="flex items-center justify-between gap-3 sm:hidden">
+          <div>
+            <p className="font-mono text-sm font-semibold">Loan #{loan.loanId}</p>
+            <p className="mt-0.5 font-mono text-xs text-ink/70 dark:text-white/65">{formatDot(loan.bondAmount)}</p>
+          </div>
+          <div className="text-right">
+            <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${statusTone(loan.state)}`}>
+              {LOAN_STATE_META[loan.state]?.label ?? "Unknown"}
+            </span>
+            <p className="mt-0.5 text-xs text-ink/60 dark:text-white/55">{formatRelative(loan.expiryAt)}</p>
+          </div>
+        </div>
+        {/* Desktop table row */}
+        <div className="hidden grid-cols-[80px_1fr_150px_1fr_110px] gap-3 sm:grid">
+          <p className="font-mono text-sm font-semibold">#{loan.loanId}</p>
+          <p className="font-mono text-sm text-ink/80 dark:text-white/80">{formatDot(loan.bondAmount)}</p>
+          <p>
+            <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusTone(loan.state)}`}>
+              {LOAN_STATE_META[loan.state]?.label ?? "Unknown"}
+            </span>
+          </p>
+          <p className="text-sm text-ink/80 dark:text-white/80">{bondOutcome(loan)}</p>
+          <p className="text-sm text-ink/70 dark:text-white/70">{formatRelative(loan.expiryAt)}</p>
+        </div>
       </button>
 
       {expanded ? (

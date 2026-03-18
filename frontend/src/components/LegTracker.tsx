@@ -152,7 +152,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
             onClick={() => setConfirmOpen(true)}
             disabled={isRepaying}
             aria-label={`Repay ${formatDotAmount(leg.repayAmount)} to vault ${shortAddress(leg.vault)}`}
-            className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 ${urgentRepay ? "animate-pulse bg-danger text-white dark:bg-danger" : "bg-primary text-primary-fg hover:bg-primary-hover"}`}
+            className={`mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:min-h-11 ${urgentRepay ? "animate-pulse bg-danger text-white dark:bg-danger" : "bg-primary text-primary-fg hover:bg-primary-hover"}`}
           >
             {isRepaying ? "Repaying..." : `Repay ${formatDotAmount(leg.repayAmount)} to ${shortAddress(leg.vault)}`}
           </button>
