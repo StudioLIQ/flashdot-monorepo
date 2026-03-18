@@ -73,12 +73,12 @@ export function BondPreviewChart({
       <p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink/65 dark:text-white/65">
         Estimated bond breakdown
       </p>
-      <div className="mt-3 h-4 overflow-hidden rounded-full border border-ink/10 bg-white/60 dark:border-white/10 dark:bg-white/10">
+      <div className="mt-3 flex h-4 overflow-hidden rounded-full border border-ink/10 bg-white/60 dark:border-white/10 dark:bg-white/10">
         {segments.map((segment) => (
           <div
             key={segment.key}
             title={`${segment.label}: ${segment.description}`}
-            className={`${segment.tone} h-full transition-opacity hover:opacity-85`}
+            className={`${segment.tone} h-full shrink-0 transition-opacity hover:opacity-85`}
             style={{ width: `${toPercent(segment.value, totalBond)}%` }}
           />
         ))}
