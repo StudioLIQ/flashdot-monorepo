@@ -45,6 +45,26 @@ function statusTone(state: number): string {
   return "bg-primary/15 text-primary";
 }
 
+/** Returns time health tier based on remaining seconds. */
+function timeHealth(expiryAtSeconds: number): "safe" | "caution" | "danger" | "critical" | "none" {
+  if (expiryAtSeconds <= 0) return "none";
+  const now = Math.floor(Date.now() / 1000);
+  const remaining = expiryAtSeconds - now;
+  if (remaining <= 0) return "none";
+  if (remaining <= 600) return "critical";   // ≤10 min
+  if (remaining <= 1800) return "danger";    // ≤30 min
+  if (remaining <= 3600) return "caution";   // ≤1 h
+  return "safe";
+}
+
+const TIME_HEALTH_CLASSES = {
+  safe: { bar: "bg-success", border: "", time: "text-success" },
+  caution: { bar: "bg-warning", border: "", time: "text-warning" },
+  danger: { bar: "bg-danger", border: "border-danger/40", time: "text-danger" },
+  critical: { bar: "bg-danger animate-pulse", border: "border-danger/60", time: "text-danger font-bold" },
+  none: { bar: "bg-ink/20 dark:bg-white/20", border: "", time: "" },
+};
+
 interface LoanCardProps {
   loan: LoanView;
   dotPrice: number | null;
@@ -55,11 +75,17 @@ function LoanCard({ loan, dotPrice }: LoanCardProps): JSX.Element {
   const progress = LOAN_PROGRESS[loan.state] ?? 0;
   const timeLeft = loan.expiryAt > 0 ? formatRelativeTime(loan.expiryAt) : "—";
   const bondUsd = formatUsd(loan.bondAmount, dotPrice);
+  const tier = loan.expiryAt > 0 ? timeHealth(loan.expiryAt) : "none";
+  const health = TIME_HEALTH_CLASSES[tier];
 
   return (
     <Link
       href={`/loans/${loan.loanId}`}
-      className="group block rounded-2xl border border-ink/10 bg-white/80 p-4 backdrop-blur transition hover:border-primary/30 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8"
+      className={`group block rounded-2xl border bg-white/80 p-4 backdrop-blur transition hover:bg-white dark:bg-white/5 dark:hover:bg-white/8 ${
+        health.border
+          ? `${health.border} dark:${health.border}`
+          : "border-ink/10 hover:border-primary/30 dark:border-white/10"
+      }`}
     >
       {/* Top row */}
       <div className="flex items-center justify-between gap-3">
@@ -82,10 +108,12 @@ function LoanCard({ loan, dotPrice }: LoanCardProps): JSX.Element {
             <p className="text-xs text-ink/45 dark:text-white/35">{bondUsd}</p>
           ) : null}
         </div>
-        <p className="text-xs text-ink/55 dark:text-white/45">{timeLeft}</p>
+        <p className={`text-xs ${health.time || "text-ink/55 dark:text-white/45"}`}>
+          {timeLeft}
+        </p>
       </div>
 
-      {/* Progress bar */}
+      {/* Workflow progress bar */}
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-ink/10 dark:bg-white/10">
         <div
           className="h-full rounded-full bg-primary transition-all duration-500"
@@ -96,6 +124,19 @@ function LoanCard({ loan, dotPrice }: LoanCardProps): JSX.Element {
           aria-valuemax={100}
         />
       </div>
+
+      {/* Time health gauge */}
+      {loan.expiryAt > 0 ? (
+        <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-ink/8 dark:bg-white/8">
+          <div
+            className={`h-full rounded-full transition-all duration-1000 ${health.bar}`}
+            style={{
+              width: `${Math.max(2, Math.min(100, ((loan.expiryAt - Math.floor(Date.now() / 1000)) / 7200) * 100))}%`,
+            }}
+            aria-label="Time remaining health"
+          />
+        </div>
+      ) : null}
     </Link>
   );
 }
