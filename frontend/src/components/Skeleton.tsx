@@ -10,7 +10,7 @@ export function Skeleton({ width = "100%", height = "1rem", className }: Skeleto
   return (
     <div
       aria-hidden
-      className={`animate-pulse rounded-lg bg-ink/10 dark:bg-white/10 ${className ?? ""}`}
+      className={`skeleton-shimmer rounded-lg bg-ink/10 dark:bg-white/8 ${className ?? ""}`}
       style={{ width, height }}
     />
   );
