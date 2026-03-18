@@ -56,7 +56,7 @@ Frontend (Next.js 14) → wallet connection, loan creation, status tracking
 |---|---|
 | **Frontend** | https://flashdot.vercel.app |
 | **Coordinator Health** | https://coordinator-production-1de8.up.railway.app/health |
-| **Source Code** | *(GitHub repo URL)* |
+| **Source Code** | https://github.com/StudioLIQ/flashdot-monorepo |
 | **Block Explorer** | https://blockscout-testnet.polkadot.io |
 
 ## Deployed Contracts (Polkadot Hub TestNet)
@@ -106,7 +106,7 @@ Solo builder — Incheol Yang
 
 ## Demo Video
 
-> *(Replace with Loom / YouTube URL before submission)*
+> Demo video will be added before submission.
 
 ## How to Run Locally
 

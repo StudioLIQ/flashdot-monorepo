@@ -24,7 +24,6 @@ FlashDot uses **economic atomicity**: lenders are guaranteed `principal + intere
 | **Block Explorer** | <https://blockscout-testnet.polkadot.io> |
 
 > Recording runbook: [docs/demo-script.md](./docs/demo-script.md)
-> Replace this line with the final Loom / YouTube URL before submission.
 
 ## Architecture
 

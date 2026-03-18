@@ -38,5 +38,4 @@ Target length: 3–5 minutes
 
 ## 5. Submission Checklist
 
-- Replace the README demo section with the final Loom / YouTube URL.
-- Keep one uncut recording for judges and one shorter highlight clip if time permits.
+- Add the final demo video link to README and DORAHACKS.md before submission.
