@@ -69,6 +69,8 @@ function humanizeError(rawError: unknown): string {
   return `Transaction failed. ${source}`;
 }
 
+export type TxStage = "wallet" | "pending" | "confirmed" | null;
+
 export interface CreateLoanState {
   includeA: boolean;
   includeB: boolean;
@@ -83,6 +85,7 @@ export interface CreateLoanState {
   gasEstimate: string | null;
   gasEstimateUnable: boolean;
   submitting: boolean;
+  txStage: TxStage;
   message: string | null;
   error: string | null;
   createdLoanId: string | null;
@@ -109,6 +112,7 @@ export function useCreateLoan(): CreateLoanState {
   const [amountB, setAmountB] = useState("2000");
   const [durationMinutes, setDurationMinutes] = useState("60");
   const [submitting, setSubmitting] = useState(false);
+  const [txStage, setTxStage] = useState<TxStage>(null);
   const [gasEstimate, setGasEstimate] = useState<string | null>(null);
   const [gasEstimateUnable, setGasEstimateUnable] = useState(false);
   const [submittedBondAmount, setSubmittedBondAmount] = useState<bigint | null>(null);
@@ -188,6 +192,7 @@ export function useCreateLoan(): CreateLoanState {
     if (!canSubmit) return;
     const ethereum = (window as EthereumWindow).ethereum;
     setSubmitting(true);
+    setTxStage("wallet");
     setSubmittedBondAmount(preview.totalBond);
     setError(null);
     setMessage(null);
@@ -202,7 +207,9 @@ export function useCreateLoan(): CreateLoanState {
       if (includeB) legs.push({ chain: CHAIN_B, vault: VAULT_B_ADDRESS, amount: amountBBigint, feeBudget: FEE_BUDGET_B, legInterestBps: INTEREST_BPS });
       const params = { asset: ASSET_ADDRESS, targetAmount: preview.targetAmount, interestBps: INTEREST_BPS, expiryAt };
       const tx = await hub.createLoan(params, legs);
+      setTxStage("pending");
       const receipt = await tx.wait();
+      setTxStage("confirmed");
       const txHash = (receipt as { hash?: string }).hash ?? null;
       let nextLoanId: string | null = null;
       for (const log of receipt.logs ?? []) {
@@ -221,6 +228,7 @@ export function useCreateLoan(): CreateLoanState {
     } catch (submitError) {
       const userMessage = humanizeError(submitError);
       setError(userMessage);
+      setTxStage(null);
       showToast({ tone: "error", title: "Loan creation failed", description: userMessage });
     } finally {
       setSubmitting(false);
@@ -230,7 +238,7 @@ export function useCreateLoan(): CreateLoanState {
   return {
     includeA, includeB, amountA, amountB, durationMinutes,
     amountABigint, amountBBigint, isInvalidA, isInvalidB, preview,
-    gasEstimate, gasEstimateUnable, submitting, message, error,
+    gasEstimate, gasEstimateUnable, submitting, txStage, message, error,
     createdLoanId, createdTxHash, submittedBondAmount,
     canSubmit, canProceedToStep2, canProceedToStep3,
     setIncludeA, setIncludeB, setAmountA, setAmountB, setDurationMinutes,

@@ -1,14 +1,80 @@
 "use client";
 
-import { ExternalLink, Wallet } from "lucide-react";
+import { CheckCircle2, Circle, ExternalLink, Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { useCreateLoan, formatDot } from "../../hooks/useCreateLoan";
+import { useCreateLoan, formatDot, type TxStage } from "../../hooks/useCreateLoan";
 import { useWallet } from "../../hooks/useWallet";
 import { useWalletModal } from "../../providers/WalletModalProvider";
 import { EXPLORER_TX_URL } from "../../lib/contracts";
 import { ConfirmDialog } from "../ConfirmDialog";
 import { LoanTerms } from "./LoanTerms";
+
+interface TxProgressPanelProps {
+  stage: TxStage;
+  txHash: string | null;
+}
+
+function TxProgressPanel({ stage, txHash }: TxProgressPanelProps): JSX.Element {
+  const steps = [
+    { key: "wallet" as const, label: "Confirm in wallet", hint: "Review and approve in MetaMask" },
+    { key: "pending" as const, label: "Transaction pending", hint: "Broadcasting to Polkadot Hub EVM" },
+    { key: "confirmed" as const, label: "Confirmed", hint: "Loan created on-chain" },
+  ];
+
+  const stageOrder: Record<NonNullable<TxStage>, number> = {
+    wallet: 0,
+    pending: 1,
+    confirmed: 2,
+  };
+  const currentIdx = stage ? stageOrder[stage] : -1;
+
+  return (
+    <div className="mt-3 rounded-xl border border-ink/15 bg-ink/5 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.07em] text-ink/55 dark:text-white/45">
+        Creating Flash Loan
+      </p>
+      <div className="space-y-2">
+        {steps.map((step, idx) => {
+          const done = idx < currentIdx;
+          const active = idx === currentIdx;
+          return (
+            <div key={step.key} className="flex items-center gap-3">
+              <span className="shrink-0">
+                {done ? (
+                  <CheckCircle2 size={16} className="text-success" />
+                ) : active ? (
+                  <Loader2 size={16} className="animate-spin text-primary" />
+                ) : (
+                  <Circle size={16} className="text-ink/25 dark:text-white/20" />
+                )}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className={`text-sm font-medium ${done ? "text-ink/50 dark:text-white/40" : active ? "text-ink dark:text-white" : "text-ink/35 dark:text-white/30"}`}>
+                  {step.label}
+                  {done ? <span className="ml-2 text-success text-xs">✓</span> : null}
+                </p>
+                {active ? (
+                  <p className="text-xs text-ink/55 dark:text-white/45">{step.hint}</p>
+                ) : null}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {stage === "confirmed" && txHash ? (
+        <a
+          href={`https://blockscout-testnet.polkadot.io/tx/${txHash}`}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+        >
+          View on Explorer <ExternalLink size={11} />
+        </a>
+      ) : null}
+    </div>
+  );
+}
 
 export function CreateLoan(): JSX.Element {
   const state = useCreateLoan();
@@ -109,17 +175,9 @@ export function CreateLoan(): JSX.Element {
             : "Create Loan & Lock Bond"}
       </button>
 
-      {/* Submitting indicator */}
-      {state.submitting ? (
-        <div className="mt-3 rounded-xl border border-ink/15 bg-ink/5 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
-          <p className="inline-flex items-center gap-2 font-semibold">
-            <Wallet size={16} className="shrink-0" />
-            Waiting for confirmation in MetaMask...
-          </p>
-          <p className="mt-1 text-ink/70 dark:text-white/70">
-            Review and approve the bond lock transaction in your wallet.
-          </p>
-        </div>
+      {/* Multi-step TX progress */}
+      {state.submitting || state.txStage === "confirmed" ? (
+        <TxProgressPanel stage={state.txStage} txHash={state.createdTxHash} />
       ) : null}
 
       {/* Success */}
