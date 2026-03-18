@@ -148,6 +148,7 @@ export default function HomePage(): JSX.Element {
         </section>
 
         <section
+          id="status-zone"
           className={`rounded-3xl border border-ink/10 bg-white/75 p-5 shadow-glow backdrop-blur transition-all duration-500 dark:border-white/10 dark:bg-slate-950/65 md:p-7 ${statusExpanded ? "opacity-100" : "opacity-80"}`}
         >
           <div className="flex flex-wrap items-center justify-between gap-2">

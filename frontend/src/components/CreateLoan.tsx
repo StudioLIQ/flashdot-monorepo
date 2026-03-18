@@ -47,7 +47,9 @@ export function CreateLoan(): JSX.Element {
   const [amountA, setAmountA] = useState("1000");
   const [amountB, setAmountB] = useState("2000");
   const [durationMinutes, setDurationMinutes] = useState("60");
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submittedBondAmount, setSubmittedBondAmount] = useState<bigint | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [createdLoanId, setCreatedLoanId] = useState<string | null>(null);
@@ -78,12 +80,39 @@ export function CreateLoan(): JSX.Element {
 
   const submitLabel = submitting ? "Creating..." : "Create Loan & Lock Bond";
 
+  const scrollToStatus = (): void => {
+    const statusZone = document.querySelector<HTMLElement>("#status-zone");
+    statusZone?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const humanizeError = (rawError: unknown): string => {
+    const source = rawError instanceof Error ? rawError.message : String(rawError);
+    const lower = source.toLowerCase();
+
+    if (lower.includes("user rejected") || lower.includes("action_rejected") || lower.includes("user denied")) {
+      return "You cancelled the transaction.";
+    }
+    if (lower.includes("insufficient funds")) {
+      return "Not enough DOT in wallet to lock this bond.";
+    }
+    if (lower.includes("missing next_public")) {
+      return "Contract addresses are missing in frontend environment configuration.";
+    }
+    if (lower.includes("switch") || lower.includes("chain")) {
+      return "Switch MetaMask to Polkadot Hub EVM and try again.";
+    }
+
+    return `Transaction failed. ${source}`;
+  };
+
   const onSubmit = async (): Promise<void> => {
     if (!canSubmit) return;
 
     const ethereum = (window as EthereumWindow).ethereum;
+    setConfirmOpen(false);
 
     setSubmitting(true);
+    setSubmittedBondAmount(preview.totalBond);
     setError(null);
     setMessage(null);
     setCreatedLoanId(null);
@@ -144,8 +173,9 @@ export function CreateLoan(): JSX.Element {
       }
 
       setMessage("Loan created successfully. Bond lock transaction confirmed.");
+      scrollToStatus();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : String(submitError));
+      setError(humanizeError(submitError));
     } finally {
       setSubmitting(false);
     }
@@ -208,7 +238,7 @@ export function CreateLoan(): JSX.Element {
 
       <button
         type="button"
-        onClick={() => void onSubmit()}
+        onClick={() => setConfirmOpen(true)}
         disabled={!canSubmit}
         className="mt-5 inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:bg-white dark:text-slate-950 dark:disabled:bg-white/15 dark:disabled:text-white/35"
       >
@@ -220,9 +250,72 @@ export function CreateLoan(): JSX.Element {
       {isConnected && !isCorrectNetwork ? (
         <p className="mt-3 text-sm text-red-600">Switch to Polkadot Hub EVM network.</p>
       ) : null}
-      {message ? <p className="mt-3 text-sm text-neon">{message}</p> : null}
-      {createdLoanId ? <p className="mt-1 text-sm text-ink/80 dark:text-white/70">Loan ID: {createdLoanId}</p> : null}
+      {submitting ? (
+        <div className="mt-4 rounded-xl border border-ink/15 bg-ink/5 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
+          <p className="inline-flex items-center gap-2 font-semibold">
+            <span className="text-base">🦊</span>
+            Waiting for confirmation in MetaMask...
+          </p>
+          <p className="mt-1 text-ink/70 dark:text-white/70">Review and approve the bond lock transaction in your wallet.</p>
+        </div>
+      ) : null}
+      {createdLoanId ? (
+        <div className="mt-4 rounded-xl border border-neon/45 bg-mint px-4 py-4 dark:border-neon/40 dark:bg-emerald-950/40">
+          <div className="inline-flex items-center gap-2">
+            <span className="relative grid h-8 w-8 place-items-center rounded-full bg-neon text-ink">
+              <span className="absolute inset-0 rounded-full bg-neon/45 animate-ping" />
+              <span className="relative text-lg font-bold">✓</span>
+            </span>
+            <p className="text-lg font-bold text-ink dark:text-white">Loan #{createdLoanId} created!</p>
+          </div>
+          <p className="mt-2 text-sm text-ink/80 dark:text-white/80">
+            Bond locked: {formatDot(submittedBondAmount ?? preview.totalBond)}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={scrollToStatus}
+              className="rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+            >
+              View Loan Status
+            </button>
+            {message ? <p className="text-sm text-ink/75 dark:text-white/75">{message}</p> : null}
+          </div>
+        </div>
+      ) : null}
       {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+
+      {confirmOpen ? (
+        <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
+          <div className="w-full max-w-md rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
+            <h3 className="text-lg font-semibold">Confirm Bond Lock</h3>
+            <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
+              Lock {formatDot(preview.totalBond)} as bond for this flash loan?
+            </p>
+            <p className="mt-1 text-xs text-ink/65 dark:text-white/60">
+              This sends an on-chain transaction and requires a wallet signature.
+            </p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  void onSubmit();
+                }}
+                className="rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+              >
+                Confirm & Create
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
