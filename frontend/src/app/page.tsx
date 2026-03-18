@@ -10,6 +10,7 @@ import { LoanStatus } from "../components/LoanStatus";
 import { Skeleton } from "../components/Skeleton";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { WalletDropdown } from "../components/WalletDropdown";
+import { WalletSelectModal } from "../components/WalletSelectModal";
 import { useLoan } from "../hooks/useLoan";
 import { useLoanHistory } from "../hooks/useLoanHistory";
 import { useMyLoans } from "../hooks/useMyLoans";
@@ -66,6 +67,8 @@ export default function HomePage(): JSX.Element {
   );
   const historyCount = (loanHistoryQuery.data ?? []).length;
   const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
+  const [walletSelectOpen, setWalletSelectOpen] = useState(false);
+  const isMetaMaskDetected = typeof window !== "undefined" && Boolean((window as { ethereum?: unknown }).ethereum);
   const walletBusy = isConnecting || isSwitchingNetwork;
   const walletErrorIsMetaMaskMissing = (connectionError ?? "").toLowerCase().includes("metamask not detected");
 
@@ -196,9 +199,9 @@ export default function HomePage(): JSX.Element {
             ) : (
               <button
                 type="button"
-                onClick={() => void connectWallet()}
+                onClick={() => setWalletSelectOpen(true)}
                 disabled={walletBusy}
-                aria-label="Connect MetaMask wallet"
+                aria-label="Connect wallet"
                 className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Wallet size={14} className="shrink-0" />
@@ -224,17 +227,17 @@ export default function HomePage(): JSX.Element {
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                onClick={() => void connectWallet()}
+                onClick={() => setWalletSelectOpen(true)}
                 disabled={walletBusy}
-                aria-label="Connect MetaMask wallet"
+                aria-label="Connect wallet"
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Wallet size={16} className="shrink-0" />
                 {isSwitchingNetwork
                   ? "Switching to Polkadot Hub EVM..."
                   : isConnecting
-                    ? "Connecting MetaMask..."
-                    : "Connect MetaMask"}
+                    ? "Connecting..."
+                    : "Connect Wallet"}
               </button>
             </div>
 
@@ -346,6 +349,13 @@ export default function HomePage(): JSX.Element {
           </div>
         ) : null}
       </main>
+
+      <WalletSelectModal
+        open={walletSelectOpen}
+        onClose={() => setWalletSelectOpen(false)}
+        onSelectMetaMask={() => void connectWallet()}
+        isMetaMaskDetected={isMetaMaskDetected}
+      />
 
       {/* Footer */}
       <footer className="mt-12 border-t border-ink/10 dark:border-white/10">
