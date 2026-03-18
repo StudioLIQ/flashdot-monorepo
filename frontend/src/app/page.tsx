@@ -1,14 +1,15 @@
 "use client";
 
 import { Wallet } from "lucide-react";
-import Link from "next/link";
 
+import { DashboardView } from "../components/DashboardView";
 import { useWallet } from "../hooks/useWallet";
 import { useWalletModal } from "../providers/WalletModalProvider";
 
 export default function HomePage(): JSX.Element {
   const walletModal = useWalletModal();
   const {
+    account,
     isConnected,
     isConnecting,
     isSwitchingNetwork,
@@ -21,30 +22,8 @@ export default function HomePage(): JSX.Element {
     .toLowerCase()
     .includes("metamask not detected");
 
-  if (isConnected) {
-    return (
-      <main className="mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-12 animate-content-fade">
-        <h1 className="text-2xl font-bold md:text-3xl">Welcome to FlashDot</h1>
-        <p className="mt-2 text-sm text-ink/70 dark:text-white/65 md:text-base">
-          Bonded cross-chain flash loans on Polkadot Hub EVM.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Link
-            href="/create"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover"
-          >
-            <Wallet size={16} className="shrink-0" />
-            Create New Loan
-          </Link>
-          <Link
-            href="/loans"
-            className="inline-flex items-center gap-2 rounded-xl border border-ink/15 px-5 py-2.5 text-sm font-semibold transition hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/8"
-          >
-            View Active Loans
-          </Link>
-        </div>
-      </main>
-    );
+  if (isConnected && account) {
+    return <DashboardView account={account} />;
   }
 
   return (
