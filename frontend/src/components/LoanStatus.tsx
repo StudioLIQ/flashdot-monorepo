@@ -15,6 +15,19 @@ interface LoanStatusProps {
   onRepaid?: () => void;
 }
 
+const LOAN_PROGRESS_PERCENT: Record<number, number> = {
+  [LoanState.Created]: 10,
+  [LoanState.Preparing]: 25,
+  [LoanState.Prepared]: 40,
+  [LoanState.Committing]: 55,
+  [LoanState.Committed]: 70,
+  [LoanState.Repaying]: 85,
+  [LoanState.Settling]: 92,
+  [LoanState.Settled]: 100,
+  [LoanState.Aborted]: 100,
+  [LoanState.Defaulted]: 100,
+};
+
 function formatDot(amount: bigint): string {
   return `${(Number(amount) / 1e18).toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -24,6 +37,7 @@ function formatDot(amount: bigint): string {
 
 export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanStatusProps): JSX.Element {
   const stateMeta = loan ? LOAN_STATE_META[loan.state] : null;
+  const progressPercent = loan ? LOAN_PROGRESS_PERCENT[loan.state] ?? 0 : 0;
 
   const terminalMessage = useMemo(() => {
     if (!loan) return null;
@@ -83,6 +97,18 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
           {stateMeta ? `${stateMeta.icon} ${stateMeta.label}` : `State ${loan.state}`}
           {refreshing ? " · updating..." : ""}
         </p>
+      </div>
+      <div className="mt-4">
+        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
+          <span>Overall Progress</span>
+          <span>{progressPercent}%</span>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-ink/15 dark:bg-white/10">
+          <div
+            className="h-full rounded-full bg-neon transition-[width] duration-500 ease-out"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
       </div>
 
       {loan.repayOnlyMode ? <div className="mt-4"><RepayOnlyBanner /></div> : null}
