@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { LegView } from "../lib/loan-types";
 import { LEG_STEP_META, LegState } from "../lib/loan-types";
 import { VAULT_ABI, type VaultWriteContract } from "../lib/contracts";
+import { useToast } from "../providers/ToastProvider";
 
 interface LegTrackerProps {
   leg: LegView;
@@ -35,6 +36,7 @@ function formatDotAmount(amount: bigint): string {
 }
 
 export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
+  const { showToast } = useToast();
   const [nowSec, setNowSec] = useState(Math.floor(Date.now() / 1000));
   const [isRepaying, setIsRepaying] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -81,9 +83,20 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
 
       const tx = await vault.repay(BigInt(leg.loanId), leg.repayAmount);
       await tx.wait();
+      showToast({
+        tone: "success",
+        title: `Loan #${leg.loanId} leg repaid`,
+        description: `${formatDotAmount(leg.repayAmount)} sent to ${shortAddress(leg.vault)}.`,
+      });
       onRepaid?.();
     } catch (error) {
-      setRepayError(error instanceof Error ? error.message : String(error));
+      const message = error instanceof Error ? error.message : String(error);
+      setRepayError(message);
+      showToast({
+        tone: "error",
+        title: "Repay transaction failed",
+        description: message,
+      });
     } finally {
       setIsRepaying(false);
     }

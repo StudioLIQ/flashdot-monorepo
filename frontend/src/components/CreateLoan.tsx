@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { BondPreviewChart } from "./BondPreviewChart";
 import { useWallet } from "../hooks/useWallet";
 import { useBondPreview } from "../hooks/useBondPreview";
+import { useToast } from "../providers/ToastProvider";
 import {
   ASSET_ADDRESS,
   CHAIN_A,
@@ -45,6 +46,7 @@ function formatDot(value: bigint): string {
 
 export function CreateLoan(): JSX.Element {
   const { isConnected, isCorrectNetwork } = useWallet();
+  const { showToast } = useToast();
 
   const [includeA, setIncludeA] = useState(true);
   const [includeB, setIncludeB] = useState(true);
@@ -125,6 +127,7 @@ export function CreateLoan(): JSX.Element {
       const hub = await getHubContract(ethereum);
       const durationSec = Math.max(5, Number(durationMinutes) || 60) * 60;
       const expiryAt = Math.floor(Date.now() / 1000) + durationSec;
+      let nextLoanId: string | null = null;
 
       const legs: Array<{
         chain: string;
@@ -168,7 +171,7 @@ export function CreateLoan(): JSX.Element {
         try {
           const parsed = hub.interface.parseLog(log);
           if (parsed?.name === "LoanCreated" && parsed.args[0]) {
-            setCreatedLoanId(parsed.args[0].toString());
+            nextLoanId = parsed.args[0].toString();
             break;
           }
         } catch {
@@ -176,10 +179,22 @@ export function CreateLoan(): JSX.Element {
         }
       }
 
+      setCreatedLoanId(nextLoanId);
       setMessage("Loan created successfully. Bond lock transaction confirmed.");
+      showToast({
+        tone: "success",
+        title: nextLoanId ? `Loan #${nextLoanId} created` : "Loan created",
+        description: `Bond locked: ${formatDot(preview.totalBond)}`,
+      });
       scrollToStatus();
     } catch (submitError) {
-      setError(humanizeError(submitError));
+      const userMessage = humanizeError(submitError);
+      setError(userMessage);
+      showToast({
+        tone: "error",
+        title: "Loan creation failed",
+        description: userMessage,
+      });
     } finally {
       setSubmitting(false);
     }

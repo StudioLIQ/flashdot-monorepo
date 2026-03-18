@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import type { LegView, LoanView } from "../lib/loan-types";
 import { LOAN_STATE_META, LoanState } from "../lib/loan-types";
+import { useToast } from "../providers/ToastProvider";
 import { LegTracker } from "./LegTracker";
 import { RepayOnlyBanner } from "./RepayOnlyBanner";
 
@@ -36,6 +37,8 @@ function formatDot(amount: bigint): string {
 }
 
 export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanStatusProps): JSX.Element {
+  const { showToast } = useToast();
+  const previousStateRef = useRef<{ loanId: string; state: number } | null>(null);
   const stateMeta = loan ? LOAN_STATE_META[loan.state] : null;
   const progressPercent = loan ? LOAN_PROGRESS_PERCENT[loan.state] ?? 0 : 0;
 
@@ -49,6 +52,25 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
     }
     return null;
   }, [loan]);
+
+  useEffect(() => {
+    if (!loan) {
+      previousStateRef.current = null;
+      return;
+    }
+
+    const previous = previousStateRef.current;
+    if (previous && previous.loanId === loan.loanId && previous.state !== loan.state) {
+      const label = LOAN_STATE_META[loan.state]?.label ?? `State ${loan.state}`;
+      showToast({
+        tone: "info",
+        title: `Loan #${loan.loanId} status update`,
+        description: label,
+      });
+    }
+
+    previousStateRef.current = { loanId: loan.loanId, state: loan.state };
+  }, [loan, showToast]);
 
   if (loading) {
     return (
