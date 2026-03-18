@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "FlashDot",
   description: "Bonded cross-chain flash loan coordinator on Polkadot Hub",
   applicationName: "FlashDot",
-  metadataBase: new URL("https://flashdot.app"),
+  metadataBase: new URL("https://flashdot.vercel.app"),
   openGraph: {
     title: "FlashDot",
     description: "Bonded cross-chain flash loan coordinator on Polkadot Hub",
@@ -36,6 +36,7 @@ export const metadata: Metadata = {
     description: "Bonded cross-chain flash loan coordinator on Polkadot Hub",
     images: ["/opengraph-image"],
   },
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
