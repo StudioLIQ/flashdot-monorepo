@@ -10,6 +10,7 @@ import { addTxRecord } from "../lib/tx-history";
 import { useToast } from "../providers/ToastProvider";
 import { CircularCountdown } from "./CircularCountdown";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { Tooltip } from "./Tooltip";
 
 interface LegTrackerProps {
   leg: LegView;
@@ -125,7 +126,11 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
   return (
     <article className="interactive-card interactive-card-lift rounded-xl border border-ink/15 bg-white p-4 dark:border-white/10 dark:bg-white/5" aria-labelledby={`leg-${leg.loanId}-${leg.legId}-title`}>
       <div className="flex items-center justify-between gap-3">
-        <h3 id={`leg-${leg.loanId}-${leg.legId}-title`} className="text-sm font-semibold">Leg #{leg.legId} · {shortAddress(leg.vault)}</h3>
+        <h3 id={`leg-${leg.loanId}-${leg.legId}-title`} className="flex items-center gap-1 text-sm font-semibold">
+          <span>Leg #{leg.legId}</span>
+          <Tooltip content="A Leg is a single cross-chain borrowing unit. Each leg borrows from one vault on a remote parachain via XCM." icon />
+          <span className="text-ink/40 dark:text-white/35"> · {shortAddress(leg.vault)}</span>
+        </h3>
         <p className="inline-flex items-center gap-1 text-xs text-ink/60 dark:text-white/55">
           {currentStep ? <><currentStep.icon size={12} className="shrink-0" />{currentStep.label}</> : "Initialized"}{" · "}Principal: {formatDotAmount(leg.amount)}
         </p>

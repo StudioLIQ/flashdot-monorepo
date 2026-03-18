@@ -3,6 +3,8 @@
 import { Globe } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { Tooltip } from "../Tooltip";
+
 import { BondPreviewChart } from "../BondPreviewChart";
 import {
   DURATION_PRESETS,
@@ -291,7 +293,13 @@ function VaultAmountCard({
             <p className="mt-0.5 font-semibold">{liquidity}</p>
           </div>
           <div>
-            <p className="text-ink/55 dark:text-white/50">Interest</p>
+            <p className="flex items-center gap-1 text-ink/55 dark:text-white/50">
+              Interest
+              <Tooltip
+                content={`${INTEREST_LABEL} of principal, paid to the vault provider as a flash loan fee.`}
+                icon
+              />
+            </p>
             <p className="mt-0.5 font-semibold">{INTEREST_LABEL}</p>
           </div>
         </div>

@@ -2,6 +2,8 @@
 
 import { formatEther } from "ethers";
 
+import { Tooltip } from "./Tooltip";
+
 interface BondPreviewChartProps {
   repayA: bigint;
   repayB: bigint;
@@ -70,8 +72,12 @@ export function BondPreviewChart({
 
   return (
     <div className="mt-6 rounded-xl border border-ink/15 bg-surface p-4 text-sm dark:border-white/10 dark:bg-surface-dark">
-      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink/65 dark:text-white/65">
-        Estimated bond breakdown
+      <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.1em] text-ink/65 dark:text-white/65">
+        Estimated Bond Breakdown
+        <Tooltip
+          content="A bond is a deposit locked as collateral. It's returned on successful repayment, or used to pay vaults if you default."
+          icon
+        />
       </p>
       <div className="mt-3 flex h-4 overflow-hidden rounded-full border border-ink/10 bg-white/60 dark:border-white/10 dark:bg-white/10">
         {segments.map((segment) => (
