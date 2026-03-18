@@ -7,11 +7,9 @@ import {
   Clock,
   HelpCircle,
   Home,
-  Menu,
   PlusCircle,
   Settings,
   Wallet,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -23,23 +21,15 @@ import { LoanState } from "../lib/loan-types";
 import { useWalletModal } from "../providers/WalletModalProvider";
 import { useToast } from "../providers/ToastProvider";
 import { FlashDotMark } from "./FlashDotMark";
+import { Identicon } from "./Identicon";
 import { ThemeToggle } from "./ThemeToggle";
-import { WalletDropdown } from "./WalletDropdown";
+import { WalletPanel } from "./WalletPanel";
 import { WalletSelectModal } from "./WalletSelectModal";
 
 function shortAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-/** Simple letter-avatar for wallet account */
-function WalletAvatar({ address }: { address: string }): JSX.Element {
-  const letter = address.slice(2, 4).toUpperCase();
-  return (
-    <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/20 font-mono text-[10px] font-bold text-primary">
-      {letter}
-    </div>
-  );
-}
 
 interface NavItem {
   href: string;
@@ -57,8 +47,7 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
   const pathname = usePathname();
   const { showToast } = useToast();
   const walletModal = useWalletModal();
-  const [walletDropdownOpen, setWalletDropdownOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [walletPanelOpen, setWalletPanelOpen] = useState(false);
 
   // Sidebar expand state — persisted to localStorage
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(() => {
@@ -160,9 +149,9 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
     }
   };
 
-  // Close mobile menu on route change
+  // Close wallet panel on route change
   useEffect(() => {
-    setMobileMenuOpen(false);
+    setWalletPanelOpen(false);
   }, [pathname]);
 
   return (
@@ -301,13 +290,15 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
               <>
                 <button
                   type="button"
-                  onClick={() => setWalletDropdownOpen((v) => !v)}
-                  aria-expanded={walletDropdownOpen}
-                  aria-label="Wallet account menu"
+                  onClick={() => setWalletPanelOpen((v) => !v)}
+                  aria-expanded={walletPanelOpen}
+                  aria-label="Open wallet panel"
                   title={!sidebarExpanded ? shortAddress(account) : undefined}
                   className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition hover:bg-ink/5 dark:hover:bg-white/8"
                 >
-                  <WalletAvatar address={account} />
+                  <div className="shrink-0 overflow-hidden rounded-lg border border-ink/10 dark:border-white/10">
+                    <Identicon address={account} size={28} />
+                  </div>
                   {sidebarExpanded ? (
                     <div className="min-w-0 flex-1 overflow-hidden">
                       <p className="truncate font-mono text-xs font-semibold">
@@ -322,18 +313,6 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
                     </div>
                   ) : null}
                 </button>
-                {walletDropdownOpen ? (
-                  <div className="absolute bottom-full left-0 mb-1 w-56">
-                    <WalletDropdown
-                      account={account}
-                      balanceDot={balanceDot}
-                      isCorrectNetwork={isCorrectNetwork}
-                      onCopy={() => void copyAddress()}
-                      onDisconnect={disconnectWallet}
-                      onClose={() => setWalletDropdownOpen(false)}
-                    />
-                  </div>
-                ) : null}
               </>
             ) : (
               <button
@@ -374,9 +353,9 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
             {isConnected && account ? (
               <button
                 type="button"
-                onClick={() => setWalletDropdownOpen((v) => !v)}
-                aria-expanded={walletDropdownOpen}
-                aria-label="Wallet account menu"
+                onClick={() => setWalletPanelOpen((v) => !v)}
+                aria-expanded={walletPanelOpen}
+                aria-label="Open wallet panel"
                 className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-xs font-semibold ${
                   isCorrectNetwork
                     ? "border-ink/15 bg-white/80 hover:bg-ink/5 dark:border-white/15 dark:bg-white/5"
@@ -402,20 +381,6 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
             )}
             <ThemeToggle className="rounded-full" />
           </div>
-
-          {/* Wallet dropdown (mobile) */}
-          {walletDropdownOpen && account ? (
-            <div className="absolute right-4 top-full mt-1 z-50">
-              <WalletDropdown
-                account={account}
-                balanceDot={balanceDot}
-                isCorrectNetwork={isCorrectNetwork}
-                onCopy={() => void copyAddress()}
-                onDisconnect={disconnectWallet}
-                onClose={() => setWalletDropdownOpen(false)}
-              />
-            </div>
-          ) : null}
         </header>
 
         {/* Page content */}
@@ -508,6 +473,18 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
         onSelectMetaMask={() => void connectWallet()}
         isMetaMaskDetected={isMetaMaskDetected}
       />
+
+      {/* Global Wallet Panel */}
+      {walletPanelOpen && account ? (
+        <WalletPanel
+          account={account}
+          balanceDot={balanceDot}
+          isCorrectNetwork={isCorrectNetwork}
+          onCopy={() => void copyAddress()}
+          onDisconnect={disconnectWallet}
+          onClose={() => setWalletPanelOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }
