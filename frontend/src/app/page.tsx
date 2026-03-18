@@ -110,7 +110,7 @@ export default function HomePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={disconnectWallet}
-                  className="rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+                  className="min-h-11 rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
                 >
                   Disconnect
                 </button>

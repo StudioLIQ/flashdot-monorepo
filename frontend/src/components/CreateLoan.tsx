@@ -211,8 +211,13 @@ export function CreateLoan(): JSX.Element {
               <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
             </div>
           </label>
-          <label className="mt-4 inline-flex items-center gap-2 text-sm font-semibold">
-            <input type="checkbox" checked={includeA} onChange={(e) => setIncludeA(e.target.checked)} />
+          <label className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
+            <input
+              type="checkbox"
+              checked={includeA}
+              onChange={(e) => setIncludeA(e.target.checked)}
+              className="h-5 w-5"
+            />
             Include this vault
           </label>
         </article>
@@ -237,14 +242,19 @@ export function CreateLoan(): JSX.Element {
               <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
             </div>
           </label>
-          <label className="mt-4 inline-flex items-center gap-2 text-sm font-semibold">
-            <input type="checkbox" checked={includeB} onChange={(e) => setIncludeB(e.target.checked)} />
+          <label className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
+            <input
+              type="checkbox"
+              checked={includeB}
+              onChange={(e) => setIncludeB(e.target.checked)}
+              className="h-5 w-5"
+            />
             Include this vault
           </label>
         </article>
       </div>
 
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
         <span className="text-sm font-medium">Duration (minutes)</span>
         <input
           type="number"
@@ -252,7 +262,7 @@ export function CreateLoan(): JSX.Element {
           step="1"
           value={durationMinutes}
           onChange={(e) => setDurationMinutes(e.target.value)}
-          className="w-24 rounded-lg border border-ink/20 px-2 py-1 text-right text-sm dark:border-white/15 dark:bg-slate-900"
+          className="min-h-11 w-full rounded-lg border border-ink/20 px-3 py-2 text-right text-sm dark:border-white/15 dark:bg-slate-900 sm:w-28"
         />
       </div>
 
@@ -268,7 +278,7 @@ export function CreateLoan(): JSX.Element {
         type="button"
         onClick={() => setConfirmOpen(true)}
         disabled={!canSubmit}
-        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:bg-white dark:text-slate-950 dark:disabled:bg-white/15 dark:disabled:text-white/35"
+        className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:bg-white dark:text-slate-950 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:w-auto"
       >
         {submitting ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" /> : null}
         {submitLabel}

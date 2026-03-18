@@ -98,7 +98,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
         </p>
       </div>
 
-      <ol className="mt-4 flex gap-1 text-[11px] text-ink/75 dark:text-white/70">
+      <ol className="mt-4 flex flex-col gap-3 text-[11px] text-ink/75 dark:text-white/70 sm:flex-row sm:gap-1">
         {LEG_STEP_META.map((step, index) => {
           const done = leg.state > step.state;
           const current = leg.state === step.state;
@@ -106,7 +106,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
           const connectorDone = Boolean(nextStep && leg.state >= nextStep.state);
 
           return (
-            <li key={step.label} className="flex flex-1 items-start">
+            <li key={step.label} className="flex items-start sm:flex-1">
               <div className="flex min-w-8 flex-col items-center text-center">
                 <span
                   className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[10px] font-bold ${done ? "border-neon bg-neon text-ink" : ""} ${current ? "border-neon bg-mint text-ink animate-pulse dark:bg-emerald-950/60 dark:text-white" : ""} ${!done && !current ? "border-ink/25 text-ink/60 dark:border-white/25 dark:text-white/60" : ""}`}
@@ -118,7 +118,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
               {index < LEG_STEP_META.length - 1 ? (
                 <span
                   aria-hidden
-                  className={`mt-3 h-[2px] flex-1 rounded ${connectorDone ? "bg-neon/75" : "bg-ink/20 dark:bg-white/20"}`}
+                  className={`ml-3 mt-1 h-5 w-[2px] shrink-0 rounded sm:ml-0 sm:mt-3 sm:h-[2px] sm:w-auto sm:flex-1 ${connectorDone ? "bg-neon/75" : "bg-ink/20 dark:bg-white/20"}`}
                 />
               ) : null}
             </li>
