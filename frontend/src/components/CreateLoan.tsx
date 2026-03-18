@@ -18,6 +18,9 @@ const INTEREST_BPS = 100;
 const HUB_FEE_BUFFER = parseEther("0.01");
 const FEE_BUDGET_A = parseEther("0.05");
 const FEE_BUDGET_B = parseEther("0.05");
+const MOCK_LIQUIDITY_A = "50,000 DOT";
+const MOCK_LIQUIDITY_B = "42,000 DOT";
+const INTEREST_LABEL = `${(INTEREST_BPS / 100).toFixed(2)}% (${INTEREST_BPS} bps)`;
 
 interface EthereumWindow extends Window {
   ethereum?: unknown;
@@ -187,31 +190,57 @@ export function CreateLoan(): JSX.Element {
       <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Bond preview uses ceiling division and hub buffer.</p>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <label className="flex items-center gap-2 rounded-xl border border-ink/15 p-3 dark:border-white/10">
-          <input type="checkbox" checked={includeA} onChange={(e) => setIncludeA(e.target.checked)} />
-          <span className="text-sm font-semibold">Vault A</span>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={amountA}
-            onChange={(e) => setAmountA(e.target.value)}
-            className="ml-auto w-28 rounded-lg border border-ink/20 px-2 py-1 text-right text-sm dark:border-white/15 dark:bg-slate-900"
-          />
-        </label>
+        <article
+          className={`rounded-2xl border p-4 transition ${includeA ? "border-neon bg-mint shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-emerald-950/45" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
+        >
+          <p className="text-sm font-semibold">🔵 Parachain Alpha</p>
+          <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_A}</p>
+          <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Interest: {INTEREST_LABEL}</p>
+          <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
+            Amount
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 dark:border-white/15 dark:bg-slate-900">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={amountA}
+                onChange={(e) => setAmountA(e.target.value)}
+                className="w-full bg-transparent text-right text-sm outline-none"
+              />
+              <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
+            </div>
+          </label>
+          <label className="mt-4 inline-flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" checked={includeA} onChange={(e) => setIncludeA(e.target.checked)} />
+            Include this vault
+          </label>
+        </article>
 
-        <label className="flex items-center gap-2 rounded-xl border border-ink/15 p-3 dark:border-white/10">
-          <input type="checkbox" checked={includeB} onChange={(e) => setIncludeB(e.target.checked)} />
-          <span className="text-sm font-semibold">Vault B</span>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={amountB}
-            onChange={(e) => setAmountB(e.target.value)}
-            className="ml-auto w-28 rounded-lg border border-ink/20 px-2 py-1 text-right text-sm dark:border-white/15 dark:bg-slate-900"
-          />
-        </label>
+        <article
+          className={`rounded-2xl border p-4 transition ${includeB ? "border-neon bg-mint shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-emerald-950/45" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
+        >
+          <p className="text-sm font-semibold">🟢 Parachain Beta</p>
+          <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_B}</p>
+          <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Interest: {INTEREST_LABEL}</p>
+          <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
+            Amount
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 dark:border-white/15 dark:bg-slate-900">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={amountB}
+                onChange={(e) => setAmountB(e.target.value)}
+                className="w-full bg-transparent text-right text-sm outline-none"
+              />
+              <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
+            </div>
+          </label>
+          <label className="mt-4 inline-flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" checked={includeB} onChange={(e) => setIncludeB(e.target.checked)} />
+            Include this vault
+          </label>
+        </article>
       </div>
 
       <div className="mt-4 flex items-center gap-3">
