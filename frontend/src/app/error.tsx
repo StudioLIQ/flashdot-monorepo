@@ -1,5 +1,7 @@
 "use client";
 
+import { FlashDotMark } from "../components/FlashDotMark";
+
 interface ErrorPageProps {
   error: Error & { digest?: string };
   reset: () => void;
@@ -8,8 +10,16 @@ interface ErrorPageProps {
 export default function ErrorPage({ error, reset }: ErrorPageProps): JSX.Element {
   return (
     <main className="min-h-screen bg-mesh px-6 py-10 text-ink dark:bg-mesh-dark dark:text-white md:px-10">
-      <section className="mx-auto max-w-2xl rounded-3xl border border-red-200 bg-white/85 p-8 shadow-glow backdrop-blur dark:border-red-400/30 dark:bg-slate-950/75 md:p-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-red-600">FlashDot Recovery</p>
+      <section className="mx-auto max-w-2xl rounded-3xl border border-danger/35 bg-white/85 p-8 shadow-glow backdrop-blur dark:border-danger/40 dark:bg-slate-950/75 md:p-10">
+        <div className="flex items-center gap-4">
+          <div className="grid h-14 w-14 place-items-center rounded-2xl border border-danger/35 bg-white shadow-sm dark:border-danger/40 dark:bg-white/5">
+            <FlashDotMark className="h-11 w-11" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-danger">FlashDot Recovery</p>
+            <p className="mt-1 text-sm text-ink/65 dark:text-white/55">Retryable UI state</p>
+          </div>
+        </div>
         <h1 className="mt-3 text-3xl font-bold">The interface hit an unexpected error.</h1>
         <p className="mt-3 text-sm leading-relaxed text-ink/75 dark:text-white/70">
           Wallet providers and RPC endpoints can fail transiently during demos. You can retry the

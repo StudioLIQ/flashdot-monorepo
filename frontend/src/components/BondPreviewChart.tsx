@@ -43,21 +43,21 @@ export function BondPreviewChart({
       label: "Repay A",
       description: "Expected repayment for Parachain Alpha leg.",
       value: repayA,
-      tone: "bg-neon",
+      tone: "bg-success",
     },
     {
       key: "repay-b",
       label: "Repay B",
       description: "Expected repayment for Parachain Beta leg.",
       value: repayB,
-      tone: "bg-emerald-400",
+      tone: "bg-success/65",
     },
     {
       key: "fees",
       label: "Fee Budgets",
       description: "Execution fees reserved for cross-chain messages.",
       value: feeBudgets,
-      tone: "bg-accent",
+      tone: "bg-warning",
     },
     {
       key: "buffer",
@@ -69,7 +69,7 @@ export function BondPreviewChart({
   ];
 
   return (
-    <div className="mt-6 rounded-xl border border-ink/15 bg-mint p-4 text-sm dark:border-white/10 dark:bg-emerald-950/50">
+    <div className="mt-6 rounded-xl border border-ink/15 bg-surface p-4 text-sm dark:border-white/10 dark:bg-surface-dark">
       <p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink/65 dark:text-white/65">
         Estimated bond breakdown
       </p>

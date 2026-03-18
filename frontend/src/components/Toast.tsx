@@ -18,9 +18,9 @@ interface ToastProps {
 }
 
 const TOAST_TONE_CLASS: Record<ToastTone, string> = {
-  success: "border-neon/60 bg-neon/15 text-ink dark:bg-emerald-950/70 dark:text-white",
-  error: "border-red-400/60 bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-100",
-  info: "border-ink/20 bg-white/90 text-ink dark:border-white/20 dark:bg-slate-900 dark:text-white",
+  success: "border-success/60 bg-success/15 text-ink dark:bg-success/20 dark:text-white",
+  error: "border-danger/60 bg-danger/10 text-danger dark:bg-danger/20 dark:text-danger",
+  info: "border-info/50 bg-info/10 text-ink dark:border-info/35 dark:bg-info/20 dark:text-white",
 };
 
 export function Toast({ toast, onClose }: ToastProps): JSX.Element {

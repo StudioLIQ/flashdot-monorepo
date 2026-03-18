@@ -80,8 +80,8 @@ export default function HomePage(): JSX.Element {
         <div className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4">
           <div className="pointer-events-auto inline-flex flex-wrap items-center gap-2 rounded-full border border-ink/15 bg-white/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur dark:border-white/15 dark:bg-slate-950/85">
             <span>{account ? shortAddress(account) : "-"}</span>
-            <span className="rounded-full bg-mint px-2 py-1 text-ink dark:bg-emerald-950/65 dark:text-white">DOT {balanceDot ?? "-"}</span>
-            <span className={`rounded-full px-2 py-1 ${isCorrectNetwork ? "bg-neon/25 text-ink dark:text-white" : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-100"}`}>
+            <span className="rounded-full bg-info/15 px-2 py-1 text-ink dark:bg-info/25 dark:text-white">DOT {balanceDot ?? "-"}</span>
+            <span className={`rounded-full px-2 py-1 ${isCorrectNetwork ? "bg-success/25 text-ink dark:text-white" : "bg-danger/15 text-danger dark:bg-danger/20 dark:text-danger"}`}>
               {isCorrectNetwork ? "Polkadot Hub EVM" : "Wrong network"}
             </span>
           </div>
@@ -149,7 +149,7 @@ export default function HomePage(): JSX.Element {
           </div>
 
           {connectionError ? (
-            <div className="mt-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/40 dark:bg-red-950/40 dark:text-red-100">
+            <div className="mt-3 rounded-xl border border-danger/45 bg-danger/10 px-4 py-3 text-sm text-danger dark:border-danger/40 dark:bg-danger/20 dark:text-danger">
               <p className="font-semibold">{connectionError}</p>
               {walletErrorIsMetaMaskMissing ? (
                 <p className="mt-1">
@@ -168,7 +168,7 @@ export default function HomePage(): JSX.Element {
               <button
                 type="button"
                 onClick={clearConnectionError}
-                className="mt-2 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold hover:bg-red-100 dark:border-red-300/40 dark:hover:bg-red-900/40"
+                className="mt-2 rounded-lg border border-danger/45 px-3 py-1.5 text-xs font-semibold hover:bg-danger/10 dark:border-danger/40 dark:hover:bg-danger/20"
               >
                 Dismiss
               </button>
@@ -181,15 +181,15 @@ export default function HomePage(): JSX.Element {
                 How it works
               </p>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-xl border border-ink/10 bg-mint/60 p-3 dark:border-white/10 dark:bg-emerald-950/35">
+                <div className="rounded-xl border border-ink/10 bg-surface p-3 dark:border-white/10 dark:bg-surface-dark">
                   <p className="text-sm font-semibold">1. Pick vaults</p>
                   <p className="mt-1 text-xs text-ink/75 dark:text-white/75">Select chain legs and borrowing amounts.</p>
                 </div>
-                <div className="rounded-xl border border-ink/10 bg-mint/60 p-3 dark:border-white/10 dark:bg-emerald-950/35">
+                <div className="rounded-xl border border-ink/10 bg-surface p-3 dark:border-white/10 dark:bg-surface-dark">
                   <p className="text-sm font-semibold">2. Lock bond</p>
                   <p className="mt-1 text-xs text-ink/75 dark:text-white/75">One signature secures repayment coverage.</p>
                 </div>
-                <div className="rounded-xl border border-ink/10 bg-mint/60 p-3 dark:border-white/10 dark:bg-emerald-950/35">
+                <div className="rounded-xl border border-ink/10 bg-surface p-3 dark:border-white/10 dark:bg-surface-dark">
                   <p className="text-sm font-semibold">3. Track status</p>
                   <p className="mt-1 text-xs text-ink/75 dark:text-white/75">Follow prepare, commit, and repay in real time.</p>
                 </div>
@@ -219,7 +219,7 @@ export default function HomePage(): JSX.Element {
             <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Network</p>
               <p className="mt-2 text-lg font-semibold">Polkadot Hub EVM</p>
-              <p className={`mt-1 text-sm ${isCorrectNetwork ? "text-neon" : "text-red-600"}`}>
+              <p className={`mt-1 text-sm ${isCorrectNetwork ? "text-success" : "text-danger"}`}>
                 {isCorrectNetwork ? "Connected and ready" : "Switch network required"}
               </p>
             </div>

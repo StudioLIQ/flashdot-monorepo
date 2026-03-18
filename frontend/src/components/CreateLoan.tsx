@@ -207,7 +207,7 @@ export function CreateLoan(): JSX.Element {
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <article
-          className={`rounded-2xl border p-4 transition ${includeA ? "border-neon bg-mint shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-emerald-950/45" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
+          className={`rounded-2xl border p-4 transition ${includeA ? "border-success bg-success/10 shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-success/20" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
         >
           <p className="text-sm font-semibold">🔵 Parachain Alpha</p>
           <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_A}</p>
@@ -238,7 +238,7 @@ export function CreateLoan(): JSX.Element {
         </article>
 
         <article
-          className={`rounded-2xl border p-4 transition ${includeB ? "border-neon bg-mint shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-emerald-950/45" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
+          className={`rounded-2xl border p-4 transition ${includeB ? "border-success bg-success/10 shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-success/20" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
         >
           <p className="text-sm font-semibold">🟢 Parachain Beta</p>
           <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_B}</p>
@@ -293,15 +293,15 @@ export function CreateLoan(): JSX.Element {
         type="button"
         onClick={() => setConfirmOpen(true)}
         disabled={!canSubmit}
-        className={`mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:w-auto ${createdLoanId ? "animate-success-morph bg-neon text-ink dark:bg-neon dark:text-ink" : "bg-ink text-white dark:bg-white dark:text-slate-950"}`}
+        className={`mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:w-auto ${createdLoanId ? "animate-success-morph bg-success text-ink dark:bg-success dark:text-ink" : "bg-ink text-white dark:bg-white dark:text-slate-950"}`}
       >
         {submitting ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent dark:border-ink dark:border-t-transparent" /> : null}
         {createdLoanId && !submitting ? "Created ✓" : submitLabel}
       </button>
 
-      {!isConnected ? <p className="mt-3 text-sm text-red-600">Connect wallet first.</p> : null}
+      {!isConnected ? <p className="mt-3 text-sm text-danger">Connect wallet first.</p> : null}
       {isConnected && !isCorrectNetwork ? (
-        <p className="mt-3 text-sm text-red-600">Switch to Polkadot Hub EVM network.</p>
+        <p className="mt-3 text-sm text-danger">Switch to Polkadot Hub EVM network.</p>
       ) : null}
       {submitting ? (
         <div className="mt-4 rounded-xl border border-ink/15 bg-ink/5 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
@@ -313,10 +313,10 @@ export function CreateLoan(): JSX.Element {
         </div>
       ) : null}
       {createdLoanId ? (
-        <div className="animate-content-fade mt-4 rounded-xl border border-neon/45 bg-mint px-4 py-4 dark:border-neon/40 dark:bg-emerald-950/40">
+        <div className="animate-content-fade mt-4 rounded-xl border border-success/45 bg-success/10 px-4 py-4 dark:border-success/40 dark:bg-success/20">
           <div className="inline-flex items-center gap-2">
-            <span className="relative grid h-8 w-8 place-items-center rounded-full bg-neon text-ink">
-              <span className="absolute inset-0 rounded-full bg-neon/45 animate-ping" />
+            <span className="relative grid h-8 w-8 place-items-center rounded-full bg-success text-ink">
+              <span className="absolute inset-0 rounded-full bg-success/45 animate-ping" />
               <span className="relative text-lg font-bold">✓</span>
             </span>
             <p className="text-lg font-bold text-ink dark:text-white">Loan #{createdLoanId} created!</p>
@@ -336,7 +336,7 @@ export function CreateLoan(): JSX.Element {
           </div>
         </div>
       ) : null}
-      {error ? <p className="mt-3 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
 
       {confirmOpen ? (
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">

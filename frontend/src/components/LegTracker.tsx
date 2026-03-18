@@ -59,10 +59,10 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
     [leg.state]
   );
   const countdownTone = useMemo(() => {
-    if (remainingSec > 300) return "text-neon";
-    if (remainingSec > 60) return "text-accent";
-    if (remainingSec > 0) return "animate-pulse text-red-600 dark:text-red-300";
-    return "text-red-700 dark:text-red-300";
+    if (remainingSec > 300) return "text-success";
+    if (remainingSec > 60) return "text-warning";
+    if (remainingSec > 0) return "animate-pulse text-danger";
+    return "text-danger";
   }, [remainingSec]);
   const urgentRepay = remainingSec > 0 && remainingSec < 60;
 
@@ -122,7 +122,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
             <li key={step.label} className="flex items-start sm:flex-1">
               <div className="flex min-w-8 flex-col items-center text-center">
                 <span
-                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[10px] font-bold transition-colors duration-300 ease-out ${done ? "border-neon bg-neon text-ink" : ""} ${current ? "border-neon bg-mint text-ink animate-pulse dark:bg-emerald-950/60 dark:text-white" : ""} ${!done && !current ? "border-ink/25 text-ink/60 dark:border-white/25 dark:text-white/60" : ""}`}
+                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border text-[10px] font-bold transition-colors duration-300 ease-out ${done ? "border-success bg-success text-ink" : ""} ${current ? "border-success bg-success/15 text-ink animate-pulse dark:bg-success/30 dark:text-white" : ""} ${!done && !current ? "border-ink/25 text-ink/60 dark:border-white/25 dark:text-white/60" : ""}`}
                 >
                   {step.icon}
                 </span>
@@ -131,7 +131,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
               {index < LEG_STEP_META.length - 1 ? (
                 <span
                   aria-hidden
-                  className={`ml-3 mt-1 h-5 w-[2px] shrink-0 rounded sm:ml-0 sm:mt-3 sm:h-[2px] sm:w-auto sm:flex-1 ${connectorDone ? "bg-neon/75" : "bg-ink/20 dark:bg-white/20"}`}
+                  className={`ml-3 mt-1 h-5 w-[2px] shrink-0 rounded sm:ml-0 sm:mt-3 sm:h-[2px] sm:w-auto sm:flex-1 ${connectorDone ? "bg-success/75" : "bg-ink/20 dark:bg-white/20"}`}
                 />
               ) : null}
             </li>
@@ -148,14 +148,14 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
             type="button"
             onClick={() => setConfirmOpen(true)}
             disabled={isRepaying}
-            className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 ${urgentRepay ? "animate-pulse bg-red-600 text-white dark:bg-red-500" : "bg-accent text-ink dark:bg-amber-400 dark:text-slate-950"}`}
+            className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 ${urgentRepay ? "animate-pulse bg-danger text-white dark:bg-danger" : "bg-warning text-ink dark:bg-warning dark:text-slate-950"}`}
           >
             {isRepaying ? "Repaying..." : `Repay ${formatDotAmount(leg.repayAmount)} to ${shortAddress(leg.vault)}`}
           </button>
         </div>
       ) : null}
 
-      {repayError ? <p className="mt-2 text-xs text-red-600 dark:text-red-300">{repayError}</p> : null}
+      {repayError ? <p className="mt-2 text-xs text-danger">{repayError}</p> : null}
 
       {confirmOpen ? (
         <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
@@ -179,7 +179,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
                   setConfirmOpen(false);
                   void repay();
                 }}
-                className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-ink dark:bg-amber-400 dark:text-slate-950"
+                className="rounded-lg bg-warning px-3 py-2 text-sm font-semibold text-ink dark:bg-warning dark:text-slate-950"
               >
                 Confirm Repay
               </button>

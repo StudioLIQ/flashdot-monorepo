@@ -186,7 +186,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
             <button
               type="button"
               onClick={() => setCancelConfirmOpen(true)}
-              className="min-h-11 rounded-lg border border-red-300 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 dark:border-red-400/40 dark:text-red-100 dark:hover:bg-red-950/40"
+              className="min-h-11 rounded-lg border border-danger/45 px-3 py-2 text-xs font-semibold text-danger hover:bg-danger/10 dark:border-danger/40 dark:text-danger dark:hover:bg-danger/20"
             >
               Cancel Loan
             </button>
@@ -200,7 +200,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-ink/15 dark:bg-white/10">
           <div
-            className="h-full rounded-full bg-neon transition-[width] duration-500 ease-out"
+            className="h-full rounded-full bg-success transition-[width] duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -219,12 +219,12 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
       </div>
 
       {terminalMessage ? (
-        <p className="mt-5 rounded-lg border border-ink/15 bg-mint p-3 text-sm font-semibold text-ink dark:border-white/10 dark:bg-emerald-950/50 dark:text-white">
+        <p className="mt-5 rounded-lg border border-success/40 bg-success/10 p-3 text-sm font-semibold text-ink dark:border-success/35 dark:bg-success/20 dark:text-white">
           {terminalMessage}
         </p>
       ) : null}
       {cancelError ? (
-        <p className="mt-3 text-xs text-red-600 dark:text-red-300">{cancelError}</p>
+        <p className="mt-3 text-xs text-danger">{cancelError}</p>
       ) : null}
 
       {cancelConfirmOpen ? (
@@ -246,7 +246,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
                 type="button"
                 onClick={() => void cancelLoan()}
                 disabled={cancelPending}
-                className="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-red-500"
+                className="rounded-lg bg-danger px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-danger"
               >
                 {cancelPending ? "Cancelling..." : "Confirm Cancel"}
               </button>

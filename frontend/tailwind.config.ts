@@ -15,6 +15,12 @@ const config: Config = {
         mint: "#def8ec",
         neon: "#42db8d",
         accent: "#f5ad32",
+        success: "#42db8d",
+        warning: "#f5ad32",
+        danger: "#ef4444",
+        info: "#60a5fa",
+        surface: "#f8fff6",
+        "surface-dark": "#0d1f1d",
       },
       boxShadow: {
         glow: "0 0 0 1px rgba(66, 219, 141, 0.24), 0 12px 40px rgba(16, 33, 31, 0.18)",
