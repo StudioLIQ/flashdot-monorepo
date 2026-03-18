@@ -28,8 +28,14 @@ export default function HomePage(): JSX.Element {
 
   return (
     <div className="animate-content-fade">
-      {/* Hero */}
-      <div className="border-b border-ink/10 bg-white/40 px-4 py-8 backdrop-blur dark:border-white/10 dark:bg-white/3">
+      {/* Hero — gradient scoped to landing section only */}
+      <div
+        className="border-b border-ink/10 px-4 py-8 dark:border-white/10"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(66,219,141,0.14), transparent), linear-gradient(to bottom, #f5fff8, #f8fff6)",
+        }}
+      >
         <div className="mx-auto max-w-5xl">
           <h1 className="text-3xl font-bold leading-tight md:text-4xl">
             One Signature,

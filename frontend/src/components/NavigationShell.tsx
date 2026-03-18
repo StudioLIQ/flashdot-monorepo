@@ -157,7 +157,7 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
   }, [pathname]);
 
   return (
-    <div className="flex min-h-screen bg-mesh text-ink dark:bg-mesh-dark dark:text-white">
+    <div className="flex min-h-screen bg-[#f5fff8] text-ink dark:bg-[#07110f] dark:text-white">
       {/* Skip link */}
       <a
         href="#main-content"
@@ -395,46 +395,101 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
           {children}
         </div>
 
-        {/* Footer — shown above mobile bottom nav */}
-        <footer className="mt-12 border-t border-ink/10 pb-20 dark:border-white/10 lg:pb-0">
-          <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+        {/* Footer */}
+        <footer className="mt-16 border-t border-ink/10 pb-20 dark:border-white/10 lg:pb-0">
+          <div className="mx-auto max-w-5xl px-4 py-10 md:px-6">
+            {/* Top row: brand + link columns */}
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {/* Brand */}
               <div>
-                <p className="text-sm font-semibold">FlashDot</p>
-                <p className="mt-0.5 text-xs text-ink/60 dark:text-white/55">
-                  Bonded Cross-Chain Flash Loans on Polkadot Hub EVM
+                <div className="flex items-center gap-2">
+                  <div className="grid h-7 w-7 place-items-center rounded-lg border border-ink/10 dark:border-white/10">
+                    <FlashDotMark className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm font-bold tracking-tight">FlashDot</span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-ink/60 dark:text-white/50">
+                  Bonded cross-chain flash loans on Polkadot Hub EVM. Economic atomicity via 2PC + bond escrow.
                 </p>
+                <span className="mt-3 inline-flex rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-warning">
+                  v0.1.0-testnet
+                </span>
               </div>
-              <div className="flex flex-wrap items-center gap-4 text-xs text-ink/60 dark:text-white/55">
-                <a
-                  href="https://github.com/flashdot"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-ink dark:hover:text-white"
-                >
-                  GitHub
-                </a>
-                <span className="hidden sm:inline">·</span>
-                <a
-                  href="https://dorahacks.io"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-ink dark:hover:text-white"
-                >
-                  DoraHacks
-                </a>
+
+              {/* Protocol */}
+              <div>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink/45 dark:text-white/35">
+                  Protocol
+                </p>
+                <ul className="space-y-2 text-xs text-ink/65 dark:text-white/55">
+                  <li>
+                    <a href="https://github.com/flashdot" target="_blank" rel="noreferrer" className="transition hover:text-ink dark:hover:text-white">
+                      Documentation
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://github.com/flashdot" target="_blank" rel="noreferrer" className="transition hover:text-ink dark:hover:text-white">
+                      Smart Contracts
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://dorahacks.io" target="_blank" rel="noreferrer" className="transition hover:text-ink dark:hover:text-white">
+                      Hackathon Submission
+                    </a>
+                  </li>
+                  <li>
+                    <a href="https://polkadot.network" target="_blank" rel="noreferrer" className="transition hover:text-ink dark:hover:text-white">
+                      Polkadot Hub EVM
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Community */}
+              <div>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink/45 dark:text-white/35">
+                  Community
+                </p>
+                <ul className="space-y-2 text-xs text-ink/65 dark:text-white/55">
+                  <li>
+                    <a href="https://github.com/flashdot" target="_blank" rel="noreferrer" className="transition hover:text-ink dark:hover:text-white">
+                      GitHub
+                    </a>
+                  </li>
+                  <li>
+                    <span className="text-ink/35 dark:text-white/25">Discord (coming soon)</span>
+                  </li>
+                  <li>
+                    <span className="text-ink/35 dark:text-white/25">Twitter (coming soon)</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Legal */}
+              <div>
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-ink/45 dark:text-white/35">
+                  Legal
+                </p>
+                <ul className="space-y-2 text-xs text-ink/65 dark:text-white/55">
+                  <li>
+                    <span className="text-ink/35 dark:text-white/25">Terms of Service</span>
+                  </li>
+                  <li>
+                    <span className="text-ink/35 dark:text-white/25">Privacy Policy</span>
+                  </li>
+                  <li>
+                    <span className="text-ink/35 dark:text-white/25">Risk Disclosure</span>
+                  </li>
+                </ul>
               </div>
             </div>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-ink/50 dark:text-white/40">
-                ⚠ This is experimental software on testnet. Use at your own risk.
-                Funds may be lost.
+
+            {/* Bottom row: disclaimer + network status */}
+            <div className="mt-8 flex flex-wrap items-start justify-between gap-4 border-t border-ink/10 pt-6 dark:border-white/10">
+              <p className="max-w-xl text-[11px] leading-relaxed text-ink/45 dark:text-white/35">
+                ⚠ This is experimental software deployed on testnet. Smart contracts have not been audited.
+                Do not use with real funds. Use at your own risk — funds may be lost.
               </p>
-              <span className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-warning">
-                v0.1.0-testnet
-              </span>
-            </div>
-            <div className="mt-4">
               <NetworkStatusBar />
             </div>
           </div>
