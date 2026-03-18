@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { LegView } from "../lib/loan-types";
 import { LEG_STEP_META, LegState } from "../lib/loan-types";
 import { EXPLORER_TX_URL, VAULT_ABI, type VaultWriteContract } from "../lib/contracts";
+import { addTxRecord } from "../lib/tx-history";
 import { useToast } from "../providers/ToastProvider";
 import { CircularCountdown } from "./CircularCountdown";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -92,6 +93,15 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
       const tx = await vault.repay(BigInt(leg.loanId), leg.repayAmount);
       const receipt = await tx.wait();
       const txHash = (receipt as { hash?: string }).hash ?? null;
+      if (txHash) {
+        addTxRecord({
+          label: `Repay Loan #${leg.loanId} Leg #${leg.legId}`,
+          txHash,
+          status: "confirmed",
+          timestamp: Math.floor(Date.now() / 1000),
+          explorerUrl: EXPLORER_TX_URL(txHash),
+        });
+      }
       showToast({
         tone: "success",
         title: `Loan #${leg.loanId} leg repaid`,

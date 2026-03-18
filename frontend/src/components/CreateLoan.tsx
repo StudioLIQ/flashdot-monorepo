@@ -20,6 +20,7 @@ import {
   VAULT_B_ADDRESS,
   getHubContract,
 } from "../lib/contracts";
+import { addTxRecord } from "../lib/tx-history";
 
 const INTEREST_BPS = 100;
 const HUB_FEE_BUFFER = parseEther("0.01");
@@ -247,6 +248,15 @@ export function CreateLoan(): JSX.Element {
 
       setCreatedLoanId(nextLoanId);
       setCreatedTxHash(txHash);
+      if (txHash) {
+        addTxRecord({
+          label: nextLoanId ? `Create Loan #${nextLoanId}` : "Create Loan",
+          txHash,
+          status: "confirmed",
+          timestamp: Math.floor(Date.now() / 1000),
+          explorerUrl: EXPLORER_TX_URL(txHash),
+        });
+      }
       setMessage("Loan created successfully. Bond lock transaction confirmed.");
       showToast({
         tone: "success",

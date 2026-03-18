@@ -4,6 +4,7 @@ import { Copy, ExternalLink, LogOut } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 import { EXPLORER_TX_URL } from "../lib/contracts";
+import { RecentTransactions } from "./RecentTransactions";
 
 interface WalletDropdownProps {
   account: string;
@@ -73,6 +74,8 @@ export function WalletDropdown({
           </p>
         ) : null}
       </div>
+
+      <RecentTransactions />
 
       {/* Actions */}
       <div className="p-1.5">
