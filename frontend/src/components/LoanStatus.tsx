@@ -154,11 +154,24 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
   if (!loan) {
     return (
       <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-empty-title">
-        <h2 id="loan-status-empty-title" className="text-xl font-semibold">Create your first flash loan</h2>
-        <p className="mt-2 text-sm text-ink/70 dark:text-white/65">
-          No active loan selected yet. Use the action zone to launch a bonded plan in one signature.
-        </p>
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="flex flex-col items-center gap-4 py-6 text-center">
+          {/* Empty state illustration — dashboard with lightning */}
+          <svg width="100" height="100" viewBox="0 0 100 100" fill="none" aria-hidden="true" className="opacity-65">
+            <rect x="10" y="20" width="80" height="55" rx="6" stroke="#42db8d" strokeWidth="2.5" fill="none" />
+            <rect x="18" y="30" width="20" height="14" rx="2" fill="#42db8d" fillOpacity="0.25" stroke="#42db8d" strokeWidth="1.5" />
+            <rect x="44" y="30" width="20" height="14" rx="2" fill="#42db8d" fillOpacity="0.15" stroke="#42db8d" strokeWidth="1.5" />
+            <rect x="18" y="50" width="46" height="6" rx="2" fill="#42db8d" fillOpacity="0.15" />
+            <rect x="18" y="61" width="32" height="6" rx="2" fill="#42db8d" fillOpacity="0.10" />
+            <polygon points="72,28 65,45 71,45 64,62 76,42 70,42" fill="#f5ad32" opacity="0.9" />
+          </svg>
+          <div>
+            <h2 id="loan-status-empty-title" className="text-lg font-semibold">No active loans</h2>
+            <p className="mt-1.5 max-w-xs text-sm text-ink/70 dark:text-white/65">
+              Create a bonded flash loan to get started. One signature locks the bond and starts execution.
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-ink/10 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5">
             <p className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/60 dark:text-white/60">Step 1</p>
             <p className="mt-1 text-sm font-semibold">Select vaults</p>

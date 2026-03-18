@@ -151,9 +151,23 @@ export function LoanHistory({ loans, loading }: LoanHistoryProps): JSX.Element {
       </div>
 
       {visibleLoans.length === 0 ? (
-        <p className="mt-4 rounded-lg border border-ink/10 bg-ink/5 px-3 py-3 text-sm text-ink/70 dark:border-white/10 dark:bg-white/5 dark:text-white/70">
-          No completed loans yet.
-        </p>
+        <div className="mt-6 flex flex-col items-center gap-4 py-8 text-center">
+          {/* Empty state illustration — clock + document */}
+          <svg width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true" className="opacity-60">
+            <circle cx="36" cy="36" r="24" stroke="#42db8d" strokeWidth="2.5" fill="none" />
+            <circle cx="36" cy="36" r="2.5" fill="#42db8d" />
+            <line x1="36" y1="36" x2="36" y2="22" stroke="#42db8d" strokeWidth="2.5" strokeLinecap="round" />
+            <line x1="36" y1="36" x2="46" y2="36" stroke="#f5ad32" strokeWidth="2.5" strokeLinecap="round" />
+            <rect x="50" y="42" width="22" height="28" rx="3" stroke="#42db8d" strokeWidth="2" fill="none" />
+            <line x1="55" y1="51" x2="67" y2="51" stroke="#42db8d" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+            <line x1="55" y1="56" x2="67" y2="56" stroke="#42db8d" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+            <line x1="55" y1="61" x2="62" y2="61" stroke="#f5ad32" strokeWidth="1.5" strokeLinecap="round" opacity="0.7" />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold">No completed loans yet</p>
+            <p className="mt-1 text-xs text-ink/60 dark:text-white/55">Settled, defaulted, and aborted loans will appear here.</p>
+          </div>
+        </div>
       ) : (
         <div className="mt-4 grid gap-2">
           {visibleLoans.map((loan) => (
