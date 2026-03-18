@@ -82,8 +82,8 @@ export default function HomePage(): JSX.Element {
       {isConnected ? (
         <div className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4">
           <div className="pointer-events-auto inline-flex flex-wrap items-center gap-2 rounded-full border border-ink/15 bg-white/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur dark:border-white/15 dark:bg-slate-950/85">
-            <span>{account ? shortAddress(account) : "-"}</span>
-            <span className="rounded-full bg-info/15 px-2 py-1 text-ink dark:bg-info/25 dark:text-white">DOT {balanceDot ?? "-"}</span>
+            <span className="font-mono">{account ? shortAddress(account) : "-"}</span>
+            <span className="rounded-full bg-info/15 px-2 py-1 font-mono text-ink dark:bg-info/25 dark:text-white">DOT {balanceDot ?? "-"}</span>
             <span className={`rounded-full px-2 py-1 ${isCorrectNetwork ? "bg-success/25 text-ink dark:text-white" : "bg-danger/15 text-danger dark:bg-danger/20 dark:text-danger"}`}>
               {isCorrectNetwork ? "Polkadot Hub EVM" : "Wrong network"}
             </span>
@@ -138,7 +138,7 @@ export default function HomePage(): JSX.Element {
               </button>
             ) : (
               <>
-                <span className="rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold dark:border-white/15 dark:bg-white/10">
+                <span className="rounded-xl border border-ink/15 bg-white px-4 py-2 font-mono text-sm font-semibold dark:border-white/15 dark:bg-white/10">
                   {account ? shortAddress(account) : "-"}
                 </span>
                 <button

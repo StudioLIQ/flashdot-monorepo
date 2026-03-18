@@ -179,7 +179,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
   return (
     <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-title">
       <div className="flex items-center justify-between gap-3">
-        <h2 id="loan-status-title" className="text-xl font-semibold">Loan #{loan.loanId}</h2>
+        <h2 id="loan-status-title" className="font-mono text-xl font-semibold">Loan #{loan.loanId}</h2>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <p className="inline-flex items-center gap-1.5 text-sm text-ink/70 dark:text-white/65" aria-live="polite">
             {stateMeta ? <><stateMeta.icon size={14} className="shrink-0" />{stateMeta.label}</> : `State ${loan.state}`}

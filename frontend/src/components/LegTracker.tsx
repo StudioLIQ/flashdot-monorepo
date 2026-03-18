@@ -142,7 +142,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
       {canRepay ? (
         <div className="mt-4">
           <p className={`text-sm font-semibold ${countdownTone}`} aria-live="polite">
-            Repay countdown: <span key={countdown} className="inline-block animate-countdown-tick">{countdown}</span>
+            Repay countdown: <span key={countdown} className="inline-block font-mono animate-countdown-tick">{countdown}</span>
           </p>
           <button
             type="button"

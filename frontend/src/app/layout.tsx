@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 
 import "./globals.css";
 import { QueryProvider } from "../providers/QueryProvider";
@@ -10,6 +10,13 @@ import { WalletProvider } from "../providers/WalletProvider";
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -61,7 +68,7 @@ export default function RootLayout({
 }>): JSX.Element {
   return (
     <html lang="en">
-      <body className={ibmPlexSans.className}>
+      <body className={`${ibmPlexSans.variable} ${ibmPlexMono.variable} font-sans`}>
         <ThemeProvider>
           <QueryProvider>
             <WalletProvider>

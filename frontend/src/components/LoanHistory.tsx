@@ -60,8 +60,8 @@ function HistoryRow({ loan, expanded, onToggle }: HistoryRowProps): JSX.Element 
         onClick={onToggle}
         className="grid w-full grid-cols-[auto_1fr] gap-3 px-4 py-3 text-left sm:grid-cols-[80px_1fr_150px_1fr_110px]"
       >
-        <p className="text-sm font-semibold">#{loan.loanId}</p>
-        <p className="text-sm text-ink/80 dark:text-white/80">{formatDot(loan.bondAmount)}</p>
+        <p className="font-mono text-sm font-semibold">#{loan.loanId}</p>
+        <p className="font-mono text-sm text-ink/80 dark:text-white/80">{formatDot(loan.bondAmount)}</p>
         <p className="sm:justify-self-start">
           <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${statusTone(loan.state)}`}>
             {LOAN_STATE_META[loan.state]?.label ?? "Unknown"}

@@ -95,7 +95,7 @@ export function BondPreviewChart({
             >
               <span className={`h-2.5 w-2.5 rounded-full ${segment.tone}`} />
               <p className="font-medium">{segment.label}</p>
-              <p className="text-right text-ink/75 dark:text-white/75">
+              <p className="text-right font-mono text-ink/75 dark:text-white/75">
                 {formatDot(segment.value)} ({percent.toFixed(2)}%)
               </p>
             </div>
@@ -104,7 +104,7 @@ export function BondPreviewChart({
       </div>
 
       <p className="mt-4 border-t border-ink/20 pt-3 text-xl font-bold dark:border-white/10">
-        Total Bond Required: {formatDot(totalBond)}
+        Total Bond Required: <span className="font-mono">{formatDot(totalBond)}</span>
       </p>
     </div>
   );

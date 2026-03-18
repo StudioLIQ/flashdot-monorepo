@@ -30,7 +30,8 @@ const config: Config = {
         "mesh-dark": "radial-gradient(circle at 20% 20%, rgba(66,219,141,0.16), transparent 40%), radial-gradient(circle at 80% 0%, rgba(245,173,50,0.14), transparent 38%), linear-gradient(160deg, #07110f 0%, #0d1f1d 45%, #132a27 100%)",
       },
       fontFamily: {
-        sans: ["'IBM Plex Sans'", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
     },
   },
