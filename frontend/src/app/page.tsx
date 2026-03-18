@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 
 import { CreateLoan } from "../components/CreateLoan";
 import { FlashDotMark } from "../components/FlashDotMark";
+import { LoanHistory } from "../components/LoanHistory";
 import { LoanStatus } from "../components/LoanStatus";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useLoan } from "../hooks/useLoan";
@@ -306,6 +307,10 @@ export default function HomePage(): JSX.Element {
               </div>
             </div>
           )}
+          <LoanHistory
+            loans={loanHistoryQuery.data ?? []}
+            loading={Boolean(isConnected && loanHistoryQuery.isLoading)}
+          />
         </section>
       </div>
     </main>
