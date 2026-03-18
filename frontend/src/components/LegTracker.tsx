@@ -37,6 +37,7 @@ function formatDotAmount(amount: bigint): string {
 export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
   const [nowSec, setNowSec] = useState(Math.floor(Date.now() / 1000));
   const [isRepaying, setIsRepaying] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [repayError, setRepayError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
     if (remainingSec > 0) return "animate-pulse text-red-600 dark:text-red-300";
     return "text-red-700 dark:text-red-300";
   }, [remainingSec]);
+  const urgentRepay = remainingSec > 0 && remainingSec < 60;
 
   const repay = async (): Promise<void> => {
     const ethereum = (window as EthereumWindow).ethereum;
@@ -125,20 +127,51 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
       </ol>
 
       {canRepay ? (
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="mt-4">
           <p className={`text-sm font-semibold ${countdownTone}`}>Repay countdown: {countdown}</p>
           <button
             type="button"
-            onClick={() => void repay()}
+            onClick={() => setConfirmOpen(true)}
             disabled={isRepaying}
-            className="rounded-lg bg-accent px-3 py-1.5 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:bg-amber-400 dark:text-slate-950 dark:disabled:bg-white/15 dark:disabled:text-white/35"
+            className={`mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 ${urgentRepay ? "animate-pulse bg-red-600 text-white dark:bg-red-500" : "bg-accent text-ink dark:bg-amber-400 dark:text-slate-950"}`}
           >
-            {isRepaying ? "Repaying..." : "Repay"}
+            {isRepaying ? "Repaying..." : `Repay ${formatDotAmount(leg.repayAmount)} to ${shortAddress(leg.vault)}`}
           </button>
         </div>
       ) : null}
 
       {repayError ? <p className="mt-2 text-xs text-red-600 dark:text-red-300">{repayError}</p> : null}
+
+      {confirmOpen ? (
+        <div className="fixed inset-0 z-40 grid place-items-center bg-ink/55 px-4 backdrop-blur-sm dark:bg-slate-950/70">
+          <div className="w-full max-w-sm rounded-2xl border border-ink/10 bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-slate-900">
+            <h4 className="text-base font-semibold">Confirm Repayment</h4>
+            <p className="mt-2 text-sm text-ink/75 dark:text-white/75">
+              Repay {formatDotAmount(leg.repayAmount)} to {shortAddress(leg.vault)}?
+            </p>
+            <p className="mt-1 text-xs text-ink/65 dark:text-white/65">This action cannot be undone.</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                className="rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmOpen(false);
+                  void repay();
+                }}
+                className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-ink dark:bg-amber-400 dark:text-slate-950"
+              >
+                Confirm Repay
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </article>
   );
 }
