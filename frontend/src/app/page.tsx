@@ -28,12 +28,16 @@ function LoadingMetric(): JSX.Element {
 export default function HomePage(): JSX.Element {
   const {
     account,
+    balanceDot,
     chainId,
     isConnected,
     isCorrectNetwork,
     isConnecting,
+    isSwitchingNetwork,
+    connectionError,
     connectWallet,
     disconnectWallet,
+    clearConnectionError,
   } = useWallet();
 
   const networkLabel = useMemo(() => {
@@ -62,9 +66,22 @@ export default function HomePage(): JSX.Element {
   const statusExpanded = statusLoading || hasActiveLoan;
   const myLoanCount = (myLoansQuery.data ?? []).length;
   const historyCount = (loanHistoryQuery.data ?? []).length;
+  const walletBusy = isConnecting || isSwitchingNetwork;
+  const walletErrorIsMetaMaskMissing = (connectionError ?? "").toLowerCase().includes("metamask not detected");
 
   return (
     <main className="min-h-screen bg-mesh px-6 py-10 text-ink dark:bg-mesh-dark dark:text-white md:px-10">
+      {isConnected ? (
+        <div className="pointer-events-none fixed inset-x-0 top-3 z-40 flex justify-center px-4">
+          <div className="pointer-events-auto inline-flex flex-wrap items-center gap-2 rounded-full border border-ink/15 bg-white/95 px-4 py-2 text-xs font-semibold shadow-lg backdrop-blur dark:border-white/15 dark:bg-slate-950/85">
+            <span>{account ? shortAddress(account) : "-"}</span>
+            <span className="rounded-full bg-mint px-2 py-1 text-ink dark:bg-emerald-950/65 dark:text-white">DOT {balanceDot ?? "-"}</span>
+            <span className={`rounded-full px-2 py-1 ${isCorrectNetwork ? "bg-neon/25 text-ink dark:text-white" : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-100"}`}>
+              {isCorrectNetwork ? "Polkadot Hub EVM" : "Wrong network"}
+            </span>
+          </div>
+        </div>
+      ) : null}
       <div className="mx-auto max-w-5xl space-y-6 md:space-y-8">
         <section
           className={`rounded-3xl border border-ink/10 bg-white/75 shadow-glow backdrop-blur transition-all dark:border-white/10 dark:bg-slate-950/70 ${isConnected ? "p-8 md:p-10" : "min-h-[72vh] p-8 md:min-h-[78vh] md:p-12"}`}
@@ -97,10 +114,17 @@ export default function HomePage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => void connectWallet()}
-                disabled={isConnecting}
+                disabled={walletBusy}
                 className="rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
               >
-                {isConnecting ? "Connecting..." : "Connect Wallet"}
+                <span className="inline-flex items-center gap-2">
+                  <span className="text-base">🦊</span>
+                  {isSwitchingNetwork
+                    ? "Switching to Polkadot Hub EVM..."
+                    : isConnecting
+                      ? "Connecting MetaMask..."
+                      : "Connect MetaMask"}
+                </span>
               </button>
             ) : (
               <>
@@ -110,6 +134,7 @@ export default function HomePage(): JSX.Element {
                 <button
                   type="button"
                   onClick={disconnectWallet}
+                  title="This clears the local session only. MetaMask remains connected."
                   className="min-h-11 rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
                 >
                   Disconnect
@@ -117,6 +142,33 @@ export default function HomePage(): JSX.Element {
               </>
             )}
           </div>
+
+          {connectionError ? (
+            <div className="mt-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/40 dark:bg-red-950/40 dark:text-red-100">
+              <p className="font-semibold">{connectionError}</p>
+              {walletErrorIsMetaMaskMissing ? (
+                <p className="mt-1">
+                  Install MetaMask from{" "}
+                  <a
+                    href="https://metamask.io/download/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2"
+                  >
+                    metamask.io/download
+                  </a>
+                  .
+                </p>
+              ) : null}
+              <button
+                type="button"
+                onClick={clearConnectionError}
+                className="mt-2 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-semibold hover:bg-red-100 dark:border-red-300/40 dark:hover:bg-red-900/40"
+              >
+                Dismiss
+              </button>
+            </div>
+          ) : null}
 
           {!isConnected ? (
             <div className="mt-8 rounded-2xl border border-ink/10 bg-white/85 p-5 dark:border-white/10 dark:bg-white/5">

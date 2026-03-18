@@ -1,6 +1,6 @@
 "use client";
 
-import { BrowserProvider, Eip1193Provider } from "ethers";
+import { BrowserProvider, Eip1193Provider, formatEther } from "ethers";
 import {
   createContext,
   PropsWithChildren,
@@ -17,11 +17,15 @@ const POLKADOT_HUB_CHAIN_ID_HEX = `0x${POLKADOT_HUB_CHAIN_ID_DEC.toString(16)}`;
 export interface WalletContextValue {
   account: string | null;
   chainId: number | null;
+  balanceDot: string | null;
   isConnecting: boolean;
+  isSwitchingNetwork: boolean;
   isConnected: boolean;
   isCorrectNetwork: boolean;
+  connectionError: string | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
+  clearConnectionError: () => void;
 }
 
 interface EthereumWindow extends Window {
@@ -67,7 +71,10 @@ async function switchToPolkadotHub(ethereum: MetaMaskProvider): Promise<void> {
 export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
+  const [balanceDot, setBalanceDot] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const ethereum = useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -79,28 +86,56 @@ export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
 
     const provider = new BrowserProvider(ethereum);
     const [network, accounts] = await Promise.all([provider.getNetwork(), provider.listAccounts()]);
+    const activeAccount = accounts[0]?.address ?? null;
+    const balance = activeAccount ? await provider.getBalance(activeAccount) : null;
 
     setChainId(Number(network.chainId));
-    setAccount(accounts[0]?.address ?? null);
+    setAccount(activeAccount);
+    setBalanceDot(
+      balance !== null
+        ? Number(formatEther(balance)).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4,
+          })
+        : null
+    );
   }, [ethereum]);
 
   const connectWallet = useCallback(async () => {
     if (!ethereum) {
-      throw new Error("MetaMask not detected");
+      setConnectionError("MetaMask not detected");
+      return;
     }
 
     setIsConnecting(true);
+    setConnectionError(null);
     try {
       await ethereum.request({ method: "eth_requestAccounts" });
+      setIsSwitchingNetwork(true);
       await switchToPolkadotHub(ethereum);
       await syncWallet();
+      setConnectionError(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.toLowerCase().includes("user rejected")) {
+        setConnectionError("Wallet connection was cancelled.");
+      } else {
+        setConnectionError(message);
+      }
     } finally {
+      setIsSwitchingNetwork(false);
       setIsConnecting(false);
     }
   }, [ethereum, syncWallet]);
 
   const disconnectWallet = useCallback(() => {
     setAccount(null);
+    setBalanceDot(null);
+    setConnectionError(null);
+  }, []);
+
+  const clearConnectionError = useCallback(() => {
+    setConnectionError(null);
   }, []);
 
   useEffect(() => {
@@ -110,9 +145,11 @@ export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
 
     const onAccountsChanged = (accounts: string[]): void => {
       setAccount(accounts[0] ?? null);
+      void syncWallet();
     };
     const onChainChanged = (hexChainId: string): void => {
       setChainId(Number.parseInt(hexChainId, 16));
+      void syncWallet();
     };
 
     ethereum.on?.("accountsChanged", onAccountsChanged);
@@ -128,13 +165,27 @@ export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
     () => ({
       account,
       chainId,
+      balanceDot,
       isConnecting,
+      isSwitchingNetwork,
       isConnected: Boolean(account),
       isCorrectNetwork: chainId === POLKADOT_HUB_CHAIN_ID_DEC,
+      connectionError,
       connectWallet,
       disconnectWallet,
+      clearConnectionError,
     }),
-    [account, chainId, connectWallet, disconnectWallet, isConnecting]
+    [
+      account,
+      balanceDot,
+      chainId,
+      clearConnectionError,
+      connectWallet,
+      connectionError,
+      disconnectWallet,
+      isConnecting,
+      isSwitchingNetwork,
+    ]
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
