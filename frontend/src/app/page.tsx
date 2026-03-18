@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 
 import { CreateLoan } from "../components/CreateLoan";
+import { FlashDotMark } from "../components/FlashDotMark";
 import { LoanStatus } from "../components/LoanStatus";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useLoan } from "../hooks/useLoan";
@@ -56,102 +57,147 @@ export default function HomePage(): JSX.Element {
   }, [myLoansQuery.data]);
 
   const activeLoanQuery = useLoan(activeLoanId);
+  const statusLoading = Boolean(isConnected && (myLoansQuery.isLoading || activeLoanQuery.isLoading));
+  const hasActiveLoan = Boolean(activeLoanQuery.data?.loan);
+  const statusExpanded = statusLoading || hasActiveLoan;
 
   return (
     <main className="min-h-screen bg-mesh px-6 py-10 text-ink dark:bg-mesh-dark dark:text-white md:px-10">
-      <section className="mx-auto max-w-5xl rounded-3xl border border-ink/10 bg-white/75 p-8 shadow-glow backdrop-blur dark:border-white/10 dark:bg-slate-950/70 md:p-12">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink/70 dark:text-white/65">FlashDot</p>
-          <ThemeToggle />
-        </div>
-        <h1 className="mt-2 text-4xl font-bold leading-tight md:text-5xl">
-          One Signature, Multi-Chain Flash Liquidity
-        </h1>
-        <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink/80 dark:text-white/75 md:text-lg">
-          Connect MetaMask on Polkadot Hub EVM and create a bonded cross-chain loan plan.
-          Wallet 미연결 상태에서는 대출 생성 액션이 자동 비활성화됩니다.
-        </p>
+      <div className="mx-auto max-w-5xl space-y-6 md:space-y-8">
+        <section
+          className={`rounded-3xl border border-ink/10 bg-white/75 shadow-glow backdrop-blur transition-all dark:border-white/10 dark:bg-slate-950/70 ${isConnected ? "p-8 md:p-10" : "min-h-[72vh] p-8 md:min-h-[78vh] md:p-12"}`}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl border border-ink/10 bg-white/90 shadow-sm dark:border-white/10 dark:bg-white/5">
+                <FlashDotMark className="h-11 w-11" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink/70 dark:text-white/65">
+                  FlashDot
+                </p>
+                <p className="mt-1 text-sm text-ink/65 dark:text-white/55">Bond-backed liquidity router</p>
+              </div>
+            </div>
+            <ThemeToggle />
+          </div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          {!isConnected ? (
-            <button
-              type="button"
-              onClick={() => void connectWallet()}
-              disabled={isConnecting}
-              className="rounded-xl bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
-            >
-              {isConnecting ? "Connecting..." : "Connect Wallet"}
-            </button>
-          ) : (
-            <>
-              <span className="rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold dark:border-white/15 dark:bg-white/10">
-                {account ? shortAddress(account) : "-"}
-              </span>
+          <h1 className={`font-bold leading-tight ${isConnected ? "mt-3 text-4xl md:text-5xl" : "mt-10 text-5xl md:text-6xl"}`}>
+            One Signature, Multi-Chain Flash Liquidity
+          </h1>
+          <p className="mt-4 max-w-3xl text-base leading-relaxed text-ink/80 dark:text-white/75 md:text-lg">
+            Connect MetaMask on Polkadot Hub EVM and create a bonded cross-chain loan plan.
+            Wallet 미연결 상태에서는 대출 생성 액션이 자동 비활성화됩니다.
+          </p>
+
+          <div className={`mt-8 flex flex-wrap items-center gap-3 ${isConnected ? "" : "md:mt-10"}`}>
+            {!isConnected ? (
               <button
                 type="button"
-                onClick={disconnectWallet}
-                className="rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+                onClick={() => void connectWallet()}
+                disabled={isConnecting}
+                className="rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
               >
-                Disconnect
+                {isConnecting ? "Connecting..." : "Connect Wallet"}
               </button>
-            </>
-          )}
-        </div>
-
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Connection</p>
-            <p className="mt-2 text-lg font-semibold">{isConnected ? "Connected" : "Not connected"}</p>
-            <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Address: {account ?? "-"}</p>
+            ) : (
+              <>
+                <span className="rounded-xl border border-ink/15 bg-white px-4 py-2 text-sm font-semibold dark:border-white/15 dark:bg-white/10">
+                  {account ? shortAddress(account) : "-"}
+                </span>
+                <button
+                  type="button"
+                  onClick={disconnectWallet}
+                  className="rounded-xl border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+                >
+                  Disconnect
+                </button>
+              </>
+            )}
           </div>
 
-          <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Network</p>
-            <p className="mt-2 text-lg font-semibold">Chain ID: {networkLabel}</p>
-            <p className={`mt-1 text-sm ${isCorrectNetwork ? "text-neon" : "text-red-600"}`}>
-              {isCorrectNetwork ? "Polkadot Hub EVM" : "Switch network required"}
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Connection</p>
+              <p className="mt-2 text-lg font-semibold">{isConnected ? "Connected" : "Not connected"}</p>
+              <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Address: {account ?? "-"}</p>
+            </div>
+            <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Network</p>
+              <p className="mt-2 text-lg font-semibold">Chain ID: {networkLabel}</p>
+              <p className={`mt-1 text-sm ${isCorrectNetwork ? "text-neon" : "text-red-600"}`}>
+                {isCorrectNetwork ? "Polkadot Hub EVM" : "Switch network required"}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="relative rounded-3xl border border-ink/10 bg-white/75 p-5 shadow-glow backdrop-blur transition dark:border-white/10 dark:bg-slate-950/65 md:p-7">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold uppercase tracking-[0.12em]">Action Zone</h2>
+            <p className="text-sm text-ink/70 dark:text-white/65">Create and confirm a new loan plan.</p>
+          </div>
+          <div className={`transition ${isConnected ? "opacity-100" : "pointer-events-none opacity-25 blur-[2px]"}`}>
+            <CreateLoan />
+          </div>
+          {!isConnected ? (
+            <p className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 text-center text-sm font-semibold text-ink dark:text-white">
+              Connect wallet to unlock loan creation.
+            </p>
+          ) : null}
+        </section>
+
+        <section
+          className={`rounded-3xl border border-ink/10 bg-white/75 p-5 shadow-glow backdrop-blur transition-all duration-500 dark:border-white/10 dark:bg-slate-950/65 md:p-7 ${statusExpanded ? "opacity-100" : "opacity-80"}`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold uppercase tracking-[0.12em]">Status Zone</h2>
+            <p className="text-sm text-ink/70 dark:text-white/65">
+              {statusExpanded
+                ? "Tracking active loan and leg-level execution."
+                : "Status tracker expands after an active loan is detected."}
             </p>
           </div>
-        </div>
-
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
-            {myLoansQuery.isLoading ? (
-              <LoadingMetric />
-            ) : (
-              <>
-                <p className="mt-2 text-lg font-semibold">{(myLoansQuery.data ?? []).length}</p>
-                <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Polling every 5s</p>
-              </>
-            )}
-          </div>
-          <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
-            {loanHistoryQuery.isLoading ? (
-              <LoadingMetric />
-            ) : (
-              <>
-                <p className="mt-2 text-lg font-semibold">{(loanHistoryQuery.data ?? []).length}</p>
-                <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Settled / Defaulted / Aborted</p>
-              </>
-            )}
-          </div>
-        </div>
-
-        <CreateLoan />
-        <LoanStatus
-          loan={activeLoanQuery.data?.loan ?? null}
-          legs={activeLoanQuery.data?.legs ?? []}
-          loading={Boolean(isConnected && (myLoansQuery.isLoading || activeLoanQuery.isLoading))}
-          refreshing={activeLoanQuery.isFetching || myLoansQuery.isFetching}
-          onRepaid={() => {
-            void activeLoanQuery.refetch();
-            void myLoansQuery.refetch();
-            void loanHistoryQuery.refetch();
-          }}
-        />
-      </section>
+          {statusExpanded ? (
+            <LoanStatus
+              loan={activeLoanQuery.data?.loan ?? null}
+              legs={activeLoanQuery.data?.legs ?? []}
+              loading={statusLoading}
+              refreshing={activeLoanQuery.isFetching || myLoansQuery.isFetching}
+              onRepaid={() => {
+                void activeLoanQuery.refetch();
+                void myLoansQuery.refetch();
+                void loanHistoryQuery.refetch();
+              }}
+            />
+          ) : (
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
+                {myLoansQuery.isLoading ? (
+                  <LoadingMetric />
+                ) : (
+                  <>
+                    <p className="mt-2 text-lg font-semibold">{(myLoansQuery.data ?? []).length}</p>
+                    <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Polling every 5s</p>
+                  </>
+                )}
+              </div>
+              <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
+                {loanHistoryQuery.isLoading ? (
+                  <LoadingMetric />
+                ) : (
+                  <>
+                    <p className="mt-2 text-lg font-semibold">{(loanHistoryQuery.data ?? []).length}</p>
+                    <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Settled / Defaulted / Aborted</p>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
     </main>
   );
 }
