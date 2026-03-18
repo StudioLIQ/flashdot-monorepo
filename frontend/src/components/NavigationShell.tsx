@@ -22,6 +22,7 @@ import { useWalletModal } from "../providers/WalletModalProvider";
 import { useToast } from "../providers/ToastProvider";
 import { FlashDotMark } from "./FlashDotMark";
 import { Identicon } from "./Identicon";
+import { NetworkStatusBar } from "./NetworkStatusBar";
 import { OnboardingGate } from "./OnboardingModal";
 import { ThemeToggle } from "./ThemeToggle";
 import { WalletPanel } from "./WalletPanel";
@@ -427,6 +428,9 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
               <span className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 font-mono text-[10px] font-semibold text-warning">
                 v0.1.0-testnet
               </span>
+            </div>
+            <div className="mt-4">
+              <NetworkStatusBar />
             </div>
           </div>
         </footer>
