@@ -125,7 +125,7 @@ export default function HomePage(): JSX.Element {
                 onClick={() => void connectWallet()}
                 disabled={walletBusy}
                 aria-label="Connect MetaMask wallet"
-                className="rounded-xl bg-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-950 dark:hover:bg-white/90"
+                className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <span className="inline-flex items-center gap-2">
                   <Wallet size={16} className="shrink-0" />

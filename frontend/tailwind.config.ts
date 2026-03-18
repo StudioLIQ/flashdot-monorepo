@@ -13,11 +13,19 @@ const config: Config = {
       colors: {
         ink: "#10211f",
         mint: "#def8ec",
-        neon: "#42db8d",
-        accent: "#f5ad32",
+        // primary = FlashDot brand mint green (main CTA)
+        primary: "#42db8d",
+        "primary-hover": "#3bc87f",
+        "primary-fg": "#10211f",
+        // secondary = orange accent (informational, not destructive)
+        secondary: "#f5ad32",
+        "secondary-hover": "#e09a2a",
+        "secondary-fg": "#10211f",
+        // semantic aliases
         success: "#42db8d",
         warning: "#f5ad32",
         danger: "#ef4444",
+        "danger-hover": "#dc2626",
         info: "#60a5fa",
         surface: "#f8fff6",
         "surface-dark": "#0d1f1d",

@@ -349,7 +349,7 @@ export function CreateLoan(): JSX.Element {
         onClick={() => setConfirmOpen(true)}
         disabled={!canSubmit}
         aria-label="Create loan and lock bond"
-        className={`mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:w-auto ${createdLoanId ? "animate-success-morph bg-success text-ink dark:bg-success dark:text-ink" : "bg-ink text-white dark:bg-white dark:text-slate-950"}`}
+        className={`mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:w-auto ${createdLoanId ? "animate-success-morph bg-primary text-primary-fg" : "bg-primary text-primary-fg hover:bg-primary-hover"}`}
       >
         {submitting ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent dark:border-ink dark:border-t-transparent" /> : null}
         {createdLoanId && !submitting ? "Created ✓" : submitLabel}
@@ -386,7 +386,7 @@ export function CreateLoan(): JSX.Element {
             <button
               type="button"
               onClick={scrollToStatus}
-              className="rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+              className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover"
             >
               View Loan Status
             </button>
@@ -422,7 +422,7 @@ export function CreateLoan(): JSX.Element {
                   void onSubmit();
                 }}
                 aria-label="Confirm and submit loan creation"
-                className="rounded-lg bg-ink px-3 py-2 text-sm font-semibold text-white dark:bg-white dark:text-slate-950"
+                className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover"
               >
                 Confirm & Create
               </button>
