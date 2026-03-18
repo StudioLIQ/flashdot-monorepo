@@ -94,6 +94,7 @@ export default function HomePage(): JSX.Element {
             <span className={`rounded-full px-2 py-1 ${isCorrectNetwork ? "bg-success/25 text-ink dark:text-white" : "bg-danger/15 text-danger dark:bg-danger/20 dark:text-danger"}`}>
               {isCorrectNetwork ? "Polkadot Hub EVM" : "Wrong network"}
             </span>
+            <ThemeToggle className="min-h-8 min-w-8 rounded-full p-0" />
           </div>
         </div>
       ) : null}
@@ -113,7 +114,7 @@ export default function HomePage(): JSX.Element {
                 <p className="mt-1 text-sm text-ink/65 dark:text-white/55">Bond-backed liquidity router</p>
               </div>
             </div>
-            <ThemeToggle />
+            {!isConnected ? <ThemeToggle /> : null}
           </div>
 
           <h1 className={`font-bold leading-tight ${isConnected ? "mt-3 text-4xl md:text-5xl" : "mt-10 text-5xl md:text-6xl"}`}>
