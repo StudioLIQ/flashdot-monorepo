@@ -23,6 +23,8 @@ const FEE_BUDGET_B = parseEther("0.05");
 const MOCK_LIQUIDITY_A = "50,000 DOT";
 const MOCK_LIQUIDITY_B = "42,000 DOT";
 const INTEREST_LABEL = `${(INTEREST_BPS / 100).toFixed(2)}% (${INTEREST_BPS} bps)`;
+const AMOUNT_PRESETS = ["100", "500", "1000", "5000"] as const;
+const DURATION_PRESETS = ["15", "30", "60", "120"] as const;
 
 interface EthereumWindow extends Window {
   ethereum?: unknown;
@@ -220,9 +222,9 @@ export function CreateLoan(): JSX.Element {
             <div className="mt-2 flex items-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 dark:border-white/15 dark:bg-slate-900">
               <input
                 id="vault-a-amount"
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
+                pattern="^[0-9]*[.]?[0-9]*$"
                 value={amountA}
                 onChange={(e) => setAmountA(e.target.value)}
                 aria-label="Vault A amount in DOT"
@@ -231,6 +233,18 @@ export function CreateLoan(): JSX.Element {
               <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
             </div>
           </label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {AMOUNT_PRESETS.map((preset) => (
+              <button
+                key={`vault-a-${preset}`}
+                type="button"
+                onClick={() => setAmountA(preset)}
+                className={`min-h-9 rounded-lg border px-2.5 py-1 text-xs font-semibold ${amountA === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
+              >
+                {preset} DOT
+              </button>
+            ))}
+          </div>
           <div className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
             <input
               id="include-vault-a"
@@ -254,9 +268,9 @@ export function CreateLoan(): JSX.Element {
             <div className="mt-2 flex items-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 dark:border-white/15 dark:bg-slate-900">
               <input
                 id="vault-b-amount"
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
+                pattern="^[0-9]*[.]?[0-9]*$"
                 value={amountB}
                 onChange={(e) => setAmountB(e.target.value)}
                 aria-label="Vault B amount in DOT"
@@ -265,6 +279,18 @@ export function CreateLoan(): JSX.Element {
               <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
             </div>
           </label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {AMOUNT_PRESETS.map((preset) => (
+              <button
+                key={`vault-b-${preset}`}
+                type="button"
+                onClick={() => setAmountB(preset)}
+                className={`min-h-9 rounded-lg border px-2.5 py-1 text-xs font-semibold ${amountB === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
+              >
+                {preset} DOT
+              </button>
+            ))}
+          </div>
           <div className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
             <input
               id="include-vault-b"
@@ -278,18 +304,35 @@ export function CreateLoan(): JSX.Element {
         </article>
       </div>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="mt-4 grid gap-2">
         <label htmlFor="loan-duration-minutes" className="text-sm font-medium">Duration (minutes)</label>
-        <input
-          id="loan-duration-minutes"
-          type="number"
-          min="5"
-          step="1"
-          value={durationMinutes}
-          onChange={(e) => setDurationMinutes(e.target.value)}
-          aria-label="Loan duration in minutes"
-          className="min-h-11 w-full rounded-lg border border-ink/20 px-3 py-2 text-right text-sm dark:border-white/15 dark:bg-slate-900 sm:w-28"
-        />
+        <div className="flex flex-wrap gap-2">
+          {DURATION_PRESETS.map((preset) => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => setDurationMinutes(preset)}
+              className={`min-h-9 rounded-lg border px-3 py-1 text-xs font-semibold ${durationMinutes === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
+            >
+              {Number(preset) >= 60 ? `${Number(preset) / 60}hr` : `${preset}min`}
+            </button>
+          ))}
+        </div>
+        <div className="max-w-[140px] rounded-lg border border-ink/20 px-3 py-2 dark:border-white/15 dark:bg-slate-900">
+          <input
+            id="loan-duration-minutes"
+            type="text"
+            inputMode="numeric"
+            pattern="^[0-9]*$"
+            value={durationMinutes}
+            onChange={(e) => setDurationMinutes(e.target.value)}
+            aria-label="Loan duration in minutes"
+            className="min-h-7 w-full bg-transparent text-right text-sm outline-none"
+          />
+          <p className="text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
+            min
+          </p>
+        </div>
       </div>
 
       <BondPreviewChart
