@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { getHubContract } from "../lib/contracts";
 import type { LegView, LoanView } from "../lib/loan-types";
-import { LOAN_STATE_META, LoanState } from "../lib/loan-types";
+import { LegState, LOAN_STATE_META, LoanState } from "../lib/loan-types";
 import { useToast } from "../providers/ToastProvider";
 import { LegTracker } from "./LegTracker";
 import { RepayOnlyBanner } from "./RepayOnlyBanner";
@@ -49,6 +49,10 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
   const [cancelError, setCancelError] = useState<string | null>(null);
   const stateMeta = loan ? LOAN_STATE_META[loan.state] : null;
   const progressPercent = loan ? LOAN_PROGRESS_PERCENT[loan.state] ?? 0 : 0;
+  const committedLegCount = useMemo(
+    () => legs.filter((leg) => leg.state >= LegState.CommittedAcked).length,
+    [legs]
+  );
   const canCancel = Boolean(
     loan &&
       (loan.state === LoanState.Created || loan.state === LoanState.Preparing || loan.state === LoanState.Prepared)
@@ -207,7 +211,15 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
         </div>
       </div>
 
-      {loan.repayOnlyMode ? <div className="mt-4"><RepayOnlyBanner /></div> : null}
+      {loan.repayOnlyMode ? (
+        <div className="mt-4">
+          <RepayOnlyBanner
+            committedLegs={committedLegCount}
+            totalLegs={legs.length}
+            expiryAt={loan.expiryAt}
+          />
+        </div>
+      ) : null}
 
       <div className="animate-content-fade mt-5 grid gap-3">
         {legs.map((leg) => (
