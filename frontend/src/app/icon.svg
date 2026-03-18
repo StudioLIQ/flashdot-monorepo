@@ -8,55 +8,15 @@
   aria-labelledby="flashdot-app-icon-title flashdot-app-icon-desc"
 >
   <title id="flashdot-app-icon-title">FlashDot app icon</title>
-  <desc id="flashdot-app-icon-desc">Rounded square mark with a lightning bolt over rising market bars.</desc>
-  <rect x="64" y="64" width="896" height="896" rx="224" fill="#0B1523" />
+  <desc id="flashdot-app-icon-desc">Rounded square with mint green background and a bold lightning bolt.</desc>
+
+  <!-- Background: mint green rounded square -->
+  <rect width="1024" height="1024" rx="224" fill="#42DB8D" />
+
+  <!-- Lightning bolt — dark, bold, centered -->
   <path
-    d="M160 800C264 728 334 644 396 556C458 468 530 372 666 236"
-    stroke="#163B33"
-    stroke-opacity="0.7"
-    stroke-width="160"
-    stroke-linecap="round"
+    d="M580 80L340 520H520L440 944L740 480H560L640 80H580Z"
+    fill="#0B1E1A"
+    fill-opacity="0.88"
   />
-  <path
-    d="M280 780C376 692 458 598 520 510C582 422 644 342 766 220"
-    stroke="#132A46"
-    stroke-opacity="0.85"
-    stroke-width="112"
-    stroke-linecap="round"
-  />
-  <rect
-    x="112"
-    y="112"
-    width="800"
-    height="800"
-    rx="176"
-    stroke="#EAFBF5"
-    stroke-opacity="0.14"
-    stroke-width="16"
-  />
-  <path d="M190 732H834" stroke="#EAFBF5" stroke-opacity="0.08" stroke-width="14" stroke-linecap="round" />
-  <path d="M190 548H834" stroke="#EAFBF5" stroke-opacity="0.07" stroke-width="14" stroke-linecap="round" />
-  <path d="M190 364H834" stroke="#EAFBF5" stroke-opacity="0.06" stroke-width="14" stroke-linecap="round" />
-  <rect x="236" y="612" width="88" height="168" rx="28" fill="#214E43" />
-  <rect x="362" y="514" width="88" height="266" rx="28" fill="#2A6656" />
-  <rect x="488" y="390" width="88" height="390" rx="28" fill="#33856D" />
-  <rect x="614" y="282" width="88" height="498" rx="28" fill="#42DB8D" />
-  <path
-    d="M236 684L406 566L530 448L676 326"
-    stroke="#CFFCE5"
-    stroke-width="28"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    stroke-opacity="0.82"
-  />
-  <path
-    d="M572 176L392 492H540L448 850L742 444H594L684 176H572Z"
-    fill="#FFB347"
-    stroke="#FFF3CF"
-    stroke-opacity="0.24"
-    stroke-width="16"
-    stroke-linejoin="round"
-  />
-  <path d="M236 266H432" stroke="#EAFBF5" stroke-opacity="0.12" stroke-width="18" stroke-linecap="round" />
-  <path d="M236 318H504" stroke="#EAFBF5" stroke-opacity="0.14" stroke-width="18" stroke-linecap="round" />
 </svg>
