@@ -11,6 +11,7 @@ import { useLoanHistory } from "../hooks/useLoanHistory";
 import { useMyLoans } from "../hooks/useMyLoans";
 import { useWallet } from "../hooks/useWallet";
 import { LoanState } from "../lib/loan-types";
+import { useToast } from "../providers/ToastProvider";
 
 function shortAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -26,10 +27,10 @@ function LoadingMetric(): JSX.Element {
 }
 
 export default function HomePage(): JSX.Element {
+  const { showToast } = useToast();
   const {
     account,
     balanceDot,
-    chainId,
     isConnected,
     isCorrectNetwork,
     isConnecting,
@@ -39,11 +40,6 @@ export default function HomePage(): JSX.Element {
     disconnectWallet,
     clearConnectionError,
   } = useWallet();
-
-  const networkLabel = useMemo(() => {
-    if (!chainId) return "Unknown";
-    return `${chainId}`;
-  }, [chainId]);
 
   const myLoansQuery = useMyLoans(account);
   const loanHistoryQuery = useLoanHistory(account);
@@ -68,6 +64,15 @@ export default function HomePage(): JSX.Element {
   const historyCount = (loanHistoryQuery.data ?? []).length;
   const walletBusy = isConnecting || isSwitchingNetwork;
   const walletErrorIsMetaMaskMissing = (connectionError ?? "").toLowerCase().includes("metamask not detected");
+  const copyAddress = async (): Promise<void> => {
+    if (!account) return;
+    try {
+      await navigator.clipboard.writeText(account);
+      showToast({ tone: "info", title: "Address copied", description: shortAddress(account) });
+    } catch {
+      showToast({ tone: "error", title: "Copy failed", description: "Clipboard access was blocked." });
+    }
+  };
 
   return (
     <main className="min-h-screen bg-mesh px-6 py-10 text-ink dark:bg-mesh-dark dark:text-white md:px-10">
@@ -196,13 +201,26 @@ export default function HomePage(): JSX.Element {
             <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Connection</p>
               <p className="mt-2 text-lg font-semibold">{isConnected ? "Connected" : "Not connected"}</p>
-              <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Address: {account ?? "-"}</p>
+              {account ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <p className="text-sm font-semibold">{shortAddress(account)}</p>
+                  <button
+                    type="button"
+                    onClick={() => void copyAddress()}
+                    className="rounded-md border border-ink/20 px-2 py-1 text-xs font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+                  >
+                    Copy
+                  </button>
+                </div>
+              ) : (
+                <p className="mt-1 text-sm text-ink/70 dark:text-white/65">No wallet connected</p>
+              )}
             </div>
             <div className="rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">Network</p>
-              <p className="mt-2 text-lg font-semibold">Chain ID: {networkLabel}</p>
+              <p className="mt-2 text-lg font-semibold">Polkadot Hub EVM</p>
               <p className={`mt-1 text-sm ${isCorrectNetwork ? "text-neon" : "text-red-600"}`}>
-                {isCorrectNetwork ? "Polkadot Hub EVM" : "Switch network required"}
+                {isCorrectNetwork ? "Connected and ready" : "Switch network required"}
               </p>
             </div>
           </div>
