@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import { useMyLoans } from "../hooks/useMyLoans";
 import { useWallet } from "../hooks/useWallet";
 import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
+import { EmptyState } from "./EmptyState";
 import { Skeleton } from "./Skeleton";
 
 const LOAN_PROGRESS: Record<number, number> = {
@@ -161,28 +162,12 @@ export function ActiveLoansPage(): JSX.Element {
       </div>
 
       {activeLoans.length === 0 ? (
-        <div className="flex flex-col items-center gap-5 py-16 text-center">
-          <svg width="88" height="88" viewBox="0 0 88 88" fill="none" aria-hidden="true" className="opacity-50">
-            <rect x="12" y="22" width="64" height="44" rx="6" stroke="#42db8d" strokeWidth="2.5" fill="none" />
-            <rect x="20" y="31" width="18" height="12" rx="2" fill="#42db8d" fillOpacity="0.2" stroke="#42db8d" strokeWidth="1.5" />
-            <rect x="44" y="31" width="18" height="12" rx="2" fill="#42db8d" fillOpacity="0.1" stroke="#42db8d" strokeWidth="1.5" />
-            <rect x="20" y="50" width="40" height="5" rx="2" fill="#42db8d" fillOpacity="0.12" />
-            <polygon points="70,25 63,40 69,40 62,56 74,37 68,37" fill="#f5ad32" opacity="0.85" />
-          </svg>
-          <div>
-            <p className="text-base font-semibold">No active loans</p>
-            <p className="mt-1.5 max-w-xs text-sm text-ink/65 dark:text-white/55">
-              Start by creating a bonded flash loan. One signature locks the bond and begins execution.
-            </p>
-          </div>
-          <Link
-            href="/create"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-fg transition hover:bg-primary-hover"
-          >
-            <PlusCircle size={15} />
-            Create New Loan
-          </Link>
-        </div>
+        <EmptyState
+          illustration="no-loans"
+          title="No active loans"
+          description="Start by creating a bonded flash loan. One signature locks the bond and begins execution."
+          action={{ label: "Create New Loan", href: "/create" }}
+        />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {activeLoans.map((loan) => (
@@ -193,3 +178,4 @@ export function ActiveLoansPage(): JSX.Element {
     </main>
   );
 }
+
