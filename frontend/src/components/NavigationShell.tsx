@@ -22,6 +22,7 @@ import { useWalletModal } from "../providers/WalletModalProvider";
 import { useToast } from "../providers/ToastProvider";
 import { FlashDotMark } from "./FlashDotMark";
 import { Identicon } from "./Identicon";
+import { OnboardingGate } from "./OnboardingModal";
 import { ThemeToggle } from "./ThemeToggle";
 import { WalletPanel } from "./WalletPanel";
 import { WalletSelectModal } from "./WalletSelectModal";
@@ -485,6 +486,9 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
           onClose={() => setWalletPanelOpen(false)}
         />
       ) : null}
+
+      {/* Onboarding modal — shown once after first wallet connection */}
+      <OnboardingGate isConnected={isConnected} />
     </div>
   );
 }

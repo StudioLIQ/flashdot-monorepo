@@ -84,6 +84,23 @@ export default function HomePage(): JSX.Element {
             </div>
           ) : null}
 
+          {/* Trust signals */}
+          <div className="mt-5 flex flex-wrap gap-2">
+            {[
+              "⚡ Economic Atomicity",
+              "🔗 XCM-Native",
+              "🛡 Bond-Secured",
+              "🏆 Polkadot Hackathon APAC 2026",
+            ].map((badge) => (
+              <span
+                key={badge}
+                className="rounded-full border border-ink/15 bg-white/60 px-3 py-1 text-xs font-semibold text-ink/70 backdrop-blur dark:border-white/15 dark:bg-white/5 dark:text-white/60"
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
+
           {/* How it works */}
           <div className="mt-6 grid gap-3 sm:grid-cols-4">
             {[
