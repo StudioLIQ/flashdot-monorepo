@@ -8,6 +8,7 @@ import { LegState, LOAN_STATE_META, LoanState } from "../lib/loan-types";
 import { useToast } from "../providers/ToastProvider";
 import { LegTracker } from "./LegTracker";
 import { RepayOnlyBanner } from "./RepayOnlyBanner";
+import { Skeleton } from "./Skeleton";
 
 interface LoanStatusProps {
   loan: LoanView | null;
@@ -124,8 +125,8 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
       <section className="interactive-card mt-8 rounded-2xl border border-ink/15 bg-white p-6 dark:border-white/10 dark:bg-white/5" aria-labelledby="loan-status-loading-title">
         <h2 id="loan-status-loading-title" className="sr-only">Loan status loading</h2>
         <div className="flex items-center justify-between gap-3">
-          <div className="h-7 w-32 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
-          <div className="h-5 w-24 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
+          <Skeleton width={128} height={28} />
+          <Skeleton width={96} height={20} />
         </div>
 
         <div className="mt-5 grid gap-3">
@@ -134,13 +135,10 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
               key={index}
               className="rounded-xl border border-ink/10 bg-ink/5 p-4 dark:border-white/10 dark:bg-white/5"
             >
-              <div className="h-5 w-40 animate-pulse rounded bg-ink/10 dark:bg-white/10" />
+              <Skeleton width={160} height={20} />
               <div className="mt-3 grid gap-2 sm:grid-cols-5">
                 {Array.from({ length: 5 }).map((__, stepIndex) => (
-                  <div
-                    key={stepIndex}
-                    className="h-10 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10"
-                  />
+                  <Skeleton key={stepIndex} height={40} />
                 ))}
               </div>
             </div>

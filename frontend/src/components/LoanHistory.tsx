@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { useLoan } from "../hooks/useLoan";
 import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
+import { Skeleton } from "./Skeleton";
 
 interface LoanHistoryProps {
   loans: LoanView[];
@@ -106,7 +107,7 @@ export function LoanHistory({ loans, loading }: LoanHistoryProps): JSX.Element {
         <p className="text-sm font-semibold">History</p>
         <div className="mt-3 space-y-2">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="h-12 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
+            <Skeleton key={index} height={48} />
           ))}
         </div>
       </section>

@@ -6,6 +6,7 @@ import { CreateLoan } from "../components/CreateLoan";
 import { FlashDotMark } from "../components/FlashDotMark";
 import { LoanHistory } from "../components/LoanHistory";
 import { LoanStatus } from "../components/LoanStatus";
+import { Skeleton } from "../components/Skeleton";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useLoan } from "../hooks/useLoan";
 import { useLoanHistory } from "../hooks/useLoanHistory";
@@ -16,15 +17,6 @@ import { useToast } from "../providers/ToastProvider";
 
 function shortAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
-}
-
-function LoadingMetric(): JSX.Element {
-  return (
-    <>
-      <div className="mt-2 h-7 w-16 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
-      <div className="mt-2 h-4 w-28 animate-pulse rounded-lg bg-ink/10 dark:bg-white/10" />
-    </>
-  );
 }
 
 export default function HomePage(): JSX.Element {
@@ -283,7 +275,10 @@ export default function HomePage(): JSX.Element {
               <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">My Loans</p>
                 {myLoansQuery.isLoading ? (
-                  <LoadingMetric />
+                  <div className="mt-2 space-y-2">
+                    <Skeleton width={64} height={28} />
+                    <Skeleton width={128} height={16} />
+                  </div>
                 ) : (
                   <div className="animate-content-fade">
                     <p className="mt-2 text-lg font-semibold">{myLoanCount}</p>
@@ -296,7 +291,10 @@ export default function HomePage(): JSX.Element {
               <div className="interactive-card rounded-2xl border border-ink/10 bg-white p-5 dark:border-white/10 dark:bg-white/5">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink/60 dark:text-white/55">History</p>
                 {loanHistoryQuery.isLoading ? (
-                  <LoadingMetric />
+                  <div className="mt-2 space-y-2">
+                    <Skeleton width={64} height={28} />
+                    <Skeleton width={128} height={16} />
+                  </div>
                 ) : (
                   <div className="animate-content-fade">
                     <p className="mt-2 text-lg font-semibold">{historyCount}</p>
