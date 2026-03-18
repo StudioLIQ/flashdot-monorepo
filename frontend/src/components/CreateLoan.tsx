@@ -1,8 +1,8 @@
 "use client";
 
-import { parseEther, formatEther } from "ethers";
+import { BrowserProvider, Contract, parseEther, formatEther } from "ethers";
 import { Globe, Wallet } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { BondPreviewChart } from "./BondPreviewChart";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -13,6 +13,8 @@ import {
   ASSET_ADDRESS,
   CHAIN_A,
   CHAIN_B,
+  HUB_ADDRESS,
+  HUB_ABI,
   VAULT_A_ADDRESS,
   VAULT_B_ADDRESS,
   getHubContract,
@@ -59,6 +61,8 @@ export function CreateLoan(): JSX.Element {
   const [durationMinutes, setDurationMinutes] = useState("60");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [gasEstimate, setGasEstimate] = useState<string | null>(null);
+  const [gasEstimateUnable, setGasEstimateUnable] = useState(false);
   const [submittedBondAmount, setSubmittedBondAmount] = useState<bigint | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +81,51 @@ export function CreateLoan(): JSX.Element {
     feeBudgetB: FEE_BUDGET_B,
     hubFeeBuffer: HUB_FEE_BUFFER,
   });
+
+  // Debounced gas estimation
+  useEffect(() => {
+    if (!isConnected || !isCorrectNetwork || preview.targetAmount === 0n) {
+      setGasEstimate(null);
+      setGasEstimateUnable(false);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const ethereum = (window as EthereumWindow).ethereum;
+        if (!ethereum || !HUB_ADDRESS) return;
+        const provider = new BrowserProvider(ethereum as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        const signer = await provider.getSigner();
+        const hub = new Contract(HUB_ADDRESS, HUB_ABI, signer);
+        const durationSec = Math.max(5, Number(durationMinutes) || 60) * 60;
+        const expiryAt = Math.floor(Date.now() / 1000) + durationSec;
+        const legs = [];
+        if (includeA) legs.push({ chain: CHAIN_A, vault: VAULT_A_ADDRESS, amount: amountABigint, feeBudget: FEE_BUDGET_A, legInterestBps: INTEREST_BPS });
+        if (includeB) legs.push({ chain: CHAIN_B, vault: VAULT_B_ADDRESS, amount: amountBBigint, feeBudget: FEE_BUDGET_B, legInterestBps: INTEREST_BPS });
+        if (!legs.length) return;
+        const params = { asset: ASSET_ADDRESS, targetAmount: preview.targetAmount, interestBps: INTEREST_BPS, expiryAt };
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        const gasUnits = await (hub as any).createLoan.estimateGas(params, legs) as bigint;
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice ?? 1_000_000_000n;
+        const costWei = gasUnits * gasPrice;
+        if (!cancelled) {
+          setGasEstimate(formatDot(costWei));
+          setGasEstimateUnable(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setGasEstimate(null);
+          setGasEstimateUnable(true);
+        }
+      }
+    }, 600);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [isConnected, isCorrectNetwork, amountABigint, amountBBigint, includeA, includeB, durationMinutes, preview.targetAmount]);
 
   const canSubmit =
     isConnected &&
@@ -381,6 +430,16 @@ export function CreateLoan(): JSX.Element {
         totalBond={preview.totalBond}
       />
 
+      {isConnected && isCorrectNetwork ? (
+        <p className="mt-2 font-mono text-xs text-ink/60 dark:text-white/55">
+          {gasEstimateUnable
+            ? "Est. Gas: Unable to estimate"
+            : gasEstimate
+              ? `Est. Gas: ~${gasEstimate}`
+              : "Est. Gas: Calculating..."}
+        </p>
+      ) : null}
+
       <button
         type="button"
         onClick={() => setConfirmOpen(true)}
@@ -456,6 +515,12 @@ export function CreateLoan(): JSX.Element {
               <span className="text-ink/70 dark:text-white/65">Legs</span>
               <span className="font-semibold">
                 {[includeA && "Alpha", includeB && "Beta"].filter(Boolean).join(" + ")}
+              </span>
+            </div>
+            <div className="flex justify-between gap-2">
+              <span className="text-ink/70 dark:text-white/65">Est. Gas</span>
+              <span className="font-mono font-semibold">
+                {gasEstimateUnable ? "Unable to estimate" : gasEstimate ? `~${gasEstimate}` : "Calculating..."}
               </span>
             </div>
           </div>
