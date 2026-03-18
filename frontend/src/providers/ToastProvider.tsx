@@ -15,6 +15,7 @@ interface ShowToastInput {
   tone: ToastTone;
   title: string;
   description?: string;
+  link?: { href: string; label: string };
   durationMs?: number;
 }
 
@@ -38,6 +39,7 @@ export function ToastProvider({ children }: PropsWithChildren): JSX.Element {
       tone: input.tone,
       title: input.title,
       ...(input.description ? { description: input.description } : {}),
+      ...(input.link ? { link: input.link } : {}),
       ...(input.durationMs !== undefined
         ? { durationMs: input.durationMs }
         : { durationMs: defaultDuration(input.tone) }),

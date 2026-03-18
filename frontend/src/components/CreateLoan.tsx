@@ -1,7 +1,7 @@
 "use client";
 
 import { BrowserProvider, Contract, parseEther, formatEther } from "ethers";
-import { Globe, Wallet } from "lucide-react";
+import { ExternalLink, Globe, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { BondPreviewChart } from "./BondPreviewChart";
@@ -13,6 +13,7 @@ import {
   ASSET_ADDRESS,
   CHAIN_A,
   CHAIN_B,
+  EXPLORER_TX_URL,
   HUB_ADDRESS,
   HUB_ABI,
   VAULT_A_ADDRESS,
@@ -67,6 +68,7 @@ export function CreateLoan(): JSX.Element {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [createdLoanId, setCreatedLoanId] = useState<string | null>(null);
+  const [createdTxHash, setCreatedTxHash] = useState<string | null>(null);
 
   const amountABigint = useMemo(() => toAmount(amountA), [amountA]);
   const amountBBigint = useMemo(() => toAmount(amountB), [amountB]);
@@ -175,6 +177,7 @@ export function CreateLoan(): JSX.Element {
     setError(null);
     setMessage(null);
     setCreatedLoanId(null);
+    setCreatedTxHash(null);
 
     try {
       const hub = await getHubContract(ethereum);
@@ -219,6 +222,7 @@ export function CreateLoan(): JSX.Element {
 
       const tx = await hub.createLoan(params, legs);
       const receipt = await tx.wait();
+      const txHash = (receipt as { hash?: string }).hash ?? null;
 
       for (const log of receipt.logs ?? []) {
         try {
@@ -233,11 +237,13 @@ export function CreateLoan(): JSX.Element {
       }
 
       setCreatedLoanId(nextLoanId);
+      setCreatedTxHash(txHash);
       setMessage("Loan created successfully. Bond lock transaction confirmed.");
       showToast({
         tone: "success",
         title: nextLoanId ? `Loan #${nextLoanId} created` : "Loan created",
         description: `Bond locked: ${formatDot(preview.totalBond)}`,
+        ...(txHash ? { link: { href: EXPLORER_TX_URL(txHash), label: "View on Explorer" } } : {}),
       });
       scrollToStatus();
     } catch (submitError) {
@@ -486,6 +492,17 @@ export function CreateLoan(): JSX.Element {
             >
               View Loan Status
             </button>
+            {createdTxHash ? (
+              <a
+                href={EXPLORER_TX_URL(createdTxHash)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded-lg border border-ink/20 px-3 py-2 text-sm font-semibold hover:bg-ink/5 dark:border-white/15 dark:hover:bg-white/10"
+              >
+                View on Explorer
+                <ExternalLink size={12} />
+              </a>
+            ) : null}
             {message ? <p className="text-sm text-ink/75 dark:text-white/75">{message}</p> : null}
           </div>
         </div>

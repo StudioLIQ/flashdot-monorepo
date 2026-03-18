@@ -6,6 +6,8 @@ export const VAULT_A_ADDRESS = process.env.NEXT_PUBLIC_VAULT_A_ADDRESS ?? "";
 export const VAULT_B_ADDRESS = process.env.NEXT_PUBLIC_VAULT_B_ADDRESS ?? "";
 export const HUB_RPC_URL =
   process.env.NEXT_PUBLIC_HUB_RPC_URL ?? "https://eth-rpc-testnet.polkadot.io";
+export const EXPLORER_TX_URL = (txHash: string): string =>
+  `https://blockscout-testnet.polkadot.io/tx/${txHash}`;
 
 export const CHAIN_A = "0x0d9f0f7af3f664e9c8f2f5f7ea2486df6ea7ef170fca0f23b2f0ef96ed5ed6f6";
 export const CHAIN_B = "0xa5ff17ebf09d6f005eb77f137f6f4e911552f0668f31f3e3065fd15f87ea9f70";

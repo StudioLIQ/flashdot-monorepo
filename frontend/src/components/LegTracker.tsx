@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import type { LegView } from "../lib/loan-types";
 import { LEG_STEP_META, LegState } from "../lib/loan-types";
-import { VAULT_ABI, type VaultWriteContract } from "../lib/contracts";
+import { EXPLORER_TX_URL, VAULT_ABI, type VaultWriteContract } from "../lib/contracts";
 import { useToast } from "../providers/ToastProvider";
 import { ConfirmDialog } from "./ConfirmDialog";
 
@@ -83,11 +83,13 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
       const vault = new Contract(leg.vault, VAULT_ABI, signer) as unknown as VaultWriteContract;
 
       const tx = await vault.repay(BigInt(leg.loanId), leg.repayAmount);
-      await tx.wait();
+      const receipt = await tx.wait();
+      const txHash = (receipt as { hash?: string }).hash ?? null;
       showToast({
         tone: "success",
         title: `Loan #${leg.loanId} leg repaid`,
         description: `${formatDotAmount(leg.repayAmount)} sent to ${shortAddress(leg.vault)}.`,
+        ...(txHash ? { link: { href: EXPLORER_TX_URL(txHash), label: "View on Explorer" } } : {}),
       });
       onRepaid?.();
     } catch (error) {

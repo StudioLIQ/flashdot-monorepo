@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { getHubContract } from "../lib/contracts";
+import { EXPLORER_TX_URL, getHubContract } from "../lib/contracts";
 import type { LegView, LoanView } from "../lib/loan-types";
 import { LegState, LOAN_STATE_META, LoanState } from "../lib/loan-types";
 import { useToast } from "../providers/ToastProvider";
@@ -100,12 +100,14 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
     try {
       const hub = await getHubContract(ethereum);
       const tx = await hub.cancelBeforeCommit(BigInt(loan.loanId));
-      await tx.wait();
+      const receipt = await tx.wait();
+      const txHash = (receipt as { hash?: string }).hash ?? null;
       setCancelConfirmOpen(false);
       showToast({
         tone: "success",
         title: `Loan #${loan.loanId} cancelled`,
         description: "Bond return is now in progress.",
+        ...(txHash ? { link: { href: EXPLORER_TX_URL(txHash), label: "View on Explorer" } } : {}),
       });
       onRepaid?.();
     } catch (error) {

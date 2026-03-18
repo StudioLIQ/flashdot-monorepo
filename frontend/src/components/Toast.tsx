@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, Info, X } from "lucide-react";
+import { AlertCircle, CheckCircle2, ExternalLink, Info, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export type ToastTone = "success" | "error" | "info";
@@ -10,6 +10,7 @@ export interface ToastModel {
   tone: ToastTone;
   title: string;
   description?: string;
+  link?: { href: string; label: string };
   durationMs?: number;
 }
 
@@ -73,6 +74,17 @@ export function Toast({ toast, onClose }: ToastProps): JSX.Element {
           <p className="text-sm font-semibold text-ink dark:text-white">{toast.title}</p>
           {toast.description ? (
             <p className="mt-0.5 text-xs text-ink/70 dark:text-white/65">{toast.description}</p>
+          ) : null}
+          {toast.link ? (
+            <a
+              href={toast.link.href}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-info hover:underline"
+            >
+              {toast.link.label}
+              <ExternalLink size={11} />
+            </a>
           ) : null}
         </div>
         <button
