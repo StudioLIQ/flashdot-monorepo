@@ -1,24 +1,29 @@
 {
-  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es2022"
-    ],
+    "strict": true,
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "ES2022"],
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "allowJs": false,
     "noEmit": true,
     "jsx": "preserve",
     "incremental": true,
-    "esModuleInterop": true,
-    "moduleResolution": "bundler",
+    "isolatedModules": true,
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "module": "esnext",
-    "isolatedModules": true
+    ]
   },
   "include": [
     "next-env.d.ts",
