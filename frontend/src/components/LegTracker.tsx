@@ -7,6 +7,7 @@ import type { LegView } from "../lib/loan-types";
 import { LEG_STEP_META, LegState } from "../lib/loan-types";
 import { EXPLORER_TX_URL, VAULT_ABI, type VaultWriteContract } from "../lib/contracts";
 import { useToast } from "../providers/ToastProvider";
+import { CircularCountdown } from "./CircularCountdown";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 interface LegTrackerProps {
@@ -42,6 +43,8 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
   const [isRepaying, setIsRepaying] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [repayError, setRepayError] = useState<string | null>(null);
+  // Capture initial remaining seconds for circular progress scale
+  const initialRemainingSec = useMemo(() => Math.max(60, leg.expiryAt - Math.floor(Date.now() / 1000)), [leg.expiryAt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -176,18 +179,22 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
 
       {canRepay ? (
         <div className="mt-4">
-          <p className={`text-sm font-semibold ${countdownTone}`} aria-live="polite">
-            Repay countdown: <span key={countdown} className="inline-block font-mono animate-countdown-tick">{countdown}</span>
-          </p>
-          <button
-            type="button"
-            onClick={() => setConfirmOpen(true)}
-            disabled={isRepaying}
-            aria-label={`Repay ${formatDotAmount(leg.repayAmount)} to vault ${shortAddress(leg.vault)}`}
-            className={`mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:min-h-11 ${urgentRepay ? "animate-pulse bg-danger text-white dark:bg-danger" : "bg-primary text-primary-fg hover:bg-primary-hover"}`}
-          >
-            {isRepaying ? "Repaying..." : `Repay ${formatDotAmount(leg.repayAmount)} to ${shortAddress(leg.vault)}`}
-          </button>
+          <div className="flex items-end justify-between gap-3">
+            <CircularCountdown
+              totalSeconds={initialRemainingSec}
+              remainingSeconds={remainingSec}
+              size={72}
+            />
+            <button
+              type="button"
+              onClick={() => setConfirmOpen(true)}
+              disabled={isRepaying}
+              aria-label={`Repay ${formatDotAmount(leg.repayAmount)} to vault ${shortAddress(leg.vault)}`}
+              className={`flex-1 inline-flex min-h-12 items-center justify-center rounded-lg px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:bg-ink/20 disabled:text-ink/50 dark:disabled:bg-white/15 dark:disabled:text-white/35 sm:min-h-11 ${urgentRepay ? "animate-pulse bg-danger text-white dark:bg-danger" : "bg-primary text-primary-fg hover:bg-primary-hover"}`}
+            >
+              {isRepaying ? "Repaying..." : `Repay ${formatDotAmount(leg.repayAmount)}`}
+            </button>
+          </div>
         </div>
       ) : null}
 
