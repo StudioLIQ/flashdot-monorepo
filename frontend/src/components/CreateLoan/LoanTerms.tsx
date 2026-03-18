@@ -1,10 +1,10 @@
 "use client";
 
 import { Globe } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { Tooltip } from "../Tooltip";
 
+import { useDotPrice } from "../../hooks/useDotPrice";
 import { BondPreviewChart } from "../BondPreviewChart";
 import {
   DURATION_PRESETS,
@@ -19,26 +19,6 @@ import {
   type CreateLoanState,
 } from "../../hooks/useCreateLoan";
 import { VAULT_A_ADDRESS, VAULT_B_ADDRESS } from "../../lib/contracts";
-
-// DOT price hook — fetches from CoinGecko, falls back to a reasonable default
-function useDotUsdPrice(): number | null {
-  const [price, setPrice] = useState<number | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void fetch("https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd")
-      .then((r) => r.json())
-      .then((data: { polkadot?: { usd?: number } }) => {
-        if (!cancelled && data?.polkadot?.usd) setPrice(data.polkadot.usd);
-      })
-      .catch(() => {
-        if (!cancelled) setPrice(8.0); // fallback price
-      });
-    return () => { cancelled = true; };
-  }, []);
-
-  return price;
-}
 
 function toDisplayValue(raw: string): string {
   if (!raw) return "";
@@ -104,7 +84,7 @@ export function LoanTerms({
   onBack,
   onNext,
 }: LoanTermsProps): JSX.Element {
-  const dotPrice = useDotUsdPrice();
+  const dotPrice = useDotPrice();
   const durationLabel =
     Number(durationMinutes) >= 60
       ? `${(Number(durationMinutes) / 60).toFixed(Number(durationMinutes) % 60 === 0 ? 0 : 1)}h`

@@ -13,8 +13,9 @@ import { useMemo } from "react";
 
 import { useLoanHistory } from "../hooks/useLoanHistory";
 import { useMyLoans } from "../hooks/useMyLoans";
+import { useDotPrice } from "../hooks/useDotPrice";
 import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
-import { formatAmount, formatRelativeTime } from "../lib/format";
+import { formatAmount, formatUsd, formatRelativeTime } from "../lib/format";
 import { Skeleton } from "./Skeleton";
 
 interface DashboardViewProps {
@@ -110,6 +111,7 @@ function ActiveLoanRow({ loan }: ActiveLoanRowProps): JSX.Element {
 export function DashboardView({ account }: DashboardViewProps): JSX.Element {
   const myLoansQuery = useMyLoans(account);
   const historyQuery = useLoanHistory(account);
+  const dotPrice = useDotPrice();
 
   const allLoans = myLoansQuery.data ?? [];
   const historyLoans = historyQuery.data ?? [];
@@ -167,7 +169,12 @@ export function DashboardView({ account }: DashboardViewProps): JSX.Element {
           icon={<Zap size={18} />}
           label="Locked Bond"
           value={formatAmount(totalLockedBond)}
-          sub={activeLoans.length > 0 ? `across ${activeLoans.length} loan${activeLoans.length > 1 ? "s" : ""}` : "No active loans"}
+          sub={[
+            formatUsd(totalLockedBond, dotPrice),
+            activeLoans.length > 0
+              ? `across ${activeLoans.length} loan${activeLoans.length > 1 ? "s" : ""}`
+              : "No active loans",
+          ].filter(Boolean).join(" · ")}
           accent="primary"
         />
         <KpiCard
@@ -181,7 +188,12 @@ export function DashboardView({ account }: DashboardViewProps): JSX.Element {
           icon={<CheckCircle2 size={18} />}
           label="Total Repaid"
           value={settledLoans.length > 0 ? formatAmount(totalRepaid) : "—"}
-          sub={settledLoans.length > 0 ? `${settledLoans.length} settled loan${settledLoans.length > 1 ? "s" : ""}` : "No settled loans yet"}
+          sub={[
+            settledLoans.length > 0 ? formatUsd(totalRepaid, dotPrice) : null,
+            settledLoans.length > 0
+              ? `${settledLoans.length} settled loan${settledLoans.length > 1 ? "s" : ""}`
+              : "No settled loans yet",
+          ].filter(Boolean).join(" · ")}
           accent="success"
         />
         <KpiCard

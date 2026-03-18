@@ -8,7 +8,8 @@ import { useMyLoans } from "../hooks/useMyLoans";
 import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useWallet } from "../hooks/useWallet";
 import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
-import { formatAmount, formatRelativeTime } from "../lib/format";
+import { formatAmount, formatRelativeTime, formatUsd } from "../lib/format";
+import { useDotPrice } from "../hooks/useDotPrice";
 import { EmptyState } from "./EmptyState";
 import { Skeleton } from "./Skeleton";
 
@@ -46,12 +47,14 @@ function statusTone(state: number): string {
 
 interface LoanCardProps {
   loan: LoanView;
+  dotPrice: number | null;
 }
 
-function LoanCard({ loan }: LoanCardProps): JSX.Element {
+function LoanCard({ loan, dotPrice }: LoanCardProps): JSX.Element {
   const meta = LOAN_STATE_META[loan.state];
   const progress = LOAN_PROGRESS[loan.state] ?? 0;
   const timeLeft = loan.expiryAt > 0 ? formatRelativeTime(loan.expiryAt) : "—";
+  const bondUsd = formatUsd(loan.bondAmount, dotPrice);
 
   return (
     <Link
@@ -71,9 +74,14 @@ function LoanCard({ loan }: LoanCardProps): JSX.Element {
 
       {/* Bond + time */}
       <div className="mt-2 flex items-center justify-between gap-3">
-        <p className="font-mono text-sm text-ink/80 dark:text-white/75">
-          {formatAmount(loan.bondAmount)} bonded
-        </p>
+        <div>
+          <p className="font-mono text-sm text-ink/80 dark:text-white/75">
+            {formatAmount(loan.bondAmount)} bonded
+          </p>
+          {bondUsd ? (
+            <p className="text-xs text-ink/45 dark:text-white/35">{bondUsd}</p>
+          ) : null}
+        </div>
         <p className="text-xs text-ink/55 dark:text-white/45">{timeLeft}</p>
       </div>
 
@@ -95,6 +103,7 @@ function LoanCard({ loan }: LoanCardProps): JSX.Element {
 export function ActiveLoansPage(): JSX.Element {
   const { account, isConnected } = useWallet();
   const myLoansQuery = useMyLoans(account);
+  const dotPrice = useDotPrice();
 
   const activeLoans = useMemo(
     () => (myLoansQuery.data ?? []).filter((l) => isActive(l.state)),
@@ -182,7 +191,7 @@ export function ActiveLoansPage(): JSX.Element {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           {activeLoans.map((loan) => (
-            <LoanCard key={loan.loanId} loan={loan} />
+            <LoanCard key={loan.loanId} loan={loan} dotPrice={dotPrice} />
           ))}
         </div>
       )}
