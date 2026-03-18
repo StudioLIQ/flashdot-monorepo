@@ -276,7 +276,7 @@ export default function HomePage(): JSX.Element {
       ) : null}
 
       {/* Main Content */}
-      <main id="main-content" className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
+      <main id="main-content" aria-label="Flash loan interface" className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
         {/* Create Tab */}
         {activeTab === "create" ? (
           <div className={`transition ${isConnected ? "opacity-100" : "pointer-events-none opacity-40 blur-[1px]"}`}>
