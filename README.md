@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./flashdot-logo.svg" alt="FlashDot logo" width="112" height="112" />
+</p>
+
 # FlashDot ⚡
 
 Bonded cross-chain flash loan aggregator on Polkadot Hub.
