@@ -409,6 +409,75 @@ body {
   animation: sheet-slide-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
+/* ─── FE-21: State transition animations ────────────────────────────── */
+
+/* Progress bar glow pulse (fires on state change) */
+@keyframes progress-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(66, 219, 141, 0.6); }
+  40%  { box-shadow: 0 0 0 6px rgba(66, 219, 141, 0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(66, 219, 141, 0); }
+}
+.animate-progress-glow {
+  animation: progress-glow 1.4s ease-out;
+}
+
+/* Status badge background flash */
+@keyframes badge-flash {
+  0%   { background-color: inherit; }
+  25%  { background-color: rgba(66, 219, 141, 0.35); }
+  100% { background-color: inherit; }
+}
+.animate-badge-flash {
+  animation: badge-flash 0.7s ease-out;
+}
+
+/* Wizard step transitions: slide from right (going forward) */
+@keyframes slide-from-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-from-right {
+  animation: slide-from-right 0.2s ease-out both;
+}
+
+/* Wizard step transitions: slide from left (going backward) */
+@keyframes slide-from-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-from-left {
+  animation: slide-from-left 0.2s ease-out both;
+}
+
+/* Success bounce-in (loan created) */
+@keyframes bounce-in {
+  0%   { opacity: 0; transform: scale(0.85); }
+  60%  { opacity: 1; transform: scale(1.04); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-bounce-in {
+  animation: bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Celebration sparkles (after loan created) */
+@keyframes sparkle-pop {
+  0%   { opacity: 1; transform: scale(0) translateY(0); }
+  60%  { opacity: 1; transform: scale(1) translateY(-20px); }
+  100% { opacity: 0; transform: scale(0.5) translateY(-40px); }
+}
+.animate-sparkle {
+  animation: sparkle-pop 0.7s ease-out both;
+}
+
+/* Page-level enter transition */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-enter {
+  animation: page-enter 0.18s ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -49,6 +49,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [cancelPending, setCancelPending] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [stateJustChanged, setStateJustChanged] = useState(false);
   const stateMeta = loan ? LOAN_STATE_META[loan.state] : null;
   const progressPercent = loan ? LOAN_PROGRESS_PERCENT[loan.state] ?? 0 : 0;
   const committedLegCount = useMemo(
@@ -85,6 +86,9 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
         title: `Loan #${loan.loanId} status update`,
         description: label,
       });
+      // Trigger visual flash animation
+      setStateJustChanged(true);
+      setTimeout(() => setStateJustChanged(false), 1500);
     }
 
     previousStateRef.current = { loanId: loan.loanId, state: loan.state };
@@ -197,7 +201,11 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
       <div className="flex items-center justify-between gap-3">
         <h2 id="loan-status-title" className="font-mono text-xl font-semibold">Loan #{loan.loanId}</h2>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <p className="inline-flex items-center gap-1.5 text-sm text-ink/70 dark:text-white/65" aria-live="polite">
+          <p
+            className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-ink/70 dark:text-white/65 ${stateJustChanged ? "animate-badge-flash" : ""}`}
+            aria-live="polite"
+            key={loan.state}
+          >
             {stateMeta ? <><stateMeta.icon size={14} className="shrink-0" />{stateMeta.label}</> : `State ${loan.state}`}
             {refreshing ? " · updating..." : ""}
           </p>
@@ -219,8 +227,12 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-ink/15 dark:bg-white/10">
           <div
-            className="h-full rounded-full bg-success transition-[width] duration-500 ease-out"
+            className={`h-full rounded-full bg-success transition-[width] duration-500 ease-out ${stateJustChanged ? "animate-progress-glow" : ""}`}
             style={{ width: `${progressPercent}%` }}
+            role="progressbar"
+            aria-valuenow={progressPercent}
+            aria-valuemin={0}
+            aria-valuemax={100}
           />
         </div>
       </div>

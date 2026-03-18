@@ -163,7 +163,7 @@ export function ReviewConfirm({
 
       {/* Success */}
       {createdLoanId ? (
-        <div className="animate-content-fade rounded-xl border border-success/45 bg-success/10 px-4 py-4 dark:border-success/40 dark:bg-success/20">
+        <div className="animate-bounce-in rounded-xl border border-success/45 bg-success/10 px-4 py-4 dark:border-success/40 dark:bg-success/20">
           <div className="inline-flex items-center gap-2">
             <span className="relative grid h-8 w-8 place-items-center rounded-full bg-success text-ink">
               <span className="absolute inset-0 rounded-full bg-success/45 animate-ping" />

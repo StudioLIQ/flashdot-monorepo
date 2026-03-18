@@ -8,6 +8,7 @@ import { ReviewConfirm } from "./ReviewConfirm";
 import { VaultSelector } from "./VaultSelector";
 
 type WizardStep = 1 | 2 | 3;
+type StepDirection = "forward" | "backward";
 
 const WIZARD_STEPS = [
   { num: 1 as const, label: "Select Vaults" },
@@ -26,9 +27,15 @@ function hashToStep(hash: string): WizardStep | null {
   return null;
 }
 
+function stepAnimationClass(direction: StepDirection | null): string {
+  if (!direction) return "";
+  return direction === "forward" ? "animate-slide-from-right" : "animate-slide-from-left";
+}
+
 export function CreateLoan(): JSX.Element {
   const state = useCreateLoan();
   const [wizardStep, setWizardStep] = useState<WizardStep>(1);
+  const [stepDirection, setStepDirection] = useState<StepDirection | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Sync step from URL hash on mount
@@ -38,19 +45,20 @@ export function CreateLoan(): JSX.Element {
   }, []);
 
   // Update URL hash on step change
-  const goToStep = (step: WizardStep): void => {
+  const goToStep = (step: WizardStep, direction: StepDirection): void => {
+    setStepDirection(direction);
     setWizardStep(step);
     window.history.replaceState(null, "", stepHash(step));
   };
 
   const handleNext = (from: WizardStep): void => {
     const next = Math.min(from + 1, 3) as WizardStep;
-    goToStep(next);
+    goToStep(next, "forward");
   };
 
   const handleBack = (from: WizardStep): void => {
     const prev = Math.max(from - 1, 1) as WizardStep;
-    goToStep(prev);
+    goToStep(prev, "backward");
   };
 
   return (
@@ -75,7 +83,7 @@ export function CreateLoan(): JSX.Element {
             <div className="flex flex-col items-center gap-1">
               <button
                 type="button"
-                onClick={() => wizardStep > s.num && goToStep(s.num)}
+                onClick={() => wizardStep > s.num && goToStep(s.num, "backward")}
                 disabled={wizardStep <= s.num}
                 aria-label={`${wizardStep > s.num ? "Go back to" : ""} Step ${s.num}: ${s.label}`}
                 className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold transition-colors ${
@@ -109,68 +117,71 @@ export function CreateLoan(): JSX.Element {
         ))}
       </div>
 
-      {/* Step 1 */}
-      {wizardStep === 1 ? (
-        <VaultSelector
-          includeA={state.includeA}
-          includeB={state.includeB}
-          onToggleA={() => state.setIncludeA(!state.includeA)}
-          onToggleB={() => state.setIncludeB(!state.includeB)}
-          canProceed={state.canProceedToStep2}
-          onNext={() => handleNext(1)}
-        />
-      ) : null}
+      {/* Step content with directional slide animation */}
+      <div className={`overflow-hidden ${stepAnimationClass(stepDirection)}`} key={wizardStep}>
+        {/* Step 1 */}
+        {wizardStep === 1 ? (
+          <VaultSelector
+            includeA={state.includeA}
+            includeB={state.includeB}
+            onToggleA={() => state.setIncludeA(!state.includeA)}
+            onToggleB={() => state.setIncludeB(!state.includeB)}
+            canProceed={state.canProceedToStep2}
+            onNext={() => handleNext(1)}
+          />
+        ) : null}
 
-      {/* Step 2 */}
-      {wizardStep === 2 ? (
-        <LoanTerms
-          includeA={state.includeA}
-          includeB={state.includeB}
-          amountA={state.amountA}
-          amountB={state.amountB}
-          amountABigint={state.amountABigint}
-          amountBBigint={state.amountBBigint}
-          isInvalidA={state.isInvalidA}
-          isInvalidB={state.isInvalidB}
-          durationMinutes={state.durationMinutes}
-          setIncludeA={state.setIncludeA}
-          setIncludeB={state.setIncludeB}
-          setAmountA={state.setAmountA}
-          setAmountB={state.setAmountB}
-          setDurationMinutes={state.setDurationMinutes}
-          preview={state.preview}
-          canProceedToStep3={state.canProceedToStep3}
-          isGuided
-          onBack={() => handleBack(2)}
-          onNext={() => handleNext(2)}
-        />
-      ) : null}
+        {/* Step 2 */}
+        {wizardStep === 2 ? (
+          <LoanTerms
+            includeA={state.includeA}
+            includeB={state.includeB}
+            amountA={state.amountA}
+            amountB={state.amountB}
+            amountABigint={state.amountABigint}
+            amountBBigint={state.amountBBigint}
+            isInvalidA={state.isInvalidA}
+            isInvalidB={state.isInvalidB}
+            durationMinutes={state.durationMinutes}
+            setIncludeA={state.setIncludeA}
+            setIncludeB={state.setIncludeB}
+            setAmountA={state.setAmountA}
+            setAmountB={state.setAmountB}
+            setDurationMinutes={state.setDurationMinutes}
+            preview={state.preview}
+            canProceedToStep3={state.canProceedToStep3}
+            isGuided
+            onBack={() => handleBack(2)}
+            onNext={() => handleNext(2)}
+          />
+        ) : null}
 
-      {/* Step 3 */}
-      {wizardStep === 3 ? (
-        <ReviewConfirm
-          includeA={state.includeA}
-          includeB={state.includeB}
-          amountA={state.amountA}
-          amountB={state.amountB}
-          durationMinutes={state.durationMinutes}
-          preview={state.preview}
-          gasEstimate={state.gasEstimate}
-          gasEstimateUnable={state.gasEstimateUnable}
-          canSubmit={state.canSubmit}
-          submitting={state.submitting}
-          message={state.message}
-          error={state.error}
-          createdLoanId={state.createdLoanId}
-          createdTxHash={state.createdTxHash}
-          submittedBondAmount={state.submittedBondAmount}
-          onSubmit={state.onSubmit}
-          onBack={() => handleBack(3)}
-          confirmOpen={confirmOpen}
-          onOpenConfirm={() => setConfirmOpen(true)}
-          onCloseConfirm={() => setConfirmOpen(false)}
-        />
-      ) : null}
+        {/* Step 3 */}
+        {wizardStep === 3 ? (
+          <ReviewConfirm
+            includeA={state.includeA}
+            includeB={state.includeB}
+            amountA={state.amountA}
+            amountB={state.amountB}
+            durationMinutes={state.durationMinutes}
+            preview={state.preview}
+            gasEstimate={state.gasEstimate}
+            gasEstimateUnable={state.gasEstimateUnable}
+            canSubmit={state.canSubmit}
+            submitting={state.submitting}
+            message={state.message}
+            error={state.error}
+            createdLoanId={state.createdLoanId}
+            createdTxHash={state.createdTxHash}
+            submittedBondAmount={state.submittedBondAmount}
+            onSubmit={state.onSubmit}
+            onBack={() => handleBack(3)}
+            confirmOpen={confirmOpen}
+            onOpenConfirm={() => setConfirmOpen(true)}
+            onCloseConfirm={() => setConfirmOpen(false)}
+          />
+        ) : null}
+      </div>
     </section>
   );
 }
