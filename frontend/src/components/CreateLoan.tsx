@@ -305,34 +305,70 @@ export function CreateLoan(): JSX.Element {
         </article>
       </div>
 
-      <div className="mt-4 grid gap-2">
-        <label htmlFor="loan-duration-minutes" className="text-sm font-medium">Duration (minutes)</label>
-        <div className="flex flex-wrap gap-2">
+      <div className="mt-4 rounded-xl border border-ink/15 bg-surface p-4 dark:border-white/10 dark:bg-surface-dark">
+        <div className="flex items-center justify-between gap-3">
+          <label htmlFor="loan-duration-minutes" className="text-sm font-medium">Duration</label>
+          <span className="font-mono text-sm font-semibold">
+            {Number(durationMinutes) >= 60
+              ? `${(Number(durationMinutes) / 60).toFixed(Number(durationMinutes) % 60 === 0 ? 0 : 1)}h`
+              : `${durationMinutes}m`}
+          </span>
+        </div>
+
+        {/* Slider */}
+        <input
+          id="loan-duration-minutes"
+          type="range"
+          min={5}
+          max={180}
+          step={5}
+          value={Number(durationMinutes) || 60}
+          onChange={(e) => setDurationMinutes(e.target.value)}
+          aria-label="Loan duration in minutes"
+          className={`mt-3 h-2 w-full cursor-pointer appearance-none rounded-full outline-none ${
+            Number(durationMinutes) < 15
+              ? "[&::-webkit-slider-runnable-track]:bg-danger/30 [&::-webkit-slider-thumb]:bg-danger"
+              : "[&::-webkit-slider-runnable-track]:bg-ink/15 [&::-webkit-slider-thumb]:bg-primary dark:[&::-webkit-slider-runnable-track]:bg-white/15"
+          } [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-sm`}
+        />
+
+        {/* Danger warning for very short durations */}
+        {Number(durationMinutes) < 15 ? (
+          <p className="mt-1 text-xs font-semibold text-danger">
+            Warning: durations under 15 min are high-risk. You may not have time to repay.
+          </p>
+        ) : null}
+
+        {/* Expiry timestamp */}
+        <p className="mt-2 font-mono text-xs text-ink/60 dark:text-white/55">
+          Expires at:{" "}
+          {new Date(Date.now() + (Number(durationMinutes) || 60) * 60 * 1000).toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}{" "}
+          ({new Date(Date.now() + (Number(durationMinutes) || 60) * 60 * 1000).toLocaleDateString(undefined, {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })})
+        </p>
+
+        {/* Preset chips */}
+        <div className="mt-3 flex flex-wrap gap-2">
           {DURATION_PRESETS.map((preset) => (
             <button
               key={preset}
               type="button"
               onClick={() => setDurationMinutes(preset)}
-              className={`min-h-9 rounded-lg border px-3 py-1 text-xs font-semibold ${durationMinutes === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
+              className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                durationMinutes === preset
+                  ? "border-primary/50 bg-primary/15 text-ink dark:text-white"
+                  : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
+              }`}
             >
               {Number(preset) >= 60 ? `${Number(preset) / 60}hr` : `${preset}min`}
             </button>
           ))}
-        </div>
-        <div className="max-w-[140px] rounded-lg border border-ink/20 px-3 py-2 dark:border-white/15 dark:bg-slate-900">
-          <input
-            id="loan-duration-minutes"
-            type="text"
-            inputMode="numeric"
-            pattern="^[0-9]*$"
-            value={durationMinutes}
-            onChange={(e) => setDurationMinutes(e.target.value)}
-            aria-label="Loan duration in minutes"
-            className="min-h-7 w-full bg-transparent text-right text-sm outline-none"
-          />
-          <p className="text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
-            min
-          </p>
         </div>
       </div>
 
