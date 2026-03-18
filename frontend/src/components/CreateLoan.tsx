@@ -53,6 +53,11 @@ function formatDot(value: bigint): string {
   })} DOT`;
 }
 
+function shortAddress(address: string): string {
+  if (!address) return "";
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
 export function CreateLoan(): JSX.Element {
   const { isConnected, isCorrectNetwork } = useWallet();
   const { showToast } = useToast();
@@ -272,147 +277,165 @@ export function CreateLoan(): JSX.Element {
       <p className="mt-1 text-sm text-ink/70 dark:text-white/65">Estimated bond breakdown before transaction submission.</p>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {/* Vault A — Parachain Alpha (mint accent) */}
         <article
-          className={`rounded-2xl border p-4 transition ${includeA ? "border-success bg-success/10 shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-success/20" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
+          className={`relative overflow-hidden rounded-2xl border transition ${includeA ? "border-primary/25 bg-primary/8 shadow-[0_0_0_1px_rgba(66,219,141,0.12)] dark:border-primary/20 dark:bg-primary/12" : "border-ink/15 bg-white/60 opacity-60 grayscale dark:border-white/10 dark:bg-white/5"}`}
         >
-          <p className="inline-flex items-center gap-2 text-sm font-semibold"><Globe size={14} className="text-info shrink-0" /> Parachain Alpha</p>
-          <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_A}</p>
-          <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Interest: {INTEREST_LABEL}</p>
-          <div className="mt-4">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-sm font-semibold">
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-info/20 text-[9px] font-bold text-info">DOT</span>
-                DOT
+          <div className={`absolute left-0 top-0 h-full w-1 transition-colors ${includeA ? "bg-primary" : "bg-transparent"}`} />
+          <div className="px-5 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-primary/15">
+                  <Globe size={16} className="text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Parachain Alpha</p>
+                  {VAULT_A_ADDRESS ? (
+                    <p className="font-mono text-[10px] text-ink/50 dark:text-white/45">{shortAddress(VAULT_A_ADDRESS)}</p>
+                  ) : null}
+                </div>
               </div>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => setAmountA(MAX_LIQUIDITY_A)}
-                  className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
-                >
-                  MAX
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAmountA(String(Number(MAX_LIQUIDITY_A) / 2))}
-                  className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
-                >
-                  50%
-                </button>
+              <label className="relative inline-flex cursor-pointer items-center" aria-label="Include Parachain Alpha">
+                <input
+                  id="include-vault-a"
+                  type="checkbox"
+                  checked={includeA}
+                  onChange={(e) => setIncludeA(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="peer h-5 w-9 rounded-full bg-ink/20 transition-colors dark:bg-white/20 peer-checked:bg-primary" />
+                <span className="absolute left-0.5 h-4 w-4 transform rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+              </label>
+            </div>
+
+            <div className="mt-3 flex gap-4 text-xs">
+              <div>
+                <p className="text-ink/55 dark:text-white/50">Liquidity</p>
+                <p className="mt-0.5 font-semibold">{MOCK_LIQUIDITY_A}</p>
+              </div>
+              <div>
+                <p className="text-ink/55 dark:text-white/50">Interest</p>
+                <p className="mt-0.5 font-semibold">{INTEREST_LABEL}</p>
               </div>
             </div>
-            <div className={`flex items-center rounded-xl border bg-white px-4 py-3 dark:bg-slate-900 ${isInvalidA ? "border-danger" : "border-ink/20 dark:border-white/15"}`}>
-              <input
-                id="vault-a-amount"
-                type="text"
-                inputMode="decimal"
-                pattern="^[0-9]*[.]?[0-9]*$"
-                value={amountA}
-                onChange={(e) => setAmountA(e.target.value)}
-                aria-label="Vault A amount in DOT"
-                aria-invalid={isInvalidA}
-                className="w-full bg-transparent font-mono text-2xl font-semibold text-right outline-none"
-              />
+
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/60">Amount</span>
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => setAmountA(MAX_LIQUIDITY_A)} className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10">MAX</button>
+                  <button type="button" onClick={() => setAmountA(String(Number(MAX_LIQUIDITY_A) / 2))} className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10">50%</button>
+                </div>
+              </div>
+              <div className={`flex items-center rounded-xl border bg-white px-4 py-3 dark:bg-slate-900 ${isInvalidA ? "border-danger" : "border-ink/20 dark:border-white/15"}`}>
+                <input
+                  id="vault-a-amount"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="^[0-9]*[.]?[0-9]*$"
+                  value={amountA}
+                  onChange={(e) => setAmountA(e.target.value)}
+                  aria-label="Vault A amount in DOT"
+                  aria-invalid={isInvalidA}
+                  className="w-full bg-transparent font-mono text-2xl font-semibold text-right outline-none"
+                />
+                <span className="ml-2 text-sm font-semibold text-ink/50 dark:text-white/45">DOT</span>
+              </div>
+              {isInvalidA ? (
+                <p className="mt-1 text-xs text-danger">Invalid amount</p>
+              ) : (
+                <p className="mt-1 text-right text-xs text-ink/55 dark:text-white/50">Available: {MOCK_LIQUIDITY_A}</p>
+              )}
             </div>
-            {isInvalidA ? (
-              <p className="mt-1 text-xs text-danger">Invalid amount</p>
-            ) : (
-              <p className="mt-1 text-right text-xs text-ink/60 dark:text-white/55">Available: {MOCK_LIQUIDITY_A}</p>
-            )}
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {AMOUNT_PRESETS.map((preset) => (
-              <button
-                key={`vault-a-${preset}`}
-                type="button"
-                onClick={() => setAmountA(preset)}
-                className={`min-h-8 rounded-lg border px-2 py-1 text-xs font-semibold ${amountA === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
-              >
-                {preset}
-              </button>
-            ))}
-          </div>
-          <div className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
-            <input
-              id="include-vault-a"
-              type="checkbox"
-              checked={includeA}
-              onChange={(e) => setIncludeA(e.target.checked)}
-              className="h-5 w-5"
-            />
-            <label htmlFor="include-vault-a">Include this vault</label>
+
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {AMOUNT_PRESETS.map((preset) => (
+                <button key={`vault-a-${preset}`} type="button" onClick={() => setAmountA(preset)} className={`min-h-8 rounded-lg border px-2 py-1 text-xs font-semibold ${amountA === preset ? "border-primary/50 bg-primary/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}>
+                  {preset}
+                </button>
+              ))}
+            </div>
           </div>
         </article>
 
+        {/* Vault B — Parachain Beta (blue accent) */}
         <article
-          className={`rounded-2xl border p-4 transition ${includeB ? "border-success bg-success/10 shadow-[0_0_0_1px_rgba(66,219,141,0.2)] dark:bg-success/20" : "border-ink/15 bg-white/60 opacity-65 dark:border-white/10 dark:bg-white/5"}`}
+          className={`relative overflow-hidden rounded-2xl border transition ${includeB ? "border-info/25 bg-info/8 shadow-[0_0_0_1px_rgba(96,165,250,0.12)] dark:border-info/20 dark:bg-info/12" : "border-ink/15 bg-white/60 opacity-60 grayscale dark:border-white/10 dark:bg-white/5"}`}
         >
-          <p className="inline-flex items-center gap-2 text-sm font-semibold"><Globe size={14} className="text-success shrink-0" /> Parachain Beta</p>
-          <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_B}</p>
-          <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Interest: {INTEREST_LABEL}</p>
-          <div className="mt-4">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-sm font-semibold">
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-success/20 text-[9px] font-bold text-success">DOT</span>
-                DOT
+          <div className={`absolute left-0 top-0 h-full w-1 transition-colors ${includeB ? "bg-info" : "bg-transparent"}`} />
+          <div className="px-5 py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-info/15">
+                  <Globe size={16} className="text-info" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">Parachain Beta</p>
+                  {VAULT_B_ADDRESS ? (
+                    <p className="font-mono text-[10px] text-ink/50 dark:text-white/45">{shortAddress(VAULT_B_ADDRESS)}</p>
+                  ) : null}
+                </div>
               </div>
-              <div className="flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => setAmountB(MAX_LIQUIDITY_B)}
-                  className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
-                >
-                  MAX
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAmountB(String(Number(MAX_LIQUIDITY_B) / 2))}
-                  className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
-                >
-                  50%
-                </button>
+              <label className="relative inline-flex cursor-pointer items-center" aria-label="Include Parachain Beta">
+                <input
+                  id="include-vault-b"
+                  type="checkbox"
+                  checked={includeB}
+                  onChange={(e) => setIncludeB(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="peer h-5 w-9 rounded-full bg-ink/20 transition-colors dark:bg-white/20 peer-checked:bg-info" />
+                <span className="absolute left-0.5 h-4 w-4 transform rounded-full bg-white shadow transition-transform peer-checked:translate-x-4" />
+              </label>
+            </div>
+
+            <div className="mt-3 flex gap-4 text-xs">
+              <div>
+                <p className="text-ink/55 dark:text-white/50">Liquidity</p>
+                <p className="mt-0.5 font-semibold">{MOCK_LIQUIDITY_B}</p>
+              </div>
+              <div>
+                <p className="text-ink/55 dark:text-white/50">Interest</p>
+                <p className="mt-0.5 font-semibold">{INTEREST_LABEL}</p>
               </div>
             </div>
-            <div className={`flex items-center rounded-xl border bg-white px-4 py-3 dark:bg-slate-900 ${isInvalidB ? "border-danger" : "border-ink/20 dark:border-white/15"}`}>
-              <input
-                id="vault-b-amount"
-                type="text"
-                inputMode="decimal"
-                pattern="^[0-9]*[.]?[0-9]*$"
-                value={amountB}
-                onChange={(e) => setAmountB(e.target.value)}
-                aria-label="Vault B amount in DOT"
-                aria-invalid={isInvalidB}
-                className="w-full bg-transparent font-mono text-2xl font-semibold text-right outline-none"
-              />
+
+            <div className="mt-4">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/60">Amount</span>
+                <div className="flex gap-1">
+                  <button type="button" onClick={() => setAmountB(MAX_LIQUIDITY_B)} className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10">MAX</button>
+                  <button type="button" onClick={() => setAmountB(String(Number(MAX_LIQUIDITY_B) / 2))} className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10">50%</button>
+                </div>
+              </div>
+              <div className={`flex items-center rounded-xl border bg-white px-4 py-3 dark:bg-slate-900 ${isInvalidB ? "border-danger" : "border-ink/20 dark:border-white/15"}`}>
+                <input
+                  id="vault-b-amount"
+                  type="text"
+                  inputMode="decimal"
+                  pattern="^[0-9]*[.]?[0-9]*$"
+                  value={amountB}
+                  onChange={(e) => setAmountB(e.target.value)}
+                  aria-label="Vault B amount in DOT"
+                  aria-invalid={isInvalidB}
+                  className="w-full bg-transparent font-mono text-2xl font-semibold text-right outline-none"
+                />
+                <span className="ml-2 text-sm font-semibold text-ink/50 dark:text-white/45">DOT</span>
+              </div>
+              {isInvalidB ? (
+                <p className="mt-1 text-xs text-danger">Invalid amount</p>
+              ) : (
+                <p className="mt-1 text-right text-xs text-ink/55 dark:text-white/50">Available: {MOCK_LIQUIDITY_B}</p>
+              )}
             </div>
-            {isInvalidB ? (
-              <p className="mt-1 text-xs text-danger">Invalid amount</p>
-            ) : (
-              <p className="mt-1 text-right text-xs text-ink/60 dark:text-white/55">Available: {MOCK_LIQUIDITY_B}</p>
-            )}
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {AMOUNT_PRESETS.map((preset) => (
-              <button
-                key={`vault-b-${preset}`}
-                type="button"
-                onClick={() => setAmountB(preset)}
-                className={`min-h-8 rounded-lg border px-2 py-1 text-xs font-semibold ${amountB === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
-              >
-                {preset}
-              </button>
-            ))}
-          </div>
-          <div className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold">
-            <input
-              id="include-vault-b"
-              type="checkbox"
-              checked={includeB}
-              onChange={(e) => setIncludeB(e.target.checked)}
-              className="h-5 w-5"
-            />
-            <label htmlFor="include-vault-b">Include this vault</label>
+
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {AMOUNT_PRESETS.map((preset) => (
+                <button key={`vault-b-${preset}`} type="button" onClick={() => setAmountB(preset)} className={`min-h-8 rounded-lg border px-2 py-1 text-xs font-semibold ${amountB === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}>
+                  {preset}
+                </button>
+              ))}
+            </div>
           </div>
         </article>
       </div>
