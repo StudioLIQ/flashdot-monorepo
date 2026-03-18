@@ -578,7 +578,7 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
                 : {})}
               className={`relative flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-semibold transition-colors ${
                 active
-                  ? "text-primary"
+                  ? "text-primary-accessible dark:text-primary"
                   : item.disabled
                     ? "cursor-not-allowed text-ink/25 dark:text-white/20"
                     : "text-ink/55 hover:text-ink dark:text-white/50 dark:hover:text-white"
@@ -588,7 +588,7 @@ export function NavigationShell({ children }: NavigationShellProps): JSX.Element
               {item.badge ? (
                 <span className="absolute right-[calc(50%-14px)] top-1.5 h-1.5 w-1.5 rounded-full bg-primary" />
               ) : null}
-              <span className={active ? "text-primary" : ""}>{item.icon}</span>
+              <span className={active ? "text-primary-accessible dark:text-primary" : ""}>{item.icon}</span>
               <span>{item.label === "Active Loans" ? "Active" : item.label}</span>
             </Link>
           );

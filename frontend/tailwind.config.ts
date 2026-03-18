@@ -41,6 +41,8 @@ const config: Config = {
           border: "var(--fd-border)",
           "border-2": "var(--fd-border-2)",
         },
+        // Accessible primary text: dark green in light mode, bright green in dark
+        "primary-accessible": "var(--fd-primary-accessible)",
       },
       boxShadow: {
         glow: "0 0 0 1px rgba(66, 219, 141, 0.24), 0 12px 40px rgba(16, 33, 31, 0.18)",

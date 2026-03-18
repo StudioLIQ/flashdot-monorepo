@@ -325,6 +325,7 @@ function VaultAmountCard({
               aria-label={`${label} amount in DOT`}
               aria-invalid={isInvalid || exceedsLiquidity}
               aria-describedby={`${inputId}-error`}
+              aria-required="true"
               className="w-full bg-transparent font-mono text-2xl font-semibold text-right outline-none"
               placeholder="0"
             />

@@ -29,12 +29,21 @@ export function ConfirmDialog({
 }: ConfirmDialogProps): JSX.Element | null {
   const cancelRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<Element | null>(null);
 
-  // Focus cancel button when dialog opens
+  // Capture trigger element before dialog opens; restore focus when it closes
   useEffect(() => {
-    if (!open) return;
-    const timer = setTimeout(() => cancelRef.current?.focus(), 20);
-    return () => clearTimeout(timer);
+    if (open) {
+      triggerRef.current = document.activeElement;
+      const timer = setTimeout(() => cancelRef.current?.focus(), 20);
+      return () => clearTimeout(timer);
+    } else {
+      // Return focus to the element that opened the dialog
+      const trigger = triggerRef.current as HTMLElement | null;
+      if (trigger && typeof trigger.focus === "function") {
+        setTimeout(() => trigger.focus(), 10);
+      }
+    }
   }, [open]);
 
   // ESC to close + focus trap

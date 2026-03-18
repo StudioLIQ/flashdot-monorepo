@@ -197,7 +197,7 @@ export function LoanStatus({ loan, legs, refreshing, loading, onRepaid }: LoanSt
   }
 
   return (
-    <section className="elevation-1 mt-8 rounded-2xl p-6" aria-labelledby="loan-status-title">
+    <section className="elevation-1 mt-8 rounded-2xl p-6" aria-labelledby="loan-status-title" aria-live="polite" aria-relevant="additions text">
       <div className="flex items-center justify-between gap-3">
         <h2 id="loan-status-title" className="font-mono text-xl font-semibold">Loan #{loan.loanId}</h2>
         <div className="flex flex-wrap items-center justify-end gap-2">

@@ -36,8 +36,14 @@ export function CircularCountdown({
 
   return (
     <div className="inline-flex flex-col items-center gap-1">
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="-rotate-90">
+      <div
+        className="relative"
+        style={{ width: size, height: size }}
+        role="timer"
+        aria-label={`Time remaining: ${formatCountdown(remainingSeconds)}`}
+        aria-live="off"
+      >
+        <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
           {/* Track */}
           <circle
             cx={size / 2}
@@ -62,13 +68,23 @@ export function CircularCountdown({
             className={`transition-[stroke-dashoffset] duration-1000 ease-linear ${ringFast ? "animate-pulse" : ""}`}
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
           <span className={`font-mono text-xs font-bold tabular-nums ${textColor}`}>
             {formatCountdown(remainingSeconds)}
           </span>
         </div>
       </div>
-      <span className="text-[10px] font-semibold text-ink/55 dark:text-white/50">Repay before expiry</span>
+      {/* Polite live region: announces time only when critically low (≤60s) */}
+      <span
+        aria-live={remainingSeconds <= 60 ? "polite" : "off"}
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {remainingSeconds <= 60 ? `${formatCountdown(remainingSeconds)} remaining` : ""}
+      </span>
+      <span className="text-[10px] font-semibold text-ink/55 dark:text-white/50" aria-hidden="true">
+        Repay before expiry
+      </span>
     </div>
   );
 }
