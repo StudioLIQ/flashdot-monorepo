@@ -375,6 +375,40 @@ body {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
 }
 
+/* ─── Touch target enforcement (FE-20) ─────────────────────────────── */
+/* Ensure all interactive elements meet WCAG 2.5.5 minimum 44×44px on mobile */
+@media (pointer: coarse) {
+  button:not([data-no-touch-expand]),
+  [role="button"]:not([data-no-touch-expand]),
+  a:not([data-no-touch-expand]),
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Exceptions: icon-only small buttons in sidebars/headers keep their size
+     via data-no-touch-expand attribute; use padding expansion instead */
+  label.touch-target-label {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ─── Bottom sheet slide-up animation (FE-20) ───────────────────────── */
+@keyframes sheet-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-sheet-slide-up {
+  animation: sheet-slide-up 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

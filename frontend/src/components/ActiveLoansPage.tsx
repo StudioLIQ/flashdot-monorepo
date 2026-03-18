@@ -1,11 +1,12 @@
 "use client";
 
 import { formatEther } from "ethers";
-import { Activity, PlusCircle } from "lucide-react";
+import { Activity, PlusCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import { useMyLoans } from "../hooks/useMyLoans";
+import { usePullToRefresh } from "../hooks/usePullToRefresh";
 import { useWallet } from "../hooks/useWallet";
 import { LOAN_STATE_META, LoanState, type LoanView } from "../lib/loan-types";
 import { EmptyState } from "./EmptyState";
@@ -116,6 +117,15 @@ export function ActiveLoansPage(): JSX.Element {
     [myLoansQuery.data]
   );
 
+  const handleRefresh = useCallback(async () => {
+    await myLoansQuery.refetch();
+  }, [myLoansQuery]);
+
+  const { containerRef, pullDistance, refreshing } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 72,
+  });
+
   if (!isConnected) {
     return (
       <main className="mx-auto max-w-5xl px-4 py-8 md:px-6">
@@ -141,7 +151,24 @@ export function ActiveLoansPage(): JSX.Element {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 md:px-6 animate-content-fade">
+    <main
+      ref={containerRef as React.RefObject<HTMLElement>}
+      className="mx-auto max-w-5xl px-4 py-8 md:px-6 animate-content-fade"
+    >
+      {/* Pull-to-refresh indicator */}
+      {(pullDistance > 0 || refreshing) && (
+        <div
+          className="flex items-center justify-center overflow-hidden transition-all duration-200"
+          style={{ height: Math.min(pullDistance, 72) }}
+        >
+          <RefreshCw
+            size={20}
+            className={`text-primary transition-transform ${refreshing ? "animate-spin" : ""}`}
+            style={{ transform: `rotate(${Math.min(pullDistance, 72) * 3}deg)` }}
+          />
+        </div>
+      )}
+      <div className="hidden">{/* trick to avoid lint unused main */}</div>
       {/* Page header */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
@@ -176,6 +203,7 @@ export function ActiveLoansPage(): JSX.Element {
         </div>
       )}
     </main>
+
   );
 }
 

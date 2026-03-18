@@ -9,8 +9,8 @@ export function CreateLoanPage(): JSX.Element {
   const walletModal = useWalletModal();
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-6 md:px-6 md:py-8">
-      <div className="mb-6">
+    <main className="mx-auto max-w-5xl py-0 md:px-6 md:py-8">
+      <div className="mb-6 px-4 pt-6 md:px-0 md:pt-0">
         <h1 className="page-title">Create New Loan</h1>
         <p className="page-subtitle">
           Configure vaults, amounts, and duration for your bonded flash loan.
