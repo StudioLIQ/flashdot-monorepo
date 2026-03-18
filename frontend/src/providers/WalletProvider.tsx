@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 
-const POLKADOT_HUB_CHAIN_ID_DEC = 420420421;
+const POLKADOT_HUB_CHAIN_ID_DEC = 420420417;
 const POLKADOT_HUB_CHAIN_ID_HEX = `0x${POLKADOT_HUB_CHAIN_ID_DEC.toString(16)}`;
 
 export interface WalletContextValue {
@@ -54,14 +54,14 @@ async function switchToPolkadotHub(ethereum: MetaMaskProvider): Promise<void> {
       params: [
         {
           chainId: POLKADOT_HUB_CHAIN_ID_HEX,
-          chainName: "Polkadot Hub EVM",
+          chainName: "Polkadot Hub TestNet",
           nativeCurrency: {
-            name: "DOT",
-            symbol: "DOT",
+            name: "PAS",
+            symbol: "PAS",
             decimals: 18,
           },
-          rpcUrls: ["https://westend-asset-hub-eth-rpc.polkadot.io"],
-          blockExplorerUrls: ["https://blockscout-asset-hub.parity-chains-scw.parity.io"],
+          rpcUrls: ["https://eth-rpc-testnet.polkadot.io"],
+          blockExplorerUrls: ["https://blockscout-testnet.polkadot.io"],
         },
       ],
     });

@@ -41,7 +41,7 @@ NEXT_PUBLIC_VAULT_B_ADDRESS=0x0000000000000000000000000000000000000000
 node zombienet/scripts/export-frontend-env.mjs
 ```
 
-Westend Asset Hub 배포본을 사용할 경우에는 `frontend/.env.example` 하단의 주석 섹션을 실제 주소로 채우면 됩니다.
+Polkadot Hub TestNet(Paseo) 배포본을 사용할 경우에는 `frontend/.env.example` 하단의 주석 섹션을 실제 주소로 채우면 됩니다.
 
 ## Contracts
 

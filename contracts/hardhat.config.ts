@@ -11,10 +11,10 @@ const networks: NonNullable<HardhatUserConfig["networks"]> = {
     url: "http://127.0.0.1:8545",
     chainId: 31337,
   },
-  // Polkadot Hub testnet (Westend Asset Hub EVM)
+  // Polkadot Hub TestNet (Paseo)
   hubTestnet: {
-    url: process.env["HUB_RPC_URL"] ?? "https://westend-asset-hub-eth-rpc.polkadot.io",
-    chainId: 420420421,
+    url: process.env["HUB_RPC_URL"] ?? "https://eth-rpc-testnet.polkadot.io",
+    chainId: 420420417,
     accounts: sharedAccounts,
   },
 };
@@ -22,7 +22,7 @@ const networks: NonNullable<HardhatUserConfig["networks"]> = {
 if (process.env["VAULT_A_RPC_URL"]) {
   networks["vaultATestnet"] = {
     url: process.env["VAULT_A_RPC_URL"],
-    chainId: Number(process.env["VAULT_A_CHAIN_ID"] ?? "420420421"),
+    chainId: Number(process.env["VAULT_A_CHAIN_ID"] ?? "420420417"),
     accounts: sharedAccounts,
   };
 }
@@ -30,7 +30,7 @@ if (process.env["VAULT_A_RPC_URL"]) {
 if (process.env["VAULT_B_RPC_URL"]) {
   networks["vaultBTestnet"] = {
     url: process.env["VAULT_B_RPC_URL"],
-    chainId: Number(process.env["VAULT_B_CHAIN_ID"] ?? "420420421"),
+    chainId: Number(process.env["VAULT_B_CHAIN_ID"] ?? "420420417"),
     accounts: sharedAccounts,
   };
 }
