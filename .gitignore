@@ -55,3 +55,4 @@ DEPLOY.*.local.md
 contracts/.env.deploy.local
 coordinator/.env.railway.local
 frontend/.env.vercel.local
+.vercel
