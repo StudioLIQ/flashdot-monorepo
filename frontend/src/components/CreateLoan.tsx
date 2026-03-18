@@ -27,6 +27,8 @@ const FEE_BUDGET_A = parseEther("0.05");
 const FEE_BUDGET_B = parseEther("0.05");
 const MOCK_LIQUIDITY_A = "50,000 DOT";
 const MOCK_LIQUIDITY_B = "42,000 DOT";
+const MAX_LIQUIDITY_A = "50000";
+const MAX_LIQUIDITY_B = "42000";
 const INTEREST_LABEL = `${(INTEREST_BPS / 100).toFixed(2)}% (${INTEREST_BPS} bps)`;
 const AMOUNT_PRESETS = ["100", "500", "1000", "5000"] as const;
 const DURATION_PRESETS = ["15", "30", "60", "120"] as const;
@@ -72,6 +74,8 @@ export function CreateLoan(): JSX.Element {
 
   const amountABigint = useMemo(() => toAmount(amountA), [amountA]);
   const amountBBigint = useMemo(() => toAmount(amountB), [amountB]);
+  const isInvalidA = amountA.length > 0 && amountABigint === 0n && amountA !== "0";
+  const isInvalidB = amountB.length > 0 && amountBBigint === 0n && amountB !== "0";
 
   const preview = useBondPreview({
     amountA: amountABigint,
@@ -274,9 +278,30 @@ export function CreateLoan(): JSX.Element {
           <p className="inline-flex items-center gap-2 text-sm font-semibold"><Globe size={14} className="text-info shrink-0" /> Parachain Alpha</p>
           <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_A}</p>
           <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Interest: {INTEREST_LABEL}</p>
-          <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
-            Amount
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 dark:border-white/15 dark:bg-slate-900">
+          <div className="mt-4">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-sm font-semibold">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-info/20 text-[9px] font-bold text-info">DOT</span>
+                DOT
+              </div>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setAmountA(MAX_LIQUIDITY_A)}
+                  className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
+                >
+                  MAX
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAmountA(String(Number(MAX_LIQUIDITY_A) / 2))}
+                  className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
+                >
+                  50%
+                </button>
+              </div>
+            </div>
+            <div className={`flex items-center rounded-xl border bg-white px-4 py-3 dark:bg-slate-900 ${isInvalidA ? "border-danger" : "border-ink/20 dark:border-white/15"}`}>
               <input
                 id="vault-a-amount"
                 type="text"
@@ -285,20 +310,25 @@ export function CreateLoan(): JSX.Element {
                 value={amountA}
                 onChange={(e) => setAmountA(e.target.value)}
                 aria-label="Vault A amount in DOT"
-                className="w-full bg-transparent text-right text-sm outline-none"
+                aria-invalid={isInvalidA}
+                className="w-full bg-transparent font-mono text-2xl font-semibold text-right outline-none"
               />
-              <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
             </div>
-          </label>
-          <div className="mt-2 flex flex-wrap gap-2">
+            {isInvalidA ? (
+              <p className="mt-1 text-xs text-danger">Invalid amount</p>
+            ) : (
+              <p className="mt-1 text-right text-xs text-ink/60 dark:text-white/55">Available: {MOCK_LIQUIDITY_A}</p>
+            )}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {AMOUNT_PRESETS.map((preset) => (
               <button
                 key={`vault-a-${preset}`}
                 type="button"
                 onClick={() => setAmountA(preset)}
-                className={`min-h-9 rounded-lg border px-2.5 py-1 text-xs font-semibold ${amountA === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
+                className={`min-h-8 rounded-lg border px-2 py-1 text-xs font-semibold ${amountA === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
               >
-                {preset} DOT
+                {preset}
               </button>
             ))}
           </div>
@@ -320,9 +350,30 @@ export function CreateLoan(): JSX.Element {
           <p className="inline-flex items-center gap-2 text-sm font-semibold"><Globe size={14} className="text-success shrink-0" /> Parachain Beta</p>
           <p className="mt-2 text-xs text-ink/70 dark:text-white/70">Available: {MOCK_LIQUIDITY_B}</p>
           <p className="mt-1 text-xs text-ink/70 dark:text-white/70">Interest: {INTEREST_LABEL}</p>
-          <label className="mt-4 block text-xs font-semibold uppercase tracking-[0.08em] text-ink/65 dark:text-white/65">
-            Amount
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-ink/20 bg-white px-3 py-2 dark:border-white/15 dark:bg-slate-900">
+          <div className="mt-4">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-sm font-semibold">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-success/20 text-[9px] font-bold text-success">DOT</span>
+                DOT
+              </div>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  onClick={() => setAmountB(MAX_LIQUIDITY_B)}
+                  className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
+                >
+                  MAX
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAmountB(String(Number(MAX_LIQUIDITY_B) / 2))}
+                  className="rounded border border-ink/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"
+                >
+                  50%
+                </button>
+              </div>
+            </div>
+            <div className={`flex items-center rounded-xl border bg-white px-4 py-3 dark:bg-slate-900 ${isInvalidB ? "border-danger" : "border-ink/20 dark:border-white/15"}`}>
               <input
                 id="vault-b-amount"
                 type="text"
@@ -331,20 +382,25 @@ export function CreateLoan(): JSX.Element {
                 value={amountB}
                 onChange={(e) => setAmountB(e.target.value)}
                 aria-label="Vault B amount in DOT"
-                className="w-full bg-transparent text-right text-sm outline-none"
+                aria-invalid={isInvalidB}
+                className="w-full bg-transparent font-mono text-2xl font-semibold text-right outline-none"
               />
-              <span className="text-xs font-semibold text-ink/65 dark:text-white/65">DOT</span>
             </div>
-          </label>
-          <div className="mt-2 flex flex-wrap gap-2">
+            {isInvalidB ? (
+              <p className="mt-1 text-xs text-danger">Invalid amount</p>
+            ) : (
+              <p className="mt-1 text-right text-xs text-ink/60 dark:text-white/55">Available: {MOCK_LIQUIDITY_B}</p>
+            )}
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
             {AMOUNT_PRESETS.map((preset) => (
               <button
                 key={`vault-b-${preset}`}
                 type="button"
                 onClick={() => setAmountB(preset)}
-                className={`min-h-9 rounded-lg border px-2.5 py-1 text-xs font-semibold ${amountB === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
+                className={`min-h-8 rounded-lg border px-2 py-1 text-xs font-semibold ${amountB === preset ? "border-info/50 bg-info/15" : "border-ink/20 hover:bg-ink/5 dark:border-white/20 dark:hover:bg-white/10"}`}
               >
-                {preset} DOT
+                {preset}
               </button>
             ))}
           </div>
