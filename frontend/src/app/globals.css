@@ -30,12 +30,60 @@ select:focus-visible {
   box-shadow: 0 0 0 3px rgba(66, 219, 141, 0.18);
 }
 
+/* ─── FlashDot Design Tokens ─────────────────────────────────────────── */
 :root {
   color-scheme: light;
+
+  /* Surfaces */
+  --fd-bg: #f5fff8;
+  --fd-surface: #ffffff;
+  --fd-surface-alt: rgba(16, 33, 31, 0.04);
+  --fd-surface-overlay: rgba(255, 255, 255, 0.90);
+
+  /* Text */
+  --fd-text: #10211f;
+  --fd-text-2: rgba(16, 33, 31, 0.65);
+  --fd-text-3: rgba(16, 33, 31, 0.50);
+  --fd-text-4: rgba(16, 33, 31, 0.35);
+
+  /* Borders */
+  --fd-border: rgba(16, 33, 31, 0.10);
+  --fd-border-2: rgba(16, 33, 31, 0.18);
+
+  /* Shadows */
+  --fd-shadow-sm: 0 1px 2px rgba(16, 33, 31, 0.06), 0 1px 4px rgba(16, 33, 31, 0.04);
+  --fd-shadow-md: 0 4px 12px rgba(16, 33, 31, 0.10), 0 1px 3px rgba(16, 33, 31, 0.06);
+  --fd-shadow-lg: 0 8px 24px rgba(16, 33, 31, 0.14), 0 2px 6px rgba(16, 33, 31, 0.06);
+  --fd-shadow-xl: 0 16px 48px rgba(16, 33, 31, 0.18), 0 4px 12px rgba(16, 33, 31, 0.08);
+
+  /* Border radius */
+  --fd-radius-sm: 8px;
+  --fd-radius-md: 12px;
+  --fd-radius-lg: 16px;
+  --fd-radius-xl: 20px;
+  --fd-radius-2xl: 24px;
 }
 
 .dark {
   color-scheme: dark;
+
+  --fd-bg: #07110f;
+  --fd-surface: rgba(255, 255, 255, 0.04);
+  --fd-surface-alt: rgba(255, 255, 255, 0.08);
+  --fd-surface-overlay: rgba(10, 20, 18, 0.92);
+
+  --fd-text: #f3fbf8;
+  --fd-text-2: rgba(243, 251, 248, 0.65);
+  --fd-text-3: rgba(243, 251, 248, 0.50);
+  --fd-text-4: rgba(243, 251, 248, 0.35);
+
+  --fd-border: rgba(255, 255, 255, 0.10);
+  --fd-border-2: rgba(255, 255, 255, 0.16);
+
+  --fd-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 4px rgba(0, 0, 0, 0.15);
+  --fd-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.20);
+  --fd-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
+  --fd-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.30);
 }
 
 * {
@@ -216,6 +264,45 @@ body {
 
 .animate-step-ring {
   animation: step-ring 1.8s ease-out infinite;
+}
+
+/* ─── Semantic utility classes (use instead of dark: prefix duplication) ── */
+/* Surface cards */
+.card-surface {
+  background-color: var(--fd-surface);
+  border: 1px solid var(--fd-border);
+}
+.card-surface-alt {
+  background-color: var(--fd-surface-alt);
+  border: 1px solid var(--fd-border);
+}
+/* Text shortcuts */
+.text-token-2 { color: var(--fd-text-2); }
+.text-token-3 { color: var(--fd-text-3); }
+.text-token-4 { color: var(--fd-text-4); }
+/* Border shortcuts */
+.border-token { border-color: var(--fd-border); }
+.border-token-2 { border-color: var(--fd-border-2); }
+
+/* ─── Elevation classes (FE-12) ─────────────────────────────────────── */
+.elevation-0 {
+  box-shadow: none;
+  background-color: var(--fd-bg);
+}
+.elevation-1 {
+  box-shadow: var(--fd-shadow-sm);
+  background-color: var(--fd-surface);
+  border: 1px solid var(--fd-border);
+}
+.elevation-2 {
+  box-shadow: var(--fd-shadow-md);
+  background-color: var(--fd-surface-overlay);
+  border: 1px solid var(--fd-border);
+}
+.elevation-3 {
+  box-shadow: var(--fd-shadow-xl);
+  background-color: var(--fd-surface-overlay);
+  border: 1px solid var(--fd-border);
 }
 
 /* Safe area inset for iOS bottom bar */
