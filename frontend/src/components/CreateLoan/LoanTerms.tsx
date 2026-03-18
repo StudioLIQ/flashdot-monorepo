@@ -155,6 +155,7 @@ export function LoanTerms({
         feeBudgets={preview.feeBudgets}
         hubBuffer={HUB_FEE_BUFFER}
         totalBond={preview.totalBond}
+        targetAmount={preview.targetAmount}
       />
 
       {isGuided ? (
