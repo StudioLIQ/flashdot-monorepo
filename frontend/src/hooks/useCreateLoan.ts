@@ -63,10 +63,10 @@ function humanizeError(rawError: unknown): string {
   if (lower.includes("missing next_public")) {
     return "Contract addresses are missing in frontend environment configuration.";
   }
-  if (lower.includes("switch") || lower.includes("chain")) {
+  if (lower.includes("wallet_switchethereumchain") || lower.includes("unrecognized chain")) {
     return "Switch MetaMask to Polkadot Hub EVM and try again.";
   }
-  return `Transaction failed. ${source}`;
+  return `Transaction failed: ${source}`;
 }
 
 export type TxStage = "wallet" | "pending" | "confirmed" | null;
