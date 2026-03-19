@@ -125,5 +125,5 @@ export function getHubReadContract(): HubReadContract {
     throw new Error("Missing NEXT_PUBLIC_HUB_ADDRESS env var");
   }
 
-  return new Contract(HUB_ADDRESS, HUB_ABI, new JsonRpcProvider(HUB_RPC_URL)) as unknown as HubReadContract;
+  return new Contract(HUB_ADDRESS, HUB_ABI, new JsonRpcProvider(HUB_RPC_URL, HUB_NETWORK)) as unknown as HubReadContract;
 }
