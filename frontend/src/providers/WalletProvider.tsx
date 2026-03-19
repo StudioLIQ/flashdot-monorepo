@@ -8,6 +8,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -75,6 +76,7 @@ export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSwitchingNetwork, setIsSwitchingNetwork] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const disconnectedRef = useRef(false);
 
   const ethereum = useMemo(() => {
     if (typeof window === "undefined") return null;
@@ -82,12 +84,17 @@ export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
   }, []);
 
   const syncWallet = useCallback(async () => {
-    if (!ethereum) return;
+    if (!ethereum || disconnectedRef.current) return;
 
     const provider = new BrowserProvider(ethereum);
     const [network, accounts] = await Promise.all([provider.getNetwork(), provider.listAccounts()]);
+
+    if (disconnectedRef.current) return;
+
     const activeAccount = accounts[0]?.address ?? null;
     const balance = activeAccount ? await provider.getBalance(activeAccount) : null;
+
+    if (disconnectedRef.current) return;
 
     setChainId(Number(network.chainId));
     setAccount(activeAccount);
@@ -107,6 +114,7 @@ export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
       return;
     }
 
+    disconnectedRef.current = false;
     setIsConnecting(true);
     setConnectionError(null);
     try {
@@ -129,7 +137,9 @@ export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
   }, [ethereum, syncWallet]);
 
   const disconnectWallet = useCallback(() => {
+    disconnectedRef.current = true;
     setAccount(null);
+    setChainId(null);
     setBalanceDot(null);
     setConnectionError(null);
   }, []);
@@ -144,10 +154,12 @@ export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
     void syncWallet();
 
     const onAccountsChanged = (accounts: string[]): void => {
+      if (disconnectedRef.current) return;
       setAccount(accounts[0] ?? null);
       void syncWallet();
     };
     const onChainChanged = (hexChainId: string): void => {
+      if (disconnectedRef.current) return;
       setChainId(Number.parseInt(hexChainId, 16));
       void syncWallet();
     };

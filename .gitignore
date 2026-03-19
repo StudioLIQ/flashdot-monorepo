@@ -25,6 +25,7 @@ lib/
 .env.*.local
 coordinator/*.db
 DEPLOY.md
+DEMO.md
 
 # Next.js
 .next/
