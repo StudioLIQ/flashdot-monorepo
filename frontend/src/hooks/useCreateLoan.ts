@@ -1,6 +1,6 @@
 "use client";
 
-import { BrowserProvider, Contract, formatEther, parseEther } from "ethers";
+import { Contract, formatEther, parseEther } from "ethers";
 import { useEffect, useMemo, useState } from "react";
 
 import { useBondPreview } from "./useBondPreview";
@@ -15,6 +15,7 @@ import {
   VAULT_A_ADDRESS,
   VAULT_B_ADDRESS,
   getHubContract,
+  hubBrowserProvider,
 } from "../lib/contracts";
 import { addTxRecord } from "../lib/tx-history";
 import { useToast } from "../providers/ToastProvider";
@@ -149,7 +150,7 @@ export function useCreateLoan(): CreateLoanState {
       try {
         const ethereum = (window as EthereumWindow).ethereum;
         if (!ethereum || !HUB_ADDRESS) return;
-        const provider = new BrowserProvider(ethereum as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+        const provider = hubBrowserProvider(ethereum);
         const signer = await provider.getSigner();
         const hub = new Contract(HUB_ADDRESS, HUB_ABI, signer);
         const durationSec = Math.max(5, Number(durationMinutes) || 60) * 60;

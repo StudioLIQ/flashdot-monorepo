@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract, JsonRpcProvider } from "ethers";
+import { BrowserProvider, Contract, JsonRpcProvider, Network } from "ethers";
 
 export const HUB_ADDRESS = process.env.NEXT_PUBLIC_HUB_ADDRESS ?? "";
 export const ASSET_ADDRESS = process.env.NEXT_PUBLIC_ASSET_ADDRESS ?? "";
@@ -11,6 +11,13 @@ export const EXPLORER_TX_URL = (txHash: string): string =>
 
 export const CHAIN_A = "0x0d9f0f7af3f664e9c8f2f5f7ea2486df6ea7ef170fca0f23b2f0ef96ed5ed6f6";
 export const CHAIN_B = "0xa5ff17ebf09d6f005eb77f137f6f4e911552f0668f31f3e3065fd15f87ea9f70";
+
+const HUB_NETWORK = Network.from({ name: "polkadot-hub-testnet", chainId: 420420417 });
+
+/** BrowserProvider with ENS disabled for Polkadot Hub */
+export function hubBrowserProvider(ethereum: unknown): BrowserProvider {
+  return new BrowserProvider(ethereum as any, HUB_NETWORK); // eslint-disable-line @typescript-eslint/no-explicit-any
+}
 
 export const HUB_ABI = [
   "event LoanCreated(uint256 indexed loanId, address borrower, address asset, uint256 targetAmount, uint256 bondAmount)",
@@ -108,7 +115,7 @@ export async function getHubContract(ethereum: unknown): Promise<HubWriteContrac
     throw new Error("Missing NEXT_PUBLIC_HUB_ADDRESS env var");
   }
 
-  const provider = new BrowserProvider(ethereum as any);
+  const provider = hubBrowserProvider(ethereum);
   const signer = await provider.getSigner();
   return new Contract(HUB_ADDRESS, HUB_ABI, signer) as unknown as HubWriteContract;
 }

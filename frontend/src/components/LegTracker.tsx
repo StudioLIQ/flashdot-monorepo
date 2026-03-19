@@ -1,11 +1,11 @@
 "use client";
 
-import { BrowserProvider, Contract, formatEther } from "ethers";
+import { Contract, formatEther } from "ethers";
 import { useEffect, useMemo, useState } from "react";
 
 import type { LegView } from "../lib/loan-types";
 import { LEG_STEP_META, LegState } from "../lib/loan-types";
-import { EXPLORER_TX_URL, VAULT_ABI, type VaultWriteContract } from "../lib/contracts";
+import { EXPLORER_TX_URL, VAULT_ABI, hubBrowserProvider, type VaultWriteContract } from "../lib/contracts";
 import { addTxRecord } from "../lib/tx-history";
 import { useToast } from "../providers/ToastProvider";
 import { CircularCountdown } from "./CircularCountdown";
@@ -87,7 +87,7 @@ export function LegTracker({ leg, onRepaid }: LegTrackerProps): JSX.Element {
     setRepayError(null);
 
     try {
-      const provider = new BrowserProvider(ethereum as any);
+      const provider = hubBrowserProvider(ethereum);
       const signer = await provider.getSigner();
       const vault = new Contract(leg.vault, VAULT_ABI, signer) as unknown as VaultWriteContract;
 

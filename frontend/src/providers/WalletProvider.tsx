@@ -1,6 +1,7 @@
 "use client";
 
-import { BrowserProvider, Eip1193Provider, formatEther } from "ethers";
+import { Eip1193Provider, formatEther } from "ethers";
+import { hubBrowserProvider } from "../lib/contracts";
 import {
   createContext,
   PropsWithChildren,
@@ -86,7 +87,7 @@ export function WalletProvider({ children }: PropsWithChildren): JSX.Element {
   const syncWallet = useCallback(async () => {
     if (!ethereum || disconnectedRef.current) return;
 
-    const provider = new BrowserProvider(ethereum);
+    const provider = hubBrowserProvider(ethereum);
     const [network, accounts] = await Promise.all([provider.getNetwork(), provider.listAccounts()]);
 
     if (disconnectedRef.current) return;
