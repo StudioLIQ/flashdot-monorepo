@@ -1,4 +1,4 @@
-import { BrowserProvider, Contract, JsonRpcProvider, Network } from "ethers";
+import { BrowserProvider, Contract, getAddress, isAddress, JsonRpcProvider, Network } from "ethers";
 
 export const HUB_ADDRESS = process.env.NEXT_PUBLIC_HUB_ADDRESS ?? "";
 export const ASSET_ADDRESS = process.env.NEXT_PUBLIC_ASSET_ADDRESS ?? "";
@@ -14,9 +14,18 @@ export const CHAIN_B = "0xa5ff17ebf09d6f005eb77f137f6f4e911552f0668f31f3e3065fd1
 
 const HUB_NETWORK = Network.from({ name: "polkadot-hub-testnet", chainId: 420420417 });
 
+/** Polkadot Hub has no ENS — kill resolution so ethers never attempts it */
+function patchNoEns<T extends { resolveName: (name: string) => Promise<string | null> }>(provider: T): T {
+  provider.resolveName = async (name: string): Promise<string | null> => {
+    if (isAddress(name)) return getAddress(name);
+    return null;
+  };
+  return provider;
+}
+
 /** BrowserProvider with ENS disabled for Polkadot Hub */
 export function hubBrowserProvider(ethereum: unknown): BrowserProvider {
-  return new BrowserProvider(ethereum as any, HUB_NETWORK); // eslint-disable-line @typescript-eslint/no-explicit-any
+  return patchNoEns(new BrowserProvider(ethereum as any, HUB_NETWORK)); // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export const HUB_ABI = [
@@ -125,5 +134,5 @@ export function getHubReadContract(): HubReadContract {
     throw new Error("Missing NEXT_PUBLIC_HUB_ADDRESS env var");
   }
 
-  return new Contract(HUB_ADDRESS, HUB_ABI, new JsonRpcProvider(HUB_RPC_URL, HUB_NETWORK)) as unknown as HubReadContract;
+  return new Contract(HUB_ADDRESS, HUB_ABI, patchNoEns(new JsonRpcProvider(HUB_RPC_URL, HUB_NETWORK))) as unknown as HubReadContract;
 }
