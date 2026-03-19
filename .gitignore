@@ -26,6 +26,7 @@ lib/
 coordinator/*.db
 DEPLOY.md
 DEMO.md
+docs/demo-script.md
 
 # Next.js
 .next/
