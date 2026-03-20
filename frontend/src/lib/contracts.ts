@@ -67,6 +67,11 @@ export const VAULT_ABI = [
   "function repay(uint256 loanId, uint256 amount)",
 ] as const;
 
+export const ERC20_ABI = [
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+] as const;
+
 export interface HubLoanRecord {
   borrower: string;
   asset: string;

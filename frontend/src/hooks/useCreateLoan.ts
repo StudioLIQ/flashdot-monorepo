@@ -8,6 +8,7 @@ import { useWallet } from "./useWallet";
 import {
   ASSET_ADDRESS,
   CHAIN_A,
+  ERC20_ABI,
   CHAIN_B,
   EXPLORER_TX_URL,
   HUB_ABI,
@@ -66,6 +67,9 @@ function humanizeError(rawError: unknown): string {
   }
   if (lower.includes("wallet_switchethereumchain") || lower.includes("unrecognized chain")) {
     return "Switch MetaMask to Polkadot Hub EVM and try again.";
+  }
+  if (lower.includes("erc20insufficientallowance") || lower.includes("0xfb8f41b2")) {
+    return "Allowance is too low for bond locking. Approve the asset token for FlashDot Hub and retry.";
   }
   return `Transaction failed: ${source}`;
 }
@@ -200,12 +204,29 @@ export function useCreateLoan(): CreateLoanState {
     setCreatedLoanId(null);
     setCreatedTxHash(null);
     try {
+      if (!ethereum) throw new Error("MetaMask provider not found");
+      const provider = hubBrowserProvider(ethereum);
+      const signer = await provider.getSigner();
       const hub = await getHubContract(ethereum);
+      const token = new Contract(ASSET_ADDRESS, ERC20_ABI, signer);
+      const walletAddress = await signer.getAddress();
       const durationSec = Math.max(5, Number(durationMinutes) || 60) * 60;
       const expiryAt = Math.floor(Date.now() / 1000) + durationSec;
       const legs: Array<{ chain: string; vault: string; amount: bigint; feeBudget: bigint; legInterestBps: number }> = [];
       if (includeA) legs.push({ chain: CHAIN_A, vault: VAULT_A_ADDRESS, amount: amountABigint, feeBudget: FEE_BUDGET_A, legInterestBps: INTEREST_BPS });
       if (includeB) legs.push({ chain: CHAIN_B, vault: VAULT_B_ADDRESS, amount: amountBBigint, feeBudget: FEE_BUDGET_B, legInterestBps: INTEREST_BPS });
+
+      // createLoan uses transferFrom(msg.sender, hub, bondRequired), so allowance must exist first.
+      const allowance = await (token as any).allowance(walletAddress, HUB_ADDRESS) as bigint; // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      if (allowance < preview.totalBond) {
+        setMessage("Approve asset spending first (one-time or when allowance is low).");
+        const approveTx = await (token as any).approve(HUB_ADDRESS, preview.totalBond); // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        setTxStage("pending");
+        await approveTx.wait();
+        setTxStage("wallet");
+        setMessage("Approval confirmed. Please confirm Create Loan transaction.");
+      }
+
       const params = { asset: ASSET_ADDRESS, targetAmount: preview.targetAmount, interestBps: INTEREST_BPS, expiryAt };
       const tx = await hub.createLoan(params, legs);
       setTxStage("pending");

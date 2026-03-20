@@ -156,7 +156,7 @@ export function ReviewConfirm({
             Waiting for confirmation in MetaMask...
           </p>
           <p className="mt-1 text-ink/70 dark:text-white/70">
-            Review and approve the bond lock transaction in your wallet.
+            If needed, MetaMask will ask for token approval first, then bond lock.
           </p>
         </div>
       ) : null}
