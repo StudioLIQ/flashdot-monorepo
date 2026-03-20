@@ -1,12 +1,12 @@
 import { BrowserProvider, Contract, EnsResolver, getAddress, isAddress, JsonRpcProvider, Network } from "ethers";
 import type { Eip1193Provider } from "ethers";
 
-export const HUB_ADDRESS = process.env.NEXT_PUBLIC_HUB_ADDRESS ?? "";
-export const ASSET_ADDRESS = process.env.NEXT_PUBLIC_ASSET_ADDRESS ?? "";
-export const VAULT_A_ADDRESS = process.env.NEXT_PUBLIC_VAULT_A_ADDRESS ?? "";
-export const VAULT_B_ADDRESS = process.env.NEXT_PUBLIC_VAULT_B_ADDRESS ?? "";
+export const HUB_ADDRESS = (process.env.NEXT_PUBLIC_HUB_ADDRESS ?? "").trim();
+export const ASSET_ADDRESS = (process.env.NEXT_PUBLIC_ASSET_ADDRESS ?? "").trim();
+export const VAULT_A_ADDRESS = (process.env.NEXT_PUBLIC_VAULT_A_ADDRESS ?? "").trim();
+export const VAULT_B_ADDRESS = (process.env.NEXT_PUBLIC_VAULT_B_ADDRESS ?? "").trim();
 export const HUB_RPC_URL =
-  process.env.NEXT_PUBLIC_HUB_RPC_URL ?? "https://eth-rpc-testnet.polkadot.io";
+  (process.env.NEXT_PUBLIC_HUB_RPC_URL ?? "https://eth-rpc-testnet.polkadot.io").trim();
 export const EXPLORER_TX_URL = (txHash: string): string =>
   `https://blockscout-testnet.polkadot.io/tx/${txHash}`;
 
