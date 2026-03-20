@@ -71,6 +71,9 @@ function humanizeError(rawError: unknown): string {
   if (lower.includes("erc20insufficientallowance") || lower.includes("0xfb8f41b2")) {
     return "Allowance is too low for bond locking. Approve the asset token for FlashDot Hub and retry.";
   }
+  if (lower.includes("erc20insufficientbalance") || lower.includes("0xe450d38c")) {
+    return "Asset token balance is too low to lock this bond. Get more wDOT, then retry.";
+  }
   return `Transaction failed: ${source}`;
 }
 
@@ -215,6 +218,11 @@ export function useCreateLoan(): CreateLoanState {
       const legs: Array<{ chain: string; vault: string; amount: bigint; feeBudget: bigint; legInterestBps: number }> = [];
       if (includeA) legs.push({ chain: CHAIN_A, vault: VAULT_A_ADDRESS, amount: amountABigint, feeBudget: FEE_BUDGET_A, legInterestBps: INTEREST_BPS });
       if (includeB) legs.push({ chain: CHAIN_B, vault: VAULT_B_ADDRESS, amount: amountBBigint, feeBudget: FEE_BUDGET_B, legInterestBps: INTEREST_BPS });
+
+      const tokenBalance = await (token as any).balanceOf(walletAddress) as bigint; // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+      if (tokenBalance < preview.totalBond) {
+        throw new Error(`ERC20InsufficientBalance(balance=${tokenBalance.toString()}, needed=${preview.totalBond.toString()})`);
+      }
 
       // createLoan uses transferFrom(msg.sender, hub, bondRequired), so allowance must exist first.
       const allowance = await (token as any).allowance(walletAddress, HUB_ADDRESS) as bigint; // eslint-disable-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
